@@ -134,7 +134,7 @@ export default function Navbar() {
         </div>
         {/* Right side */}
         <div className="flex items-center gap-2">
-          <ModeToggle />
+          {/* <ModeToggle /> */}
           {data?.data?.email && (
             <Button
               onClick={handleLogout}

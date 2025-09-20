@@ -2,14 +2,11 @@ import App from "@/App";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { role } from "@/constants/role";
 import About from "@/pages/About";
-import Booking from "@/pages/Booking";
 import Homepage from "@/pages/Homepage";
 import Login from "@/pages/Login";
 import Fail from "@/pages/Payment/Fail";
 import Success from "@/pages/Payment/Success";
 import Register from "@/pages/Reqister";
-import Tours from "@/pages/Tour";
-import TourDetails from "@/pages/TourDetails";
 import Unauthorized from "@/pages/Unauthorized";
 import Verify from "@/pages/Verify";
 import type { TRole } from "@/types";
@@ -18,6 +15,7 @@ import { withAuth } from "@/utils/withAuth";
 import { createBrowserRouter, Navigate } from "react-router";
 import { adminSidebarItems } from "./adminSidebarItems";
 import { userSidebarItems } from "./userSidebarItems";
+;
 
 
 
@@ -34,18 +32,18 @@ export const router = createBrowserRouter([
                 Component: About,
                 path: "about",
             },
-            {
-                Component: Tours,
-                path: "tours",
-            },
-            {
-                Component: TourDetails,
-                path: "tours/:id",
-            },
-            {
-                Component: withAuth(Booking),
-                path: "booking/:id",
-            },
+            // {
+            //     Component: Tours,
+            //     path: "tours",
+            // },
+            // {
+            //     Component: TourDetails,
+            //     path: "tours/:id",
+            // },
+            // {
+            //     Component: withAuth(Booking),
+            //     path: "booking/:id",
+            // },
         ]
     },
     {
