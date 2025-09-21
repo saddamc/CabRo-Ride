@@ -47,6 +47,8 @@ export function RegisterForm({
       password: data.password,
     }
 
+    console.log("userInfo", userInfo)
+
     try {
       const result = await register(userInfo).unwrap();
       console.log(result);
@@ -71,8 +73,10 @@ export function RegisterForm({
       </div>
 
       <div className="grid gap-6">
+        {/* React Hook Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Name Field - 1 */}
             <FormField
             control={form.control}
             name="name"
@@ -80,7 +84,7 @@ export function RegisterForm({
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" type="name" {...field} />
+                  <Input autoComplete="name" placeholder="John Doe" type="name" {...field} />
                 </FormControl>
                 <FormDescription className="sr-only">
                   This is your public display name.
@@ -88,7 +92,8 @@ export function RegisterForm({
                 <FormMessage />
               </FormItem>
             )}
-          />
+            />
+             {/* Email Field - 2 */}
             <FormField
             control={form.control}
             name="email"
@@ -96,7 +101,7 @@ export function RegisterForm({
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="jhon.doe@company.com" type="email" {...field} />
+                  <Input autoComplete="email" placeholder="jhon.doe@company.com" type="email" {...field} />
                 </FormControl>
                 <FormDescription className="sr-only">
                   This is your Email address.
@@ -104,7 +109,8 @@ export function RegisterForm({
                 <FormMessage />
               </FormItem>
             )}
-          />
+            />
+            {/* Password Field - 3 */}
             <FormField
             control={form.control}
             name="password"
@@ -112,7 +118,7 @@ export function RegisterForm({
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Password {...field} />
+                  <Password type="password" {...field} autoComplete="new-password" />
                 </FormControl>
                 <FormDescription className="sr-only">
                   This is your password.
@@ -120,7 +126,8 @@ export function RegisterForm({
                 <FormMessage />
               </FormItem>
             )}
-          />
+            />
+            {/* Confirm Password Field - 4 */}
             <FormField
             control={form.control}
             name="confirmPassword"
@@ -128,7 +135,7 @@ export function RegisterForm({
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Password {...field} />
+                  <Password type="password" {...field} autoComplete="new-password" />
                 </FormControl>
                 <FormDescription className="sr-only">
                   This is your confirm password.

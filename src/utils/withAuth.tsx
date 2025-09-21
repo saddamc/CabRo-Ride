@@ -16,7 +16,7 @@ export const withAuth = (Component: ComponentType, requiredRole?: TRole) => {
         }
         
         
-        // console.log("Inside withAuth", data)
+        console.log("Inside withAuth", data)
         return <Component />;
     }
 }

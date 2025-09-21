@@ -3,6 +3,7 @@ import TravelLogin from "@/assets/images/travel-login.jpg";
 import { LoginForm } from "@/components/modules/Authentication/LoginForm";
 import { Link } from "react-router";
 
+
 export default function Login() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">

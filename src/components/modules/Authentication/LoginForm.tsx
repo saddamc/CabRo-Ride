@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import config from "@/config";
 import { cn } from "@/lib/utils";
+import { baseApi } from "@/redux/baseApi";
 import { useLoginMutation } from "@/redux/features/auth/auth.api";
 import { useForm, type FieldValues, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
@@ -25,29 +26,46 @@ export function LoginForm({
   const form = useForm();
 
   const [login] = useLoginMutation();
+  
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
       const res = await login(data).unwrap();
-      // console.log(res);
+      // console.log("login:✅",res);
       if (res.success) {
         toast.success("Logged in successfully");
-        navigate("/");
-      }
-    } catch (err: any) {
-      console.error(err);
+         baseApi.util.updateQueryData("UserInfo", undefined, (draft) => {
+        Object.assign(draft, res.data.user);
+      });
 
-
-      // this is not recommended
-        if (err.data.message === "Password does not match") {
-        toast.error("Invalid credentials")
-      }
-
-      if (err.data.message === "User is not verified") {
-        toast.error("Your account is not verified");
-        navigate("/verify", { state: data.email });
-      }    
+      navigate("/");
     }
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+  
+
+
+
+
+  //       navigate("/");
+  //     }
+  //   } catch (err: any) {
+  //     console.error(err);
+
+
+  //     // this is not recommended
+  //       if (err.data.message === "Password does not match") {
+  //       toast.error("Invalid credentials")
+  //     }
+
+  //     if (err.data.message === "User is not verified") {
+  //       toast.error("Your account is not verified");
+  //       navigate("/verify", { state: data.email });
+  //     }    
+  //   }
+  // };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -67,7 +85,7 @@ export function LoginForm({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input
+                    <Input autoComplete="email"
                       placeholder="john@example.com"
                       {...field}
                       value={field.value || ""}
@@ -89,6 +107,7 @@ export function LoginForm({
                       type="password"
                       placeholder="********"
                       {...field}
+                      autoComplete="current-password"
                       value={field.value || ""}
                     />
                   </FormControl>

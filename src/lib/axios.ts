@@ -13,14 +13,14 @@ export const axiosInstance = axios.create({
 // Add a request interceptor
 axiosInstance.interceptors.request.use(function (config) {
   // Do something before request is sent
-  // console.log("Axios:",config)  //
+  console.log("Axios:",config)  // login data received
     return config;
   }, function (error) {
     // Do something with request error
     return Promise.reject(error);
   },
 );
-// // ✅ step-3 for save accessToken for new token
+// ✅ step-3 for save accessToken for new token
 // let isRefreshing = false;
 
 // let pendingQuene: {
@@ -45,7 +45,7 @@ axiosInstance.interceptors.request.use(function (config) {
 axiosInstance.interceptors.response.use(function onFulfilled(response) {
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data
-    // console.log("Axios:",response)  //
+    console.log("Axios:",response)  // login data received
     return response;
   }, function onRejected(error) {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
@@ -53,6 +53,13 @@ axiosInstance.interceptors.response.use(function onFulfilled(response) {
     return Promise.reject(error);
 });
   
+
+
+
+
+
+
+// ! Full implement for refresh token
 // //✅ step-1, new toke Generate
 // axiosInstance.interceptors.response.use(
 //   (response) => { 
@@ -109,3 +116,9 @@ axiosInstance.interceptors.response.use(function onFulfilled(response) {
 //     return Promise.reject(error);
 //   }
 // )
+
+
+
+
+
+
