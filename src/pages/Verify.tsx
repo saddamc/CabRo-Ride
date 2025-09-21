@@ -32,7 +32,7 @@ const Verify = () => {
     const [confirmed, setConfirmed] = useState(false);
     const [sendOtp] = useSendOtpMutation();
     const [verifyOtp] = useVerifyOtpMutation();
-    const [timer, setTimer] = useState(5)
+    const [timer, setTimer] = useState(6)
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -60,6 +60,7 @@ const Verify = () => {
     }
 
     const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+        console.log("data✅:", data)
         const toastId = toast.loading("Verifying OTP")
         const userInfo = {
             email, 
@@ -67,6 +68,7 @@ const Verify = () => {
         }
         try {
             const res = await verifyOtp(userInfo).unwrap();
+            console.log("res✅:", res)
             if (res.success) {
                 toast.success("OTP Verified", { id: toastId})
                 setConfirmed(true) 
@@ -99,10 +101,11 @@ const Verify = () => {
         return () => clearInterval(timerId)
     }, [email, confirmed])
 
+
+
     return (
         <div className="grid place-content-center h-screen">
-        {/* opt confirm */}
-        {confirmed ? (
+
             <Card>
             <CardHeader>
                 <CardTitle className="text-xl">
@@ -176,6 +179,9 @@ const Verify = () => {
                 </Button>
             </CardFooter>
             </Card>
+        {/* opt confirm */}
+        {/* {confirmed ? (
+            
         ) : (
             <Card>
             <CardHeader>
@@ -192,7 +198,7 @@ const Verify = () => {
                 <Button onClick={handleSendOtp} className="w-[360px]"> Confirm </Button>
             </CardFooter>
             </Card>
-        )}
+        )} */}
         </div>
     );
 };

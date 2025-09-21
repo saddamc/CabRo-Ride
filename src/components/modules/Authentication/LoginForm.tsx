@@ -11,7 +11,6 @@ import {
 import { Input } from "@/components/ui/input";
 import config from "@/config";
 import { cn } from "@/lib/utils";
-import { baseApi } from "@/redux/baseApi";
 import { useLoginMutation } from "@/redux/features/auth/auth.api";
 import { useForm, type FieldValues, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
@@ -33,9 +32,9 @@ export function LoginForm({
       // console.log("login:✅",res);
       if (res.success) {
         toast.success("Logged in successfully");
-         baseApi.util.updateQueryData("UserInfo", undefined, (draft) => {
-        Object.assign(draft, res.data.user);
-      });
+      //    baseApi.util.updateQueryData("UserInfo", undefined, (draft) => {
+      //   Object.assign(draft, res.data.user);
+      // });
 
       navigate("/");
     }
