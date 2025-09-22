@@ -134,7 +134,6 @@ const Verify = () => {
               {isVerified && (
                 <p className="mt-2 text-green-600 font-medium">
                   Your account has been verified successfully.
-                  Redirecting to homepage...
                 </p>
               )}
             </CardDescription>

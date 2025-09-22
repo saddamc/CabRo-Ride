@@ -3,11 +3,15 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import GoogleCallback from "@/components/modules/Authentication/GoogleCallback";
 import { role } from "@/constants/role";
 import About from "@/pages/About";
-import Homepage from "@/pages/Homepage";
+import Contact from "@/pages/Contact";
+import FAQ from "@/pages/FAQ";
+import Features from "@/pages/Features";
+import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Fail from "@/pages/Payment/Fail";
 import Success from "@/pages/Payment/Success";
-import Register from "@/pages/Reqister";
+import Profile from "@/pages/Profile";
+import Register from "@/pages/Register";
 import Unauthorized from "@/pages/Unauthorized";
 import Verify from "@/pages/Verify";
 import type { TRole } from "@/types";
@@ -27,12 +31,24 @@ export const router = createBrowserRouter([
         children: [
             {
                 // Revert to the original approach for now to get things working
-                Component: Homepage,
+                Component: Home,
                 index: true,
             },
             {
                 Component: About,
                 path: "about",
+            },
+            {
+                Component: Features,
+                path: "features",
+            },
+            {
+                Component: Contact,
+                path: "contact",
+            },
+            {
+                Component: FAQ,
+                path: "faq",
             },
             // {
             //     Component: Tours,
@@ -65,6 +81,10 @@ export const router = createBrowserRouter([
     {
         Component: Register,
         path: "/register",
+    },
+    {
+        Component: Profile,
+        path: "/profile",
     },
     {
         Component: Verify,
