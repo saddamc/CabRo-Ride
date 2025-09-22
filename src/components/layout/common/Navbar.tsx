@@ -1,178 +1,84 @@
-import Logo from "@/assets/icons/Logo";
-import { Button } from "@/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { role } from "@/constants/role";
-import {
-  authApi,
-  useLogoutMutation,
-  useUserInfoQuery,
-} from "@/redux/features/auth/auth.api";
-import { useAppDispatch } from "@/redux/hook";
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-
-// Navigation links array to be used in both desktop and mobile menus
-const navigationLinks = [
-  { href: "/", label: "Home", role: "PUBLIC" },
-  { href: "/about", label: "About", role: "PUBLIC" },
-  { href: "/tours", label: "Tours", role: "PUBLIC" },
-  { href: "/admin", label: "Dashboard", role: role.admin },
-  { href: "/admin", label: "Dashboard", role: role.superAdmin },
-  { href: "/user", label: "Dashboard", role: role.user },
-];
+// Cabro-bolt complete navbar design with functional theme toggling
+import { useTheme } from '@/hooks/use-theme';
+import { Car, ChevronDown, Moon, Sun, User, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
-  const { data, isLoading } = useUserInfoQuery(undefined);
-  const [logout] = useLogoutMutation();
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
-  // Check if user is verified and redirect if needed
-  useEffect(() => {
-    // Only redirect if:
-    // 1. Data has loaded
-    // 2. User is logged in
-    // 3. User is not verified
-    // 4. User is not already on verify page
-    if (!isLoading && 
-        data?.data?.email && 
-        !data.data.isVerified && 
-        !window.location.pathname.includes('/verify')) {
-      navigate('/verify');
+  const toggleTheme = () => {
+    if (theme === 'dark') {
+      setTheme('light');
+    } else {
+      setTheme('dark');
     }
-  }, [data, isLoading, navigate]);
-
-  const handleLogout = async () => {
-    await logout(undefined);
-    dispatch(authApi.util.resetApiState());
   };
 
-  const isAuthenticated = !isLoading && data?.data?.email;
-  const isVerified = !isLoading && data?.data?.isVerified;
-  const userRole = data?.data?.role;
-
   return (
-    <header className="border-b">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-4">
-        {/* Left side */}
-        <div className="flex items-center gap-2">
-          {/* Mobile menu trigger */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className="group size-8 md:hidden"
-                variant="ghost"
-                size="icon"
-              >
-                <svg
-                  className="pointer-events-none"
-                  width={16}
-                  height={16}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M4 12L20 12"
-                    className="origin-center -translate-y-[7px] transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)] group-aria-expanded:translate-x-0 group-aria-expanded:translate-y-0 group-aria-expanded:rotate-[315deg]"
-                  />
-                  <path
-                    d="M4 12H20"
-                    className="origin-center transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.8)] group-aria-expanded:rotate-45"
-                  />
-                  <path
-                    d="M4 12H20"
-                    className="origin-center translate-y-[7px] transition-all duration-300 ease-[cubic-bezier(.5,.85,.25,1.1)] group-aria-expanded:translate-y-0 group-aria-expanded:rotate-[135deg]"
-                  />
-                </svg>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-36 p-1 md:hidden">
-              <NavigationMenu className="max-w-none *:w-full">
-                <NavigationMenuList className="flex-col items-start gap-0 md:gap-2">
-                  {navigationLinks.map((link, index) => {
-                    // Only show PUBLIC links or links matching user's role if verified
-                    if (link.role === "PUBLIC" || (isVerified && link.role === userRole)) {
-                      return (
-                        <NavigationMenuItem key={index} className="w-full">
-                          <NavigationMenuLink asChild className="py-1.5">
-                            <Link to={link.href}>{link.label} </Link>
-                          </NavigationMenuLink>
-                        </NavigationMenuItem>
-                      );
-                    }
-                    return null;
-                  })}
-                </NavigationMenuList>
-              </NavigationMenu>
-            </PopoverContent>
-          </Popover>
-          {/* Main nav */}
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-primary hover:text-primary/90">
-              <Logo />
-            </a>
-            {/* Navigation menu */}
-            <NavigationMenu className="max-md:hidden">
-              <NavigationMenuList className="gap-2">
-                {navigationLinks.map((link, index) => {
-                  // Only show PUBLIC links or links matching user's role if verified
-                  if (link.role === "PUBLIC" || (isVerified && link.role === userRole)) {
-                    return (
-                      <NavigationMenuItem key={index}>
-                        <NavigationMenuLink
-                          asChild
-                          className="text-muted-foreground hover:text-primary py-1.5 font-medium"
-                        >
-                          <Link to={link.href}>{link.label}</Link>
-                        </NavigationMenuLink>
-                      </NavigationMenuItem>
-                    );
-                  }
-                  return null;
-                })}
-              </NavigationMenuList>
-            </NavigationMenu>
+    <nav className="bg-white border-b border-gray-100 dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-50">
+      <div className="container px-4 py-3 mx-auto">
+        <div className="flex items-center justify-between">
+          {/* Left: Logo */}
+          <Link to="/" className="flex items-center space-x-2 text-xl font-bold">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
+              <Car className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-gray-900 dark:text-white">Cabro</span>
+          </Link>
+
+          {/* Center: Navigation links */}
+          <div className="hidden md:flex items-center space-x-6">
+            <Link to="/" className="text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300 dark:hover:text-white transition-colors">Home</Link>
+            <Link to="/about" className="text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300 dark:hover:text-white transition-colors">About</Link>
+            <Link to="/features" className="text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300 dark:hover:text-white transition-colors">Features</Link>
+            <Link to="/contact" className="text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300 dark:hover:text-white transition-colors">Contact</Link>
+            <Link to="/faq" className="text-sm font-medium text-gray-700 hover:text-primary dark:text-gray-300 dark:hover:text-white transition-colors">FAQ</Link>
+          </div>
+
+          {/* Right: Auth, theme, role switch */}
+          <div className="flex items-center space-x-2">
+            <Link to="/login" className="px-4 py-2 text-sm font-medium text-white rounded-md bg-primary hover:bg-primary/90 transition-colors">Login</Link>
+            <Link to="/register" className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Register</Link>
+
+            {/* Theme button - shows correct icon based on current theme */}
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" 
+              aria-label="Toggle theme"
+            >
+              <div className="relative">
+                <Sun className={`w-5 h-5 text-yellow-500 transition-opacity ${theme === 'dark' ? 'opacity-0' : 'opacity-100'}`} />
+                <Moon className={`w-5 h-5 text-blue-300 absolute top-0 left-0 transition-opacity ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}`} />
+              </div>
+            </button>
+
+            {/* Switch Role dropdown (full menu) */}
+            <div className="relative group">
+              <button className="flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <Users className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
+                Switch Role
+                <ChevronDown className="ml-2 w-3 h-3 text-gray-600 dark:text-gray-400" />
+              </button>
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
+                <div className="py-2">
+                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center">
+                    <User className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
+                    <span>User</span>
+                  </button>
+                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center">
+                    <Users className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
+                    <span>Admin</span>
+                  </button>
+                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center">
+                    <Users className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
+                    <span>Super Admin</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        {/* Right side */}
-        <div className="flex items-center gap-2">
-          {isAuthenticated ? (
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="text-sm"
-            >
-              Logout
-            </Button>
-          ) : (
-            <Button asChild className="text-sm">
-              <Link to="/login">Login</Link>
-            </Button>
-          )}
-          
-          {/* Display verification status if needed for debugging */}
-          {isAuthenticated && !isVerified && (
-            <Button asChild variant="outline" className="text-sm bg-yellow-100">
-              <Link to="/verify">Verify Account</Link>
-            </Button>
-          )}
-        </div>
       </div>
-    </header>
+    </nav>
   );
 }

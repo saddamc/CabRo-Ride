@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, Check, ChevronRight, Clock, MapPin, Play, Shield, Star, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import BackendConnectionTest from '@/components/BackendConnectionTest';
 
 const Home = () => {
   const features = [
@@ -154,7 +153,7 @@ const Home = () => {
       </section>
 
       {/* Backend Connection Test */}
-      <section className="py-10 bg-muted/50">
+      {/* <section className="py-10 bg-muted/50">
         <div className="container px-4 mx-auto">
           <div className="mb-8 text-center">
             <h2 className="mb-2 text-2xl font-bold">Backend Connection Test</h2>
@@ -162,7 +161,7 @@ const Home = () => {
           </div>
           <BackendConnectionTest />
         </div>
-      </section>
+      </section> */}
 
       {/* How It Works */}
       <section className="py-20 bg-muted/30">

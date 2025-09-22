@@ -2,17 +2,18 @@
  
 import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useLoginMutation } from "@/redux/features/auth/auth.api";
 import { initiateGoogleLogin } from "@/utils/googleAuth";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm, type FieldValues, type SubmitHandler } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -25,10 +26,12 @@ export function LoginForm({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const navigate = useNavigate();
   const form = useForm();
+  const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [login] = useLoginMutation();
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+    setIsLoading(true);
     try {
       const res = await login(data).unwrap();
       
@@ -59,6 +62,8 @@ export function LoginForm({
       } else {
         toast.error(err.data?.message || "Login failed");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,9 +77,9 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Login to your account</h1>
-        <p className="text-balance text-sm text-muted-foreground">
-          Enter your email below to login to your account
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome Back</h1>
+        <p className="text-balance text-sm text-gray-600 dark:text-gray-400">
+          Enter your credentials to access your account
         </p>
       </div>
       <div className="grid gap-6">
@@ -85,10 +90,12 @@ export function LoginForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-gray-700 dark:text-gray-300">Email</FormLabel>
                   <FormControl>
-                    <Input autoComplete="email"
+                    <Input 
+                      autoComplete="email"
                       placeholder="john@example.com"
+                      className="focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700"
                       {...field}
                       value={field.value || ""}
                     />
@@ -103,11 +110,17 @@ export function LoginForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-gray-700 dark:text-gray-300">Password</FormLabel>
+                    <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
                   <FormControl>
                     <Input
                       type="password"
                       placeholder="********"
+                      className="focus:border-primary focus:ring-primary dark:bg-gray-800 dark:border-gray-700"
                       {...field}
                       autoComplete="current-password"
                       value={field.value || ""}
@@ -118,33 +131,49 @@ export function LoginForm({
               )}
             />
 
-            <Button type="submit" className="w-full">
-              Login
+            <Button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary/90 transition-colors"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
         </Form>
 
-        <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-          <span className="relative z-10 bg-background px-2 text-muted-foreground">
+        <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-gray-200 dark:after:border-gray-700">
+          <span className="relative z-10 bg-white dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-400">
             Or continue with
           </span>
         </div>
-
-        {/* http://localhost:5000/api/v1/auth/google */}
 
         <Button
           onClick={handleGoogleLogin}
           type="button"
           variant="outline"
-          className="w-full cursor-pointer"
+          className="w-full cursor-pointer border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
           disabled={isGoogleLoading}
         >
-          {isGoogleLoading ? "Redirecting..." : "Login with Google"}
+          {isGoogleLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Redirecting...
+            </>
+          ) : (
+            "Login with Google"
+          )}
         </Button>
       </div>
-      <div className="text-center text-sm">
+      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         Don&apos;t have an account?{" "}
-        <Link to="/register" replace className="underline underline-offset-4">
+        <Link to="/register" replace className="font-medium text-primary hover:underline">
           Register
         </Link>
       </div>
