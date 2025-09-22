@@ -1,5 +1,6 @@
 import App from "@/App";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import GoogleCallback from "@/components/modules/Authentication/GoogleCallback";
 import { role } from "@/constants/role";
 import About from "@/pages/About";
 import Homepage from "@/pages/Homepage";
@@ -12,7 +13,7 @@ import Verify from "@/pages/Verify";
 import type { TRole } from "@/types";
 import generateRoutes from "@/utils/generateRoutes";
 import { withAuth } from "@/utils/withAuth";
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { adminSidebarItems } from "./adminSidebarItems";
 import { userSidebarItems } from "./userSidebarItems";
 ;
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
         path: "/",
         children: [
             {
+                // Revert to the original approach for now to get things working
                 Component: Homepage,
                 index: true,
             },
@@ -79,6 +81,10 @@ export const router = createBrowserRouter([
     {
         Component: Fail,
         path: "/payment/fail",
+    },
+    {
+        Component: GoogleCallback,
+        path: "/auth/google/callback",
     },
 
 ])

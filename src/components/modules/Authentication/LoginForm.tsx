@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
  
 import { Button } from "@/components/ui/button";
 import {
@@ -9,11 +10,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import config from "@/config";
 import { cn } from "@/lib/utils";
 import { useLoginMutation } from "@/redux/features/auth/auth.api";
+import { initiateGoogleLogin } from "@/utils/googleAuth";
+import { useState } from "react";
 import { useForm, type FieldValues, type SubmitHandler } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 
@@ -23,48 +25,49 @@ export function LoginForm({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const navigate = useNavigate();
   const form = useForm();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const [login] = useLoginMutation();
-  
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     try {
       const res = await login(data).unwrap();
-      // console.log("login:✅",res);
+      
       if (res.success) {
-        toast.success("Logged in successfully");
-      //    baseApi.util.updateQueryData("UserInfo", undefined, (draft) => {
-      //   Object.assign(draft, res.data.user);
-      // });
+        // Check for redirection based on verification status
+        if (res.data.user && !res.data.user.isVerified) {
+          toast.info("Your account needs verification");
+          navigate("/verify", { state: data.email });
+        } else {
+          toast.success("Logged in successfully");
+          
+          // Check if there's a specific redirect path in the response
+          if (res.data.redirectTo) {
+            navigate(res.data.redirectTo);
+          } else {
+            navigate("/");
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
 
-      navigate("/");
+      if (err.data?.message === "Password does not match") {
+        toast.error("Invalid credentials");
+      } else if (err.data?.message === "User is not verified") {
+        toast.error("Your account is not verified");
+        navigate("/verify", { state: data.email });
+      } else {
+        toast.error(err.data?.message || "Login failed");
+      }
     }
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
-  
+  const handleGoogleLogin = () => {
+    setIsGoogleLoading(true);
+    initiateGoogleLogin();
+    // No need to reset loading state as we're navigating away
+  };
 
-
-
-
-  //       navigate("/");
-  //     }
-  //   } catch (err: any) {
-  //     console.error(err);
-
-
-  //     // this is not recommended
-  //       if (err.data.message === "Password does not match") {
-  //       toast.error("Invalid credentials")
-  //     }
-
-  //     if (err.data.message === "User is not verified") {
-  //       toast.error("Your account is not verified");
-  //       navigate("/verify", { state: data.email });
-  //     }    
-  //   }
-  // };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -130,15 +133,13 @@ export function LoginForm({
         {/* http://localhost:5000/api/v1/auth/google */}
 
         <Button
-          // onClick={() => window.open(`${config.baseUrl}/auth/google`)}
-          onClick={() => {
-            window.location.href = `${config.baseUrl}/auth/google`;
-          }}
+          onClick={handleGoogleLogin}
           type="button"
           variant="outline"
           className="w-full cursor-pointer"
+          disabled={isGoogleLoading}
         >
-          Login with Google
+          {isGoogleLoading ? "Redirecting..." : "Login with Google"}
         </Button>
       </div>
       <div className="text-center text-sm">

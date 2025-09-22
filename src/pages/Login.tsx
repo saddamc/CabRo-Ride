@@ -1,7 +1,7 @@
 import Logo from "@/assets/icons/Logo";
 import TravelLogin from "@/assets/images/travel-login.jpg";
 import { LoginForm } from "@/components/modules/Authentication/LoginForm";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 
 export default function Login() {

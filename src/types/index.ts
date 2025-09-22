@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ComponentType } from 'react';
 
 export type { ILogin, ISendOtp, IVerifyOtp } from './auth.type';
@@ -7,6 +8,7 @@ export interface IResponse<T> {
     statusCode: number;
     success: boolean;
     message: string;
+    accessToken: any;
     data: T;
 }
 

@@ -29,7 +29,7 @@ export const authApi = baseApi.injectEndpoints({
         }),
         sendOtp: builder.mutation<IResponse<null>, ISendOtp>({
             query: (userInfo) => ({
-                url: "/auth/verify-user",
+                url: "/otp/send",
                 method: "POST",
                 data: userInfo,
             }),

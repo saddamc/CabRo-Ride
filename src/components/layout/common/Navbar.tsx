@@ -18,10 +18,8 @@ import {
   useUserInfoQuery,
 } from "@/redux/features/auth/auth.api";
 import { useAppDispatch } from "@/redux/hook";
-import React from "react";
-import { Link } from "react-router";
-
-// import { ModeToggle } from "./ModeToggler";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 // Navigation links array to be used in both desktop and mobile menus
 const navigationLinks = [
@@ -34,14 +32,34 @@ const navigationLinks = [
 ];
 
 export default function Navbar() {
-  const { data } = useUserInfoQuery(undefined);
+  const { data, isLoading } = useUserInfoQuery(undefined);
   const [logout] = useLogoutMutation();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  // Check if user is verified and redirect if needed
+  useEffect(() => {
+    // Only redirect if:
+    // 1. Data has loaded
+    // 2. User is logged in
+    // 3. User is not verified
+    // 4. User is not already on verify page
+    if (!isLoading && 
+        data?.data?.email && 
+        !data.data.isVerified && 
+        !window.location.pathname.includes('/verify')) {
+      navigate('/verify');
+    }
+  }, [data, isLoading, navigate]);
 
   const handleLogout = async () => {
     await logout(undefined);
     dispatch(authApi.util.resetApiState());
   };
+
+  const isAuthenticated = !isLoading && data?.data?.email;
+  const isVerified = !isLoading && data?.data?.isVerified;
+  const userRole = data?.data?.role;
 
   return (
     <header className="border-b">
@@ -86,13 +104,19 @@ export default function Navbar() {
             <PopoverContent align="start" className="w-36 p-1 md:hidden">
               <NavigationMenu className="max-w-none *:w-full">
                 <NavigationMenuList className="flex-col items-start gap-0 md:gap-2">
-                  {navigationLinks.map((link, index) => (
-                    <NavigationMenuItem key={index} className="w-full">
-                      <NavigationMenuLink asChild className="py-1.5">
-                        <Link to={link.href}>{link.label} </Link>
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  ))}
+                  {navigationLinks.map((link, index) => {
+                    // Only show PUBLIC links or links matching user's role if verified
+                    if (link.role === "PUBLIC" || (isVerified && link.role === userRole)) {
+                      return (
+                        <NavigationMenuItem key={index} className="w-full">
+                          <NavigationMenuLink asChild className="py-1.5">
+                            <Link to={link.href}>{link.label} </Link>
+                          </NavigationMenuLink>
+                        </NavigationMenuItem>
+                      );
+                    }
+                    return null;
+                  })}
                 </NavigationMenuList>
               </NavigationMenu>
             </PopoverContent>
@@ -105,10 +129,11 @@ export default function Navbar() {
             {/* Navigation menu */}
             <NavigationMenu className="max-md:hidden">
               <NavigationMenuList className="gap-2">
-                {navigationLinks.map((link, index) => (
-                  <React.Fragment key={index}>
-                    {link.role === "PUBLIC" && (
-                      <NavigationMenuItem>
+                {navigationLinks.map((link, index) => {
+                  // Only show PUBLIC links or links matching user's role if verified
+                  if (link.role === "PUBLIC" || (isVerified && link.role === userRole)) {
+                    return (
+                      <NavigationMenuItem key={index}>
                         <NavigationMenuLink
                           asChild
                           className="text-muted-foreground hover:text-primary py-1.5 font-medium"
@@ -116,27 +141,17 @@ export default function Navbar() {
                           <Link to={link.href}>{link.label}</Link>
                         </NavigationMenuLink>
                       </NavigationMenuItem>
-                    )}
-                    {link.role === data?.data?.role && (
-                      <NavigationMenuItem>
-                        <NavigationMenuLink
-                          asChild
-                          className="text-muted-foreground hover:text-primary py-1.5 font-medium"
-                        >
-                          <Link to={link.href}>{link.label}</Link>
-                        </NavigationMenuLink>
-                      </NavigationMenuItem>
-                    )}
-                  </React.Fragment>
-                ))}
+                    );
+                  }
+                  return null;
+                })}
               </NavigationMenuList>
             </NavigationMenu>
           </div>
         </div>
         {/* Right side */}
         <div className="flex items-center gap-2">
-          {/* <ModeToggle /> */}
-          {data?.data?.email && (
+          {isAuthenticated ? (
             <Button
               onClick={handleLogout}
               variant="outline"
@@ -144,10 +159,16 @@ export default function Navbar() {
             >
               Logout
             </Button>
-          )}
-          {!data?.data?.email && (
+          ) : (
             <Button asChild className="text-sm">
               <Link to="/login">Login</Link>
+            </Button>
+          )}
+          
+          {/* Display verification status if needed for debugging */}
+          {isAuthenticated && !isVerified && (
+            <Button asChild variant="outline" className="text-sm bg-yellow-100">
+              <Link to="/verify">Verify Account</Link>
             </Button>
           )}
         </div>

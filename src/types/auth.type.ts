@@ -1,5 +1,5 @@
 export interface ISendOtp {
-    email: string
+    email: string,
 }
 export interface IVerifyOtp {
     email: string,

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDom from "react-dom/client";
 import { Provider as ReduxProvider } from "react-redux";
-import { RouterProvider } from "react-router";
+import { RouterProvider } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner.tsx";
 import "./index.css";
 import { ThemeProvider } from "./providers/theme.provider.tsx";
