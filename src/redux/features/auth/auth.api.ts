@@ -49,7 +49,22 @@ export const authApi = baseApi.injectEndpoints({
             }),
             providesTags: ["USER"]
         }),
+        updateProfile: builder.mutation({
+            query: (userInfo) => ({
+                url: "/users/update/me",
+                method: "PATCH",
+                data: userInfo,
+            }),
+            invalidatesTags: ["USER"]
+        }),
+        forgotPassword: builder.mutation({
+            query: (email) => ({
+                url: "/auth/forgot-password",
+                method: "POST",
+                data: { email },
+            }),
+        }),
     })
 })
 
-export const { useRegisterMutation, useLoginMutation, useSendOtpMutation, useVerifyOtpMutation, useUserInfoQuery, useLogoutMutation } = authApi; 
+export const { useRegisterMutation, useLoginMutation, useSendOtpMutation, useVerifyOtpMutation, useUserInfoQuery, useLogoutMutation, useUpdateProfileMutation, useForgotPasswordMutation } = authApi; 

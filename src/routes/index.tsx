@@ -6,6 +6,7 @@ import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import FAQ from "@/pages/FAQ";
 import Features from "@/pages/Features";
+import ForgotPassword from "@/pages/ForgotPassword";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Fail from "@/pages/Payment/Fail";
@@ -81,6 +82,10 @@ export const router = createBrowserRouter([
     {
         Component: Register,
         path: "/register",
+    },
+    {
+        Component: ForgotPassword,
+        path: "/forgot-password",
     },
     {
         Component: Profile,

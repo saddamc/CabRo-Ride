@@ -5,20 +5,33 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+// Define User role types
+type UserRole = 'rider' | 'driver';
+
 export default function Register() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<UserRole>('rider');
   const [isLoading, setIsLoading] = useState(false);
   const [register] = useRegisterMutation();
 
   const onRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate password confirmation
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      const result = await register({ name, email, password }).unwrap();
+      const result = await register({ name, email, password, role }).unwrap();
       if (result.success) {
         toast.success('Registration successful!');
         navigate('/login');
@@ -108,6 +121,43 @@ export default function Register() {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <div className="text-sm font-medium text-slate-700 dark:text-white">Role</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div 
+                      className={`flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all ${
+                        role === 'rider' 
+                        ? 'border-orange-500 bg-orange-50 dark:bg-slate-800 ring-2 ring-orange-500' 
+                        : 'border-gray-200 dark:border-gray-700 hover:bg-orange-50 dark:hover:bg-slate-800'
+                      }`}
+                      onClick={() => setRole('rider')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <Car className={`w-6 h-6 mb-1 ${role === 'rider' ? 'text-orange-500' : 'text-slate-500 dark:text-slate-400'}`} />
+                        <span className={`text-sm font-medium ${role === 'rider' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-700 dark:text-slate-300'}`}>Rider</span>
+                      </div>
+                    </div>
+                    <div 
+                      className={`flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all ${
+                        role === 'driver' 
+                        ? 'border-orange-500 bg-orange-50 dark:bg-slate-800 ring-2 ring-orange-500' 
+                        : 'border-gray-200 dark:border-gray-700 hover:bg-orange-50 dark:hover:bg-slate-800'
+                      }`}
+                      onClick={() => setRole('driver')}
+                    >
+                      <div className="flex flex-col items-center">
+                        <svg 
+                          className={`w-6 h-6 mb-1 ${role === 'driver' ? 'text-orange-500' : 'text-slate-500 dark:text-slate-400'}`} 
+                          fill="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M12 2c-4 0-8 .5-8 4v9.5c0 .95.37 1.89 1.03 2.6c.63-.71 1.5-1.16 2.47-1.16c.77 0 1.5.27 2.1.72c-1.25 1.41-.67 2.34-.1 3.34H8c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2h-1.5c.57-1 1.15-1.93-.1-3.34c.59-.45 1.32-.72 2.1-.72c.97 0 1.84.45 2.47 1.16c.66-.71 1.03-1.65 1.03-2.6V6c0-3.5-3.58-4-8-4zm2.5 8.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5zm-5 0c-.83 0-1.5-.67-1.5-1.5S8.67 6.5 9.5 6.5S11 7.17 11 8s-.67 1.5-1.5 1.5z" />
+                        </svg>
+                        <span className={`text-sm font-medium ${role === 'driver' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-700 dark:text-slate-300'}`}>Driver</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <div className="text-sm font-medium text-slate-700 dark:text-white">Password</div>
                   <div className="relative">
                     <Lock className="absolute w-5 h-5 left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -126,6 +176,28 @@ export default function Register() {
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-white"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-slate-700 dark:text-white">Confirm Password</div>
+                  <div className="relative">
+                    <Lock className="absolute w-5 h-5 left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full py-3 pl-10 pr-12 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-slate-800 dark:text-white"
+                      placeholder="Confirm your password"
+                      required
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-white"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                 </div>

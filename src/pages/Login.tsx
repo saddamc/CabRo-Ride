@@ -51,7 +51,7 @@ export default function Login() {
                     <Car className="w-6 h-6 text-white" />
                   </div>
                   <span className="text-xl font-bold text-transparent bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text">
-                    Carbo Ride
+                    Cabro Ride
                   </span>
                 </div>
               </div>
@@ -96,6 +96,12 @@ export default function Login() {
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Link to="/forgot-password" className="text-sm text-orange-600 hover:text-orange-500 dark:text-orange-400 dark:hover:text-orange-300">
+                    Forgot password?
+                  </Link>
                 </div>
                 <button
                   type="submit"
@@ -149,7 +155,7 @@ export default function Login() {
                 <Car className="w-6 h-6 text-white" />
               </div>
               <span className="text-3xl font-bold text-transparent bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text">
-                Carbo Ride
+                Cabro Ride
               </span>
             </div>
             <div className="space-y-4">
@@ -157,7 +163,7 @@ export default function Login() {
                 Welcome Back to
                 <br />
                 <span className="text-transparent bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text">
-                  Carbo Ride
+                  Cabro Ride
                 </span>
               </h1>
               <p className="text-xl leading-relaxed text-slate-600 dark:text-white">
