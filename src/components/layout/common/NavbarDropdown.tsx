@@ -1,6 +1,6 @@
 import { useGetWalletQuery } from "@/redux/features/auth/Rider/rider.api";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { CreditCard, DollarSign, Wallet } from "lucide-react";
+import { DollarSign, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface NavbarDropdownProps {
@@ -25,7 +25,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
       />
 
       {/* Dropdown */}
-      <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+  <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
         {/* User Info Header - Different layouts based on role */}
         <div className={`px-4 py-4 border-b border-gray-200 dark:border-gray-700 ${
           userRole === 'rider' ? 'bg-green-50 dark:bg-green-900/20' :
@@ -45,6 +45,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                 {userRole !== 'super_admin' && (
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-yellow-500 font-medium">
+                        {/* Dynamic */}
                       {userInfo.data.rating || "4.91"}
                     </span>
                     <span className="text-xs text-gray-500">
@@ -158,6 +159,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                   <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Balance</span>
                 </div>
                 <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                    {/* Dynamic Wallet Balance */}
                   ${wallet?.balance?.toFixed(2) || '0.00'}
                 </div>
               </div>
@@ -169,6 +171,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                   <span className="text-xs font-medium text-green-700 dark:text-green-300">Today</span>
                 </div>
                 <div className="text-lg font-bold text-green-900 dark:text-green-100">
+                    {/* Dynamic  */}
                   $0.00
                 </div>
               </div>
@@ -179,7 +182,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
         {/* Menu Items */}
         <div className="py-2">
           {/* Driver specific options at top */}
-          {userRole === 'driver' && (
+          {/* {userRole === 'driver' && (
             <>
               <Link
                 to="/driver/earnings"
@@ -207,7 +210,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
               </Link>
               <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
             </>
-          )}
+          )} */}
 
           <Link
             to={`/${userRole}/fleet`}

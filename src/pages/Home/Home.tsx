@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Car, Check, ChevronRight, Clock, MapPin, Play, Shield, Star, Users } from 'lucide-react';
+import { Car, Check, ChevronRight, Clock, MapPin, Shield, Star, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -96,16 +96,15 @@ const Home = () => {
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold leading-tight lg:text-6xl">
                   Your Ride,
-                  <span className="text-primary"> Your Way</span>
+                  <span className="text-primary"> Simplified</span>
                 </h1>
                 <p className="text-xl leading-relaxed text-muted-foreground">
-                  Experience safe, reliable, and affordable transportation with Cabro. 
-                  Connect with trusted drivers in your area instantly.
+                  Affordable, reliable, and trusted rides at your fingertips — anytime, anywhere.
                 </p>
               </div>
-              <div className="flex flex-col gap-4 sm:flex-row">
+              {/* <div className="flex flex-col gap-4 sm:flex-row">
                 <Button size="lg" className="px-8 py-6 text-lg" asChild>
-                  <Link to="/rider/book">
+                  <Link to="/start-ride">
                     <Car className="w-5 h-5 mr-2" />
                     Book a Ride Now
                   </Link>
@@ -114,8 +113,8 @@ const Home = () => {
                   <Play className="w-5 h-5 mr-2" />
                   Watch Demo
                 </Button>
-              </div>
-              <div className="flex items-center space-x-8">
+              </div> */}
+              {/* <div className="flex items-center space-x-8">
                 <div className="text-center">
                   <div className="text-2xl font-bold">1M+</div>
                   <div className="text-sm text-muted-foreground">Happy Riders</div>
@@ -128,7 +127,7 @@ const Home = () => {
                   <div className="text-2xl font-bold">4.8★</div>
                   <div className="text-sm text-muted-foreground">Average Rating</div>
                 </div>
-              </div>
+              </div> */}
             </div>
             <div className="relative">
               <img
@@ -362,7 +361,7 @@ const Home = () => {
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Button size="lg" variant="secondary" className="px-8 py-6 text-lg" asChild>
-              <Link to="/rider">
+              <Link to="/start-ride">
                 <Car className="w-5 h-5 mr-2" />
                 Start Riding
               </Link>

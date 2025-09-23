@@ -423,7 +423,7 @@ export default function DriverWallet() {
               <div className="space-y-4">
                 <div>
                   <Label className="text-base">Automatic Payouts</Label>
-                  <RadioGroup defaultValue="weekly" className="mt-3">
+                  <RadioGroup name="payout-frequency" defaultValue="weekly" className="mt-3">
                     <div className="flex items-start space-x-3 space-y-0 border rounded-lg p-4">
                       <RadioGroupItem value="weekly" id="weekly" />
                       <div className="flex-1">

@@ -56,9 +56,11 @@ export default function RiderDashboard() {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              <Button className="flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                Book Now
+              <Button className="flex items-center gap-2" asChild>
+                <a href="/rider/start-ride">
+                  <Car className="h-4 w-4" />
+                  Start a Ride
+                </a>
               </Button>
               <Button variant="outline" className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />

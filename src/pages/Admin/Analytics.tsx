@@ -32,9 +32,9 @@ const getLastSixMonths = () => {
 const Analytics = () => {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: analyticsData, isLoading: analyticsLoading, error: analyticsError } = useGetAdminAnalyticsQuery({});
-  const { data: usersData, isLoading: usersLoading } = useGetAllUsersQuery({});
+  const { isLoading: usersLoading } = useGetAllUsersQuery({});
   const { data: bookingsData, isLoading: bookingsLoading } = useGetBookingsDataQuery({});
-  const { data: earningsData, isLoading: earningsLoading } = useGetEarningsDataQuery({});
+  const { isLoading: earningsLoading } = useGetEarningsDataQuery({});
 
   const [timeRange, setTimeRange] = useState('thisMonth');
   const [revenueData, setRevenueData] = useState(getLastSixMonths());
@@ -49,7 +49,7 @@ const Analytics = () => {
         // This would normally come from an API but for now let's generate mock revenue data
         const mockMonthlyRevenue = lastSixMonths.map(month => ({
           ...month,
-          revenue: Math.floor(Math.random() * 40000) + 10000,
+          value: Math.floor(Math.random() * 40000) + 10000, // Use value instead of revenue
           bookings: Math.floor(Math.random() * 200) + 50,
         }));
         
@@ -86,7 +86,7 @@ const Analytics = () => {
   const ridesCompletedPercent = stats.rides.totalRides ? Math.round((stats.rides.completedRides / stats.rides.totalRides) * 100) : 0;
 
   // Calculate total revenue
-  const totalRevenue = revenueData.reduce((sum, item) => sum + (item.revenue || 0), 0);
+  const totalRevenue = revenueData.reduce((sum, item) => sum + (item.value || 0), 0);
   
   // Mock year-over-year data for comparative statistics
   const yearOverYearGrowth = {
@@ -311,7 +311,7 @@ const Analytics = () => {
               </div>
               <div className="h-12 w-24">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={revenueData.map((item) => ({ month: item.name, value: item.revenue / 1000 }))} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <BarChart data={revenueData.map((item) => ({ month: item.name, value: item.value / 1000 }))} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                     <Bar dataKey="value" fill="#8884D8" />
                   </BarChart>
                 </ResponsiveContainer>
@@ -353,7 +353,7 @@ const Analytics = () => {
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={(value) => `$${value / 1000}k`} />
                     <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
-                    <Line type="monotone" dataKey="revenue" stroke="#8884D8" strokeWidth={2} activeDot={{ r: 8 }} />
+                    <Line type="monotone" dataKey="value" stroke="#8884D8" strokeWidth={2} activeDot={{ r: 8 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -377,9 +377,9 @@ const Analytics = () => {
                       fill="#8884d8"
                       dataKey="value"
                       nameKey="name"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${(percent ? (percent * 100).toFixed(0) : 0)}%`}
                     >
-                      {driverTypeData.map((entry, index) => (
+                      {driverTypeData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -522,7 +522,7 @@ const Analytics = () => {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name} ${(percent ? (percent * 100).toFixed(0) : 0)}%`}
                       >
                         <Cell fill="#00C49F" />
                         <Cell fill="#FF8042" />

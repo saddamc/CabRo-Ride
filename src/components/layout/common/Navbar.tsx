@@ -139,7 +139,7 @@ export default function Navbar() {
                 <div className="relative">
                   <button
                     onClick={handleMenuToggle}
-                    className="flex items-center gap-3 px-3 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary transition-all hover:scale-105 bg-gray-100 dark:bg-gray-800 dark:text-white text-gray-900"
+                    className="flex items-center gap-1.5 px-0.5 py-0.5 rounded-full focus:outline-none focus:ring-2 focus:ring-primary transition-all hover:scale-105 bg-gray-100 white:bg-gray-800 white:text-white text-gray-900"
                     aria-label="Open user menu"
                   >
                     <img

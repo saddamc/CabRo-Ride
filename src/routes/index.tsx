@@ -12,7 +12,7 @@ import DriverWallet from "@/pages/Driver/Wallet";
 import FAQ from "@/pages/FAQ";
 import Features from "@/pages/Features";
 import ForgotPassword from "@/pages/ForgotPassword";
-import Home from "@/pages/Home";
+import Home from "@/pages/Home/Home";
 import Login from "@/pages/Login";
 import Fail from "@/pages/Payment/Fail";
 import Success from "@/pages/Payment/Success";
@@ -21,6 +21,7 @@ import Register from "@/pages/Register";
 import BookRide from "@/pages/Rider/BookRide";
 import RiderDashboard from "@/pages/Rider/Dashboard";
 import RideHistory from "@/pages/Rider/RideHistory";
+import StartRide from "@/pages/Rider/StartRide";
 import Unauthorized from "@/pages/Unauthorized";
 import Wallet from "@/pages/User/Wallet";
 import Verify from "@/pages/Verify";
@@ -119,6 +120,10 @@ export const router = createBrowserRouter([
             {
                 path: "book-ride",
                 element: <BookRide />
+            },
+            {
+                path: "start-ride",
+                element: <StartRide />
             },
             {
                 path: "history",
