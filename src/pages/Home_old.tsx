@@ -22,69 +22,7 @@ const Home = () => {
     },
   ];
 
-  const services = [
-    {
-      title: 'For Riders',
-      description: 'Book rides instantly with transparent pricing and real-time tracking',
-      image: 'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-    {
-      title: 'For Drivers',
-      description: 'Earn flexible income with our driver-friendly platform and tools',
-      image: 'https://images.pexels.com/photos/1319743/pexels-photo-1319743.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-    {
-      title: 'For Business',
-      description: 'Corporate solutions for employee transportation and logistics',
-      image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=400',
-    },
-  ];
 
-  const testimonials = [
-    {
-      name: 'Sarah Johnson',
-      role: 'Daily Commuter',
-      content: 'Cabro has made my daily commute so much easier. The drivers are professional and the app is incredibly user-friendly.',
-      rating: 5,
-    },
-    {
-      name: 'Mike Chen',
-      role: 'Driver Partner',
-      content: 'As a driver, I appreciate the fair pricing and the support from Cabro. It provides a steady income source.',
-      rating: 5,
-    },
-    {
-      name: 'Emily Davis',
-      role: 'Business User',
-      content: 'Our company uses Cabro for client pickups. The corporate features are excellent and billing is transparent.',
-      rating: 5,
-    },
-  ];
-
-  const pricingTiers = [
-    {
-      name: 'Economy',
-      description: 'Affordable rides for everyday travel',
-      basePrice: '$2.50',
-      perKm: '$0.80',
-      features: ['Standard vehicles', 'Basic safety features', 'In-app support'],
-    },
-    {
-      name: 'Comfort',
-      description: 'Premium vehicles for comfortable rides',
-      basePrice: '$3.50',
-      perKm: '$1.20',
-      features: ['Premium vehicles', 'Enhanced comfort', 'Priority booking'],
-      popular: true,
-    },
-    {
-      name: 'Business',
-      description: 'Professional service for business travel',
-      basePrice: '$5.00',
-      perKm: '$1.80',
-      features: ['Luxury vehicles', 'Professional drivers', 'Receipt management'],
-    },
-  ];
 
   return (
     <div className="min-h-screen">

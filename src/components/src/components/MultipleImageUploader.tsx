@@ -38,7 +38,7 @@ export default function MultipleImageUploader({
         } else {
         onChange([]);
         }
-    }, [files]);
+    }, [files, onChange]);
 
     return (
     <div className="flex flex-col gap-2">
