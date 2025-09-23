@@ -27,7 +27,7 @@ export default function Navbar() {
           {/* Right: Auth, theme, role switch */}
           <div className="flex items-center space-x-2">
             <Link to="/login" className="px-4 py-2 text-sm font-medium text-white rounded-md bg-primary hover:bg-primary/90 transition-colors">Login</Link>
-            <Link to="/register" className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-md hover:bg-primary hover:text-white transition-colors">Register</Link>
+            <Link to="/register" className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-md bg-[#fa5400] hover:bg-primary hover:text-white transition-colors">Registe</Link>
 
             {/* Theme button - shows both icons for visibility */}
             <button className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle theme">
@@ -41,7 +41,7 @@ export default function Navbar() {
             <div className="relative group">
               <button className="flex items-center px-3 py-2 text-sm font-medium rounded-md border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <Users className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                Switch Role
+                Name
                 <ChevronDown className="ml-2 w-3 h-3 text-gray-600 dark:text-gray-400" />
               </button>
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
