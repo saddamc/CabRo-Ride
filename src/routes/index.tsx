@@ -19,13 +19,14 @@ const Features = lazy(() => import("@/pages/Features"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Home = lazy(() => import("@/pages/Home/Home"));
 const Login = lazy(() => import("@/pages/Login"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const Fail = lazy(() => import("@/pages/Payment/Fail"));
 const Success = lazy(() => import("@/pages/Payment/Success"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const Register = lazy(() => import("@/pages/Register"));
 // Removed: RiderBookRide (now handled by RideBooking)
 const RiderDashboard = lazy(() => import("@/pages/Rider/Dashboard"));
-const RideBooking = lazy(() => import("@/pages/Rider/RideBooking"));
+const BookingRide = lazy(() => import("@/pages/BookingRide"));
 const RideHistory = lazy(() => import("@/pages/Rider/RideHistory"));
 const StartRide = lazy(() => import("@/pages/Rider/StartRide"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
@@ -113,6 +114,10 @@ export const router = createBrowserRouter([
         Component: withAuth(Wallet, role.user as TRole),
         path: "/wallet",
     },
+    {
+        Component: ResetPassword,
+        path: "/reset-password",
+    },
     // Rider Routes
     {
         Component: withAuth(RoleDashboard, role.user as TRole),
@@ -128,7 +133,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "book-ride",
-                element: <RideBooking />
+                element: <BookingRide />
             },
             {
                 path: "start-ride",
@@ -136,7 +141,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "ride-booking",
-                element: <RideBooking />
+                element: <BookingRide />
             },
             {
                 path: "history",
@@ -163,7 +168,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "book-ride",
-                element: <RideBooking />
+                element: <BookingRide />
             },
             {
                 path: "history",
@@ -188,9 +193,9 @@ export const router = createBrowserRouter([
         path: "/unauthorized",
     },
     {
-        // Universal book ride route - accessible to all roles without authorization checks
+        // Universal booking ride route - accessible to all users
         Component: BookRide,
-        path: "/book-ride",
+        path: "/booking-ride",
     },
     {
         Component: Success,

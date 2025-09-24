@@ -8,7 +8,6 @@ import {
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { Outlet } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import Footer from "./common/Footer";
 import Navbar from "./common/Navbar";
 
 export default function DashboardLayout() {
@@ -63,8 +62,7 @@ export default function DashboardLayout() {
                 </SidebarProvider>
             </div>
             
-            {/* Footer */}
-            <Footer />
+            {/* No footer on dashboard */}
         </div>
     );
 }

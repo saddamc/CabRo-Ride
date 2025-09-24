@@ -27,7 +27,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
       />
 
       {/* Dropdown */}
-  <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+  <div className="absolute right-0 mt-2 w-60 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 rounded-xl shadow-xl z-50 overflow-hidden">
         {/* User Info Header - Different layouts based on role */}
         <div className={`px-4 py-4 border-b border-gray-200 dark:border-gray-700 ${
           userRole === 'rider' ? 'bg-green-50 dark:bg-green-900/20' :
@@ -233,20 +233,42 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           >
             Dashboard
           </Link>
-          <Link
-            to={`${userRole === 'super_admin' ? '/admin' : `/${userRole}`}/book-ride`}
-            onClick={handleMenuClose}
-            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Book Ride
-          </Link>
-          <Link
-            to={`${userRole === 'super_admin' ? '/admin' : `/${userRole}`}/history`}
-            onClick={handleMenuClose}
-            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Ride History
-          </Link>
+          {userRole !== 'driver' && (
+            <>
+              <Link
+                to={`${userRole === 'super_admin' ? '/admin' : `/${userRole}`}/book-ride`}
+                onClick={handleMenuClose}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Book Ride
+              </Link>
+              <Link
+                to={`${userRole === 'super_admin' ? '/admin' : `/${userRole}`}/history`}
+                onClick={handleMenuClose}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Ride History
+              </Link>
+            </>
+          )}
+          {userRole === 'driver' && (
+            <>
+              <Link
+                to="/driver/accept-ride"
+                onClick={handleMenuClose}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Accept Ride
+              </Link>
+              <Link
+                to="/driver/history"
+                onClick={handleMenuClose}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                History
+              </Link>
+            </>
+          )}
           <Link
             to="/profile"
             onClick={handleMenuClose}
