@@ -7,16 +7,15 @@ import useDebounce from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
 import type { IDriver, ILocation } from '@/redux/features/ride/ride.api';
 import {
-    useCalculateFareMutation,
-    useGetNearbyDriversQuery,
-    useRequestRideMutation
+  useCalculateFareMutation,
+  useGetNearbyDriversQuery,
+  useRequestRideMutation
 } from '@/redux/features/ride/ride.api';
-// Import mock services to handle location searches locally (avoiding API errors)
 import { reverseGeocode as mockReverseGeocode, searchLocations as mockSearchLocations } from '@/services/mockLocationService';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import 'leaflet/dist/leaflet.css';
-import { Car, Clock, DollarSign, MapPin, Navigation, Search, X } from 'lucide-react';
+import { Car, Clock, DollarSign, LocateFixed, MapPin, Navigation } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useLocation } from 'react-router-dom';
@@ -111,7 +110,7 @@ type BookingPhase =
 export default function RideBooking() {
   // Router hooks
   const location = useLocation();
-  const selectedLocationFromHome = location.state?.selectedLocation as ILocation | undefined;
+  // Removed: selectedLocationFromHome (no longer used)
   const heroBookingState = location.state as {
     pickupLocation?: ILocation;
     dropoffLocation?: ILocation;
@@ -123,9 +122,10 @@ export default function RideBooking() {
   const [bookingPhase, setBookingPhase] = useState<BookingPhase>('search');
   const [pickupLocation, setPickupLocation] = useState<ILocation | null>(null);
   const [dropoffLocation, setDropoffLocation] = useState<ILocation | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<ILocation[]>([]);
-  const [selectedLocationType, setSelectedLocationType] = useState<'pickup' | 'dropoff'>('pickup');
+  const [pickupInput, setPickupInput] = useState('');
+  const [destinationInput, setDestinationInput] = useState('');
+  const [pickupSearchResults, setPickupSearchResults] = useState<ILocation[]>([]);
+  const [destinationSearchResults, setDestinationSearchResults] = useState<ILocation[]>([]);
   const [selectedRideType, setSelectedRideType] = useState('regular');
   const [rideDetails, setRideDetails] = useState<{
     fare: number;
@@ -135,16 +135,17 @@ export default function RideBooking() {
   const [matchedDriver, setMatchedDriver] = useState<IDriver | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([23.8103, 90.4125]); // Dhaka
   const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [activeInput, setActiveInput] = useState<'pickup' | 'destination' | null>(null);
 
   // Refs
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const pickupInputRef = useRef<HTMLInputElement>(null);
+  const destinationInputRef = useRef<HTMLInputElement>(null);
   
   // Hooks
-  const debouncedSearchTerm = useDebounce(searchQuery, 500);
+  const debouncedPickupInput = useDebounce(pickupInput, 300);
+  const debouncedDestinationInput = useDebounce(destinationInput, 300);
   const { toast } = useToast();
 
-  // State for mock API handling
-  const [isSearching, setIsSearching] = useState(false);
   
   // RTK Query hooks
   const [calculateFare, { isLoading: isCalculating }] = useCalculateFareMutation();
@@ -165,22 +166,10 @@ export default function RideBooking() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
           const { latitude, longitude } = position.coords;
-          
-          // Update map center
           setMapCenter([latitude, longitude]);
-          
-          // Get address from coordinates using mock service
           const locationData = mockReverseGeocode(latitude, longitude);
-          
-          if (selectedLocationType === 'pickup') {
-            setPickupLocation(locationData);
-          } else {
-            setDropoffLocation(locationData);
-          }
-          
-          // Clear search
-          setSearchQuery('');
-          setSearchResults([]);
+          setPickupLocation(locationData);
+          setPickupInput(locationData.name);
         }, (error) => {
           toast({
             title: 'Geolocation error',
@@ -202,7 +191,7 @@ export default function RideBooking() {
         variant: 'destructive',
       });
     }
-  }, [selectedLocationType, toast]);
+  }, [toast]);
 
   // Effects
   // Use location from home page or hero booking if available
@@ -211,9 +200,11 @@ export default function RideBooking() {
     if (heroBookingState?.pickupLocation || heroBookingState?.dropoffLocation) {
       if (heroBookingState.pickupLocation) {
         setPickupLocation(heroBookingState.pickupLocation);
+        setPickupInput(heroBookingState.pickupLocation.name);
       }
       if (heroBookingState.dropoffLocation) {
         setDropoffLocation(heroBookingState.dropoffLocation);
+        setDestinationInput(heroBookingState.dropoffLocation.name);
       }
       if (heroBookingState.estimatedFare && heroBookingState.estimatedTime) {
         setRideDetails({
@@ -226,65 +217,31 @@ export default function RideBooking() {
       return;
     }
 
-    // Handle location selected from home page (legacy)
-    if (selectedLocationFromHome) {
-      if (selectedLocationType === 'pickup') {
-        setPickupLocation(selectedLocationFromHome);
-        setSelectedLocationType('dropoff');
-      } else {
-        setDropoffLocation(selectedLocationFromHome);
-      }
-    }
-
     // Handle current location request from home page
     if (location.state?.useCurrentLocation) {
       getCurrentLocation();
     }
-  }, [heroBookingState, selectedLocationFromHome, selectedLocationType, location.state?.useCurrentLocation, getCurrentLocation]);
+  }, [heroBookingState, location.state?.useCurrentLocation, getCurrentLocation]);
+
+
+  // Search for locations when input changes
+  useEffect(() => {
+    if (debouncedPickupInput.trim().length >= 2) {
+      const results = mockSearchLocations(debouncedPickupInput);
+      setPickupSearchResults(results);
+    } else {
+      setPickupSearchResults([]);
+    }
+  }, [debouncedPickupInput]);
 
   useEffect(() => {
-    if (debouncedSearchTerm.length >= 3) {
-      setIsSearching(true);
-      // Use mock search instead of API
-      const results = mockSearchLocations(debouncedSearchTerm);
-      setSearchResults(results);
-      setIsSearching(false);
+    if (debouncedDestinationInput.trim().length >= 2) {
+      const results = mockSearchLocations(debouncedDestinationInput);
+      setDestinationSearchResults(results);
     } else {
-      setSearchResults([]);
+      setDestinationSearchResults([]);
     }
-  }, [debouncedSearchTerm]);
-  
-  // For testing - populate with mock data if no real data
-  useEffect(() => {
-    // Only use mock data if no real data received after searching
-    if (debouncedSearchTerm.length >= 3 && !isSearching && searchResults.length === 0) {
-      const mockLocations: ILocation[] = [
-        {
-          id: 'mock-1',
-          name: 'Dhaka City Center',
-          address: 'Central Dhaka, Bangladesh',
-          coordinates: [90.4125, 23.8103] as [number, number],
-          type: 'city'
-        },
-        {
-          id: 'mock-2',
-          name: 'Gulshan Avenue',
-          address: 'Gulshan, Dhaka, Bangladesh',
-          coordinates: [90.4152, 23.7925] as [number, number],
-          type: 'street'
-        },
-        {
-          id: 'mock-3',
-          name: `${debouncedSearchTerm} Plaza`,
-          address: `Near ${debouncedSearchTerm}, Dhaka, Bangladesh`,
-          coordinates: [90.3765, 23.7551] as [number, number],
-          type: 'building'
-        }
-      ];
-      
-      setSearchResults(mockLocations);
-    }
-  }, [debouncedSearchTerm, isSearching, searchResults.length]);
+  }, [debouncedDestinationInput]);
 
   useEffect(() => {
     if (pickupLocation) {
@@ -292,31 +249,73 @@ export default function RideBooking() {
     }
   }, [pickupLocation]);
 
-  const handleLocationSelect = (location: ILocation) => {
-    if (selectedLocationType === 'pickup') {
+  const handlePickupFocus = () => {
+    setActiveInput('pickup');
+  };
+
+  const handleDestinationFocus = () => {
+    setActiveInput('destination');
+  };
+
+  const handlePickupBlur = () => {
+    setTimeout(() => {
+      // Delay to allow click on search results
+      if (pickupInput.trim().length > 0 && !pickupLocation) {
+        // Create a mock location based on the input
+        const locationData: ILocation = {
+          id: `custom-${Date.now()}`,
+          name: pickupInput.trim(),
+          address: `Near ${pickupInput.trim()}, Dhaka, Bangladesh`,
+          coordinates: [90.4125, 23.8103], // Default Dhaka coordinates
+          type: 'custom'
+        };
+        setPickupLocation(locationData);
+      }
+    }, 200);
+  };
+
+  const handleDestinationBlur = () => {
+    setTimeout(() => {
+      // Delay to allow click on search results
+      if (destinationInput.trim().length > 0 && !dropoffLocation) {
+        // Create a mock location based on the input
+        const locationData: ILocation = {
+          id: `custom-${Date.now()}`,
+          name: destinationInput.trim(),
+          address: `Near ${destinationInput.trim()}, Dhaka, Bangladesh`,
+          coordinates: [90.4125, 23.8103], // Default Dhaka coordinates but slightly offset
+          type: 'custom'
+        };
+        setDropoffLocation(locationData);
+      }
+    }, 200);
+  };
+
+  const handleLocationSelect = (location: ILocation, type: 'pickup' | 'destination') => {
+    if (type === 'pickup') {
       setPickupLocation(location);
-      // If dropoff is not selected, switch to dropoff
-      if (!dropoffLocation) {
-        setSelectedLocationType('dropoff');
-        if (searchInputRef.current) {
-          setTimeout(() => searchInputRef.current?.focus(), 100);
-        }
+      setPickupInput(location.name);
+      setPickupSearchResults([]);
+      // Focus on destination if it's empty
+      if (!dropoffLocation && destinationInputRef.current) {
+        destinationInputRef.current.focus();
       }
     } else {
       setDropoffLocation(location);
+      setDestinationInput(location.name);
+      setDestinationSearchResults([]);
+      // Blur the destination input to close the search results
+      if (destinationInputRef.current) {
+        destinationInputRef.current.blur();
+      }
+      setActiveInput(null);
     }
-    
-    setSearchQuery('');
-    setSearchResults([]);
-    
-    // If both locations are set, calculate fare
-    if (
-      (selectedLocationType === 'pickup' && dropoffLocation) ||
-      (selectedLocationType === 'dropoff' && pickupLocation)
-    ) {
-      calculateRideFare();
-      setBookingPhase('select_ride');
-    }
+    // Do NOT auto-advance to select_ride phase
+  };
+  // Handler for See Details button
+  const handleSeeDetails = async () => {
+    await calculateRideFare();
+    setBookingPhase('select_ride');
   };
 
   const calculateRideFare = async () => {
@@ -522,9 +521,11 @@ export default function RideBooking() {
   const handleReset = () => {
     setPickupLocation(null);
     setDropoffLocation(null);
-    setSearchQuery('');
-    setSearchResults([]);
-    setSelectedLocationType('pickup');
+    setPickupInput('');
+    setDestinationInput('');
+    setPickupSearchResults([]);
+    setDestinationSearchResults([]);
+    setActiveInput(null);
     setBookingPhase('search');
     setRideDetails(null);
     setMatchedDriver(null);
@@ -537,150 +538,106 @@ export default function RideBooking() {
 
   // Render functions
   const renderSearchBar = () => (
-    <div className="p-4 bg-white border-b sticky top-0 z-10">
-      {/* Pickup location */}
-      <div className="flex items-center mb-3">
-        <div className="w-10 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-            <MapPin size={16} />
-          </div>
-        </div>
-        <div 
-          className={cn(
-            "flex-grow p-2 border rounded-lg cursor-pointer hover:bg-gray-50",
-            selectedLocationType === "pickup" && "border-blue-500 bg-blue-50"
-          )}
-          onClick={() => {
-            setSelectedLocationType('pickup');
-            setSearchQuery('');
-            if (searchInputRef.current) {
-              searchInputRef.current.focus();
-            }
-          }}
+    <div className="p-4 bg-white border-b sticky top-0 z-10 flex flex-col gap-4">
+      {/* Pickup location input */}
+      <div className="flex items-center relative">
+        <Input
+          ref={pickupInputRef}
+          type="text"
+          placeholder="Enter pickup location"
+          value={pickupInput}
+          onChange={e => setPickupInput(e.target.value)}
+          onBlur={handlePickupBlur}
+          onFocus={handlePickupFocus}
+          className="pr-10"
+        />
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-600"
+          onClick={getCurrentLocation}
+          tabIndex={-1}
+          aria-label="Use current location"
         >
-          {pickupLocation ? (
-            <div className="flex justify-between items-center">
-              <span className="font-medium truncate">{pickupLocation.name}</span>
-              <X 
-                className="text-gray-500 cursor-pointer" 
-                size={16} 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPickupLocation(null);
-                  setBookingPhase('search');
-                }} 
-              />
-            </div>
-          ) : (
-            <span className="text-gray-500">Enter pickup location</span>
-          )}
-        </div>
+          <LocateFixed size={20} />
+        </button>
       </div>
-      
-      {/* Dropoff location */}
-      <div className="flex items-center">
-        <div className="w-10 flex-shrink-0">
-          <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center text-white">
-            <Navigation size={16} />
-          </div>
+      {/* Destination location input and See Details button below */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center relative">
+          <Input
+            ref={destinationInputRef}
+            type="text"
+            placeholder="Enter destination"
+            value={destinationInput}
+            onChange={e => setDestinationInput(e.target.value)}
+            onBlur={handleDestinationBlur}
+            onFocus={handleDestinationFocus}
+            className="pr-10"
+          />
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">
+            <Navigation size={20} />
+          </span>
         </div>
-        <div 
-          className={cn(
-            "flex-grow p-2 border rounded-lg cursor-pointer hover:bg-gray-50",
-            selectedLocationType === "dropoff" && "border-red-500 bg-red-50"
-          )}
-          onClick={() => {
-            setSelectedLocationType('dropoff');
-            setSearchQuery('');
-            if (searchInputRef.current) {
-              searchInputRef.current.focus();
-            }
-          }}
-        >
-          {dropoffLocation ? (
-            <div className="flex justify-between items-center">
-              <span className="font-medium truncate">{dropoffLocation.name}</span>
-              <X 
-                className="text-gray-500 cursor-pointer" 
-                size={16} 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDropoffLocation(null);
-                  setBookingPhase('search');
-                }} 
-              />
-            </div>
-          ) : (
-            <span className="text-gray-500">Enter destination</span>
-          )}
-        </div>
-      </div>
-      
-      {/* Search input - shown when selecting location */}
-      {bookingPhase === 'search' && (
-        <div className="mt-4">
-          <div className="relative">
-            <Input
-              ref={searchInputRef}
-              type="text"
-              placeholder={`Search for ${selectedLocationType === "pickup" ? "pickup" : "destination"}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10"
-              autoFocus
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={18} />
-            {isSearching && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              </div>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            className="w-full mt-2 flex items-center justify-center"
-            onClick={getCurrentLocation}
-          >
-            <MapPin className="mr-2" size={16} />
-            Use current location
+        {/* See Details button directly under destination input */}
+        {pickupLocation && dropoffLocation && (
+          <Button onClick={handleSeeDetails} className="w-full md:w-auto mt-2 bg-black text-white hover:bg-gray-800">
+            See Details
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 
   const renderSearchResults = () => (
-    <div className="flex-1 overflow-y-auto p-2 bg-white">
-      <h3 className="text-sm font-medium px-2 py-1 text-gray-500">SUGGESTIONS</h3>
-      {searchResults.length > 0 ? (
-        <ul className="divide-y">
-          {searchResults.map((location) => (
-            <li
-              key={location.id}
-              className="px-2 py-3 hover:bg-gray-100 cursor-pointer rounded"
-              onClick={() => handleLocationSelect(location)}
-            >
-              <div className="flex items-start">
-                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-3 mt-1">
-                  <MapPin size={16} />
+    <div className="flex-1 overflow-y-auto bg-white">
+      {/* Pickup Search Results */}
+      {activeInput === 'pickup' && pickupSearchResults.length > 0 && (
+        <div className="p-2">
+          <ul className="divide-y">
+            {pickupSearchResults.map((location) => (
+              <li
+                key={location.id}
+                className="px-2 py-3 hover:bg-gray-100 cursor-pointer rounded"
+                onClick={() => handleLocationSelect(location, 'pickup')}
+              >
+                <div className="flex items-start">
+                  <div className="h-8 w-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-600 mr-3 mt-1">
+                    <MapPin size={16} />
+                  </div>
+                  <div>
+                    <p className="font-medium">{location.name}</p>
+                    <p className="text-sm text-gray-500 truncate">{location.address}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium">{location.name}</p>
-                  <p className="text-sm text-gray-500 truncate">{location.address}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {/* Destination Search Results */}
+      {activeInput === 'destination' && destinationSearchResults.length > 0 && (
+        <div className="p-2">
+          <ul className="divide-y">
+            {destinationSearchResults.map((location) => (
+              <li
+                key={location.id}
+                className="px-2 py-3 hover:bg-gray-100 cursor-pointer rounded"
+                onClick={() => handleLocationSelect(location, 'destination')}
+              >
+                <div className="flex items-start">
+                  <div className="h-8 w-8 rounded-full bg-red-200 flex items-center justify-center text-red-600 mr-3 mt-1">
+                    <Navigation size={16} />
+                  </div>
+                  <div>
+                    <p className="font-medium">{location.name}</p>
+                    <p className="text-sm text-gray-500 truncate">{location.address}</p>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        debouncedSearchTerm.length >= 3 && !isSearching && (
-          <div className="text-center py-4 text-gray-500">
-            No locations found. Try a different search term.
-          </div>
-        )
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -1044,6 +1001,24 @@ export default function RideBooking() {
     </div>
   );
 
+  // Draggable marker event handlers
+  const handlePickupDragEnd = (e: L.LeafletEvent) => {
+    const marker = e.target as L.Marker;
+    const { lat, lng } = marker.getLatLng();
+    const locationData = mockReverseGeocode(lat, lng);
+    setPickupLocation(locationData);
+    setPickupInput(locationData.name);
+    setMapCenter([lat, lng]);
+  };
+  const handleDropoffDragEnd = (e: L.LeafletEvent) => {
+    const marker = e.target as L.Marker;
+    const { lat, lng } = marker.getLatLng();
+    const locationData = mockReverseGeocode(lat, lng);
+    setDropoffLocation(locationData);
+    setDestinationInput(locationData.name);
+    setMapCenter([lat, lng]);
+  };
+
   const renderMap = () => (
     <div className={cn(
       "transition-all duration-300 ease-in-out bg-white",
@@ -1059,27 +1034,27 @@ export default function RideBooking() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
         <MapCenter position={mapCenter} />
-        
         {pickupLocation && (
           <Marker 
             position={[pickupLocation.coordinates[1], pickupLocation.coordinates[0]]} 
             icon={pickupIcon}
+            draggable={true}
+            eventHandlers={{ dragend: handlePickupDragEnd }}
           >
             <Popup>Pickup: {pickupLocation.name}</Popup>
           </Marker>
         )}
-        
         {dropoffLocation && (
           <Marker 
             position={[dropoffLocation.coordinates[1], dropoffLocation.coordinates[0]]} 
             icon={dropoffIcon}
+            draggable={true}
+            eventHandlers={{ dragend: handleDropoffDragEnd }}
           >
             <Popup>Dropoff: {dropoffLocation.name}</Popup>
           </Marker>
         )}
-        
         {matchedDriver && bookingPhase !== 'completed' && (
           <Marker 
             position={[
@@ -1091,7 +1066,6 @@ export default function RideBooking() {
             <Popup>{matchedDriver.name}'s car</Popup>
           </Marker>
         )}
-        
         {pickupLocation && dropoffLocation && (
           <RoutingMachine pickup={pickupLocation} dropoff={dropoffLocation} />
         )}
@@ -1099,43 +1073,63 @@ export default function RideBooking() {
     </div>
   );
 
+  // Split layout: 40% booking UI, 60% map (for 'search' and 'select_ride' phases)
   const renderContent = () => {
     switch (bookingPhase) {
       case 'search':
         return (
-          <div className="flex flex-col h-full">
-            {renderSearchBar()}
-            {renderSearchResults()}
+          <div className="flex h-full">
+            {/* Left: Booking UI (40%) */}
+            <div className="w-full md:w-2/5 flex flex-col bg-white h-full border-r">
+              {renderSearchBar()}
+              {renderSearchResults()}
+            </div>
+            {/* Right: Map (60%) - hidden in search phase */}
+            <div className="hidden md:block w-3/5 h-full">
+              {/* Map is hidden until 'See Details' is clicked */}
+            </div>
           </div>
         );
       case 'select_ride':
         return (
-          <div className="flex flex-col h-full">
-            {renderSearchBar()}
-            {renderMap()}
-            {renderRideSelection()}
-            <div className="p-4 bg-white border-t">
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={handleReset}>
-                  Cancel
-                </Button>
-                <Button 
-                  className="flex-1" 
-                  onClick={handleRequestRide}
-                  disabled={isRequestingRide || isCalculating}
-                >
-                  {isRequestingRide ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Requesting
-                    </>
-                  ) : (
-                    `Book ${selectedRideType.charAt(0).toUpperCase() + selectedRideType.slice(1)}`
-                  )}
-                </Button>
+          <div className="flex h-full">
+            {/* Left: Booking UI (40%) */}
+            <div id="booking-panel" className="w-full md:w-2/5 flex flex-col bg-white h-full border-r">
+              {renderSearchBar()}
+              {renderRideSelection()}
+              <div className="p-4 bg-white border-t">
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={handleReset}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="flex-1" 
+                    onClick={handleRequestRide}
+                    disabled={isRequestingRide || isCalculating}
+                  >
+                    {isRequestingRide ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Requesting
+                      </>
+                    ) : (
+                      `Book ${selectedRideType.charAt(0).toUpperCase() + selectedRideType.slice(1)}`
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+            {/* Right: Map (60%) - always matches left panel height */}
+            <div className="hidden md:block w-3/5 h-full">
+              <div
+                id="map-panel"
+                style={{ height: '100%', width: '100%' }}
+                className="h-full w-full"
+              >
+                {renderMap()}
               </div>
             </div>
           </div>

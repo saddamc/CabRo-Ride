@@ -8,7 +8,7 @@ import { logout as logoutAction } from "@/redux/features/authSlice";
 import { Car, ChevronDown, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import NavbarDropdown from "./NavbarDropdown";
 
 export default function Navbar() {
@@ -17,6 +17,9 @@ export default function Navbar() {
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isDashboard = location.pathname.startsWith('/rider') || location.pathname.startsWith('/driver') || location.pathname.startsWith('/admin');
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -50,67 +53,69 @@ export default function Navbar() {
   const handleMenuClose = () => setMenuOpen(false);
 
   return (
-    <nav className="bg-white border-b border-gray-100 dark:bg-black dark:border-gray-800 sticky top-0 z-50">
+    <nav className={`border-b sticky top-0 z-50 ${isDashboard ? 'bg-white border-gray-100' : 'bg-white border-gray-100 dark:bg-black dark:border-gray-800'}`}>
       <div className="container px-4 py-3 mx-auto">
         <div className="flex items-center justify-between">
           {/* Left: Logo */}
           <Link to="/" className="flex items-center text-lg font-bold">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-              <Car className="w-5 h-5 text-white" />
+            <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${isDashboard ? 'bg-black' : 'bg-primary'}`}>
+              <Car className={`w-5 h-5 ${isDashboard ? 'text-white' : 'text-white'}`} />
             </div>
-            <span className="text-gray-900 dark:text-white ml-2">Cabro</span>
+            <span className={`${isDashboard ? 'text-black ml-2' : 'text-gray-900 dark:text-white ml-2'}`}>Cabro</span>
           </Link>
 
-          {/* Center: Navigation links */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link
-              to="/"
-              className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
-            >
-              Home
-            </Link>
-            <Link
-              to="/about"
-              className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
-            >
-              About
-            </Link>
-            <Link
-              to="/features"
-              className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
-            >
-              Features
-            </Link>
-            <Link
-              to="/contact"
-              className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
-            >
-              Contact
-            </Link>
-            <Link
-              to="/faq"
-              className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
-            >
-              FAQ
-            </Link>
-            {/* Book a Ride button - accessible to everyone */}
-            <Link
-              to={userInfo?.data ? "/rider/ride-booking" : "/login"}
-              state={userInfo?.data ? undefined : { from: "/rider/ride-booking" }}
-              className="text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors py-2 px-4 rounded-full flex items-center"
-              onClick={(e) => {
-                if (!userInfo?.data) {
-                  e.preventDefault();
-                  // Store the intended destination
-                  localStorage.setItem('redirectAfterLogin', '/rider/ride-booking');
-                  navigate('/login');
-                }
-              }}
-            >
-              <Car className="w-4 h-4 mr-1" />
-              Book a Ride
-            </Link>
-          </div>
+          {/* Center: Navigation links - hidden on dashboard */}
+          {!isDashboard && (
+            <div className="hidden md:flex items-center space-x-4">
+              <Link
+                to="/"
+                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+              >
+                Home
+              </Link>
+              <Link
+                to="/about"
+                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+              >
+                About
+              </Link>
+              <Link
+                to="/features"
+                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+              >
+                Features
+              </Link>
+              <Link
+                to="/contact"
+                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+              >
+                Contact
+              </Link>
+              <Link
+                to="/faq"
+                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+              >
+                FAQ
+              </Link>
+              {/* Book a Ride button - accessible to everyone regardless of role */}
+              <Link
+                to={userInfo?.data ? "/book-ride" : "/login"}
+                state={userInfo?.data ? undefined : { from: "/book-ride" }}
+                className="text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors py-2 px-4 rounded-full flex items-center"
+                onClick={(e) => {
+                  if (!userInfo?.data) {
+                    e.preventDefault();
+                    // Store the intended destination
+                    localStorage.setItem('redirectAfterLogin', '/book-ride');
+                    navigate('/login');
+                  }
+                }}
+              >
+                <Car className="w-4 h-4 mr-1" />
+                Book a Ride
+              </Link>
+            </div>
+          )}
 
           {/* Right: Auth, theme, user menu */}
           <div className="flex items-center space-x-3">

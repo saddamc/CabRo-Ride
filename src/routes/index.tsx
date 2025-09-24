@@ -8,8 +8,9 @@ const RoleDashboard = lazy(() => import("@/components/layout/RoleDashboard"));
 const GoogleCallback = lazy(() => import("@/components/modules/Authentication/GoogleCallback"));
 
 const About = lazy(() => import("@/pages/About"));
+const BookRide = lazy(() => import("@/pages/BookRide")); // Universal book ride page for any role
 const Contact = lazy(() => import("@/pages/Contact"));
-const DriverBookRide = lazy(() => import("@/pages/Driver/BookRide"));
+// Removed: DriverBookRide (now handled by RideBooking)
 const DriverDashboard = lazy(() => import("@/pages/Driver/Dashboard"));
 const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
 const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
@@ -22,12 +23,13 @@ const Fail = lazy(() => import("@/pages/Payment/Fail"));
 const Success = lazy(() => import("@/pages/Payment/Success"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const Register = lazy(() => import("@/pages/Register"));
-const BookRide = lazy(() => import("@/pages/Rider/BookRide"));
+// Removed: RiderBookRide (now handled by RideBooking)
 const RiderDashboard = lazy(() => import("@/pages/Rider/Dashboard"));
 const RideBooking = lazy(() => import("@/pages/Rider/RideBooking"));
 const RideHistory = lazy(() => import("@/pages/Rider/RideHistory"));
 const StartRide = lazy(() => import("@/pages/Rider/StartRide"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
+// Universal booking is imported directly in BookRide component
 const Wallet = lazy(() => import("@/pages/User/Wallet"));
 const Verify = lazy(() => import("@/pages/Verify"));
 
@@ -81,7 +83,8 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        Component: withAuth(DashboardLayout, role.superAdmin as TRole),
+        // Allow both super_admin and admin roles to access the admin dashboard
+        Component: withAuth(DashboardLayout, [role.super_admin, role.admin] as TRole[]),
         path: "/admin",
         children: [{index: true, element: <Navigate to="/admin/analytics" />},...generateRoutes(adminSidebarItems)       ]
     },
@@ -125,7 +128,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "book-ride",
-                element: <BookRide />
+                element: <RideBooking />
             },
             {
                 path: "start-ride",
@@ -160,7 +163,7 @@ export const router = createBrowserRouter([
             },
             {
                 path: "book-ride",
-                element: <DriverBookRide />
+                element: <RideBooking />
             },
             {
                 path: "history",
@@ -183,6 +186,11 @@ export const router = createBrowserRouter([
     {
         Component: Unauthorized,
         path: "/unauthorized",
+    },
+    {
+        // Universal book ride route - accessible to all roles without authorization checks
+        Component: BookRide,
+        path: "/book-ride",
     },
     {
         Component: Success,

@@ -45,15 +45,13 @@ export default function RoleDashboard() {
               Dashboard
             </Link>
             
-            {userRole !== 'admin' && userRole !== 'super_admin' && (
-              <Link 
-                to={`${routePrefix}/book-ride`}
-                className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-              >
-                <Car className="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                Book Ride
-              </Link>
-            )}
+            <Link 
+              to={`${routePrefix}/book-ride`}
+              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+            >
+              <Car className="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+              Book your Ride
+            </Link>
             
             <Link 
               to={`${routePrefix}/history`}
@@ -98,16 +96,35 @@ export default function RoleDashboard() {
           </div>
           
           {/* Quick Actions Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className={`grid gap-4 mb-8 ${userRole === 'driver' ? 'grid-cols-1 md:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
+            {userRole === 'driver' && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-start">
+                    <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-4">
+                      <Car className="h-6 w-6 text-blue-500 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Accept Rider</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      View and accept ride requests
+                    </p>
+                    <Button asChild className="mt-auto">
+                      <Link to={`${routePrefix}`}>View Requests</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardContent className="p-6">
                 <div className="flex flex-col items-start">
                   <div className="p-3 rounded-full bg-primary/10 mb-4">
                     <Car className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Book a Ride</h3>
+                  <h3 className="text-lg font-semibold mb-2">Book your Ride</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Request a new ride
+                    {userRole === 'driver' ? 'Offer ride services' : 'Request a new ride'}
                   </p>
                   <Button asChild className="mt-auto">
                     <Link to={`${routePrefix}/book-ride`}>Book Now</Link>
@@ -115,7 +132,7 @@ export default function RoleDashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6">
                 <div className="flex flex-col items-start">
@@ -132,7 +149,7 @@ export default function RoleDashboard() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-6">
                 <div className="flex flex-col items-start">
@@ -167,15 +184,13 @@ export default function RoleDashboard() {
             <span className="text-xs mt-1">Dashboard</span>
           </Link>
           
-          {userRole !== 'admin' && userRole !== 'super_admin' && (
-            <Link 
-              to={`${routePrefix}/book-ride`}
-              className="flex flex-col items-center p-1 text-gray-700 dark:text-gray-300"
-            >
-              <Car className="h-6 w-6" />
-              <span className="text-xs mt-1">Book</span>
-            </Link>
-          )}
+          <Link 
+            to={`${routePrefix}/book-ride`}
+            className="flex flex-col items-center p-1 text-gray-700 dark:text-gray-300"
+          >
+            <Car className="h-6 w-6" />
+            <span className="text-xs mt-1">Book</span>
+          </Link>
           
           <Link 
             to={`${routePrefix}/history`}
