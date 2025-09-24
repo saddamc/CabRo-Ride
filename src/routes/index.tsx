@@ -1,34 +1,40 @@
-import App from "@/App";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import RoleDashboard from "@/components/layout/RoleDashboard";
-import GoogleCallback from "@/components/modules/Authentication/GoogleCallback";
+import { lazy } from "react";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+
+// Lazy load components for better code splitting
+const App = lazy(() => import("@/App"));
+const DashboardLayout = lazy(() => import("@/components/layout/DashboardLayout"));
+const RoleDashboard = lazy(() => import("@/components/layout/RoleDashboard"));
+const GoogleCallback = lazy(() => import("@/components/modules/Authentication/GoogleCallback"));
+
+const About = lazy(() => import("@/pages/About"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const DriverBookRide = lazy(() => import("@/pages/Driver/BookRide"));
+const DriverDashboard = lazy(() => import("@/pages/Driver/Dashboard"));
+const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
+const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
+const Features = lazy(() => import("@/pages/Features"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const Home = lazy(() => import("@/pages/Home/Home"));
+const Login = lazy(() => import("@/pages/Login"));
+const Fail = lazy(() => import("@/pages/Payment/Fail"));
+const Success = lazy(() => import("@/pages/Payment/Success"));
+const Profile = lazy(() => import("@/pages/Profile"));
+const Register = lazy(() => import("@/pages/Register"));
+const BookRide = lazy(() => import("@/pages/Rider/BookRide"));
+const RiderDashboard = lazy(() => import("@/pages/Rider/Dashboard"));
+const RideBooking = lazy(() => import("@/pages/Rider/RideBooking"));
+const RideHistory = lazy(() => import("@/pages/Rider/RideHistory"));
+const StartRide = lazy(() => import("@/pages/Rider/StartRide"));
+const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
+const Wallet = lazy(() => import("@/pages/User/Wallet"));
+const Verify = lazy(() => import("@/pages/Verify"));
+
 import { role } from "@/constants/role";
-import About from "@/pages/About";
-import Contact from "@/pages/Contact";
-import DriverBookRide from "@/pages/Driver/BookRide";
-import DriverDashboard from "@/pages/Driver/Dashboard";
-import DriverRideHistory from "@/pages/Driver/RideHistory";
-import DriverWallet from "@/pages/Driver/Wallet";
-import FAQ from "@/pages/FAQ";
-import Features from "@/pages/Features";
-import ForgotPassword from "@/pages/ForgotPassword";
-import Home from "@/pages/Home/Home";
-import Login from "@/pages/Login";
-import Fail from "@/pages/Payment/Fail";
-import Success from "@/pages/Payment/Success";
-import Profile from "@/pages/Profile";
-import Register from "@/pages/Register";
-import BookRide from "@/pages/Rider/BookRide";
-import RiderDashboard from "@/pages/Rider/Dashboard";
-import RideHistory from "@/pages/Rider/RideHistory";
-import StartRide from "@/pages/Rider/StartRide";
-import Unauthorized from "@/pages/Unauthorized";
-import Wallet from "@/pages/User/Wallet";
-import Verify from "@/pages/Verify";
 import type { TRole } from "@/types";
 import generateRoutes from "@/utils/generateRoutes";
 import { withAuth } from "@/utils/withAuth";
-import { createBrowserRouter, Navigate } from "react-router-dom";
 import { adminSidebarItems } from "./adminSidebarItems";
 import { userSidebarItems } from "./userSidebarItems";
 
@@ -124,6 +130,10 @@ export const router = createBrowserRouter([
             {
                 path: "start-ride",
                 element: <StartRide />
+            },
+            {
+                path: "ride-booking",
+                element: <RideBooking />
             },
             {
                 path: "history",

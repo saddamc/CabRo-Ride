@@ -132,7 +132,7 @@ const Analytics = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-white dark:bg-gray-900">
+      <div className="flex h-screen w-full items-center justify-center bg-white">
         <div className="flex flex-col items-center">
           <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
           <p className="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Loading admin analytics...</p>
@@ -156,7 +156,7 @@ const Analytics = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-white dark:bg-gray-900">
+    <div className="p-6 space-y-6 bg-white">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Dashboard</h1>

@@ -12,7 +12,9 @@ interface NavbarDropdownProps {
 export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout }: NavbarDropdownProps) {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: wallet } = useGetWalletQuery(undefined);
-  const userRole = userInfo?.data?.role || 'rider';
+  // Map API roles to our application roles
+  const role = userInfo?.data?.role;
+  const userRole = role === 'user' ? 'rider' : role || 'rider';
 
   if (!menuOpen) return null;
 

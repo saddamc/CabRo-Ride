@@ -46,21 +46,46 @@ export default function StartRide() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // State for ride management
+  const [currentRideId, setCurrentRideId] = useState<string | null>(null);
+  const [isPollingRideStatus, setIsPollingRideStatus] = useState(false);
+
   // RTK Query hooks
   const [searchLocations, { data: locationsData, isLoading: isSearching }] = useLazySearchLocationsQuery();
   const [getReverseGeocode] = useLazyReverseGeocodeQuery();
   const [calculateFare, { isLoading: isCalculating }] = useCalculateFareMutation();
-  const [, { isLoading: isRequestingRide }] = useRequestRideMutation();
+  const [requestRide, { isLoading: isRequestingRide }] = useRequestRideMutation();
   const { data: nearbyDrivers } = useGetNearbyDriversQuery(
-    pickupLocation ? 
-    { 
-      lat: pickupLocation.coordinates[1], 
+    pickupLocation ?
+    {
+      lat: pickupLocation.coordinates[1],
       lng: pickupLocation.coordinates[0],
       rideType: selectedRideType
-    } : 
+    } :
     { lat: 0, lng: 0 },
     { skip: !pickupLocation || bookingPhase !== "searching_driver" }
   );
+
+  // Effect to poll ride status when we have a ride ID
+  useEffect(() => {
+    if (currentRideId && isPollingRideStatus) {
+      const pollInterval = setInterval(async () => {
+        try {
+          // Here we would implement real-time ride status checking
+          // For now, we'll simulate the status progression
+          console.log('Polling ride status for:', currentRideId);
+
+          // In a real implementation, you would call an API endpoint to get ride status
+          // const rideStatus = await getRideStatus(currentRideId);
+
+        } catch (error) {
+          console.error('Error polling ride status:', error);
+        }
+      }, 5000); // Poll every 5 seconds
+
+      return () => clearInterval(pollInterval);
+    }
+  }, [currentRideId, isPollingRideStatus]);
 
   // Search for locations when the search term changes
   useEffect(() => {
@@ -158,32 +183,88 @@ export default function StartRide() {
 
   // Request a ride
   const handleRequestRide = async () => {
-    if (!pickupLocation || !dropoffLocation || !rideDetails) return;
-    
+    if (!pickupLocation || !dropoffLocation || !rideDetails) {
+      toast({
+        title: "Missing information",
+        description: "Please select both pickup and dropoff locations",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setBookingPhase("searching_driver");
-      
-      // Simulate driver search - in a real app, this would be real-time
+
+      // Create ride request data with all required fields
+      const rideRequestData = {
+        pickupLocation: {
+          address: pickupLocation.address,
+          coordinates: pickupLocation.coordinates,
+        },
+        destinationLocation: {
+          address: dropoffLocation.address,
+          coordinates: dropoffLocation.coordinates,
+        },
+        notes: `Ride type: ${selectedRideType}`,
+      };
+
+      // Call API to create ride in database
+      const rideResponse = await requestRide(rideRequestData).unwrap();
+
+      toast({
+        title: "Ride requested successfully",
+        description: "Searching for available drivers...",
+      });
+
+      // Store the ride ID for status tracking
+      setCurrentRideId(rideResponse.id);
+      setIsPollingRideStatus(true);
+
+      // Simulate driver matching and status progression
+      // In a real app, this would be handled by WebSocket or polling to the backend
       setTimeout(() => {
         if (nearbyDrivers && nearbyDrivers.length > 0) {
-          // Select the first driver for demo purposes
+          // Select the first available driver
           setMatchedDriver(nearbyDrivers[0]);
           setBookingPhase("driver_found");
-          
-          // Simulate driver arriving
+
+          toast({
+            title: "Driver assigned",
+            description: `${nearbyDrivers[0].name} is on the way!`,
+          });
+
+          // Simulate driver arriving at pickup location
           setTimeout(() => {
             setBookingPhase("driver_arriving");
-            
-            // Simulate ride in progress
+
+            // Simulate ride starting (passenger picked up)
             setTimeout(() => {
               setBookingPhase("ride_in_progress");
-              
+
+              toast({
+                title: "Ride started",
+                description: "Your ride is now in progress",
+              });
+
               // Simulate ride completion
               setTimeout(() => {
                 setBookingPhase("ride_completed");
-              }, 10000);
-            }, 5000);
-          }, 5000);
+
+                toast({
+                  title: "Ride completed",
+                  description: "Thank you for riding with us!",
+                });
+
+                // Stop polling
+                setIsPollingRideStatus(false);
+                setCurrentRideId(null);
+
+              }, 15000); // Ride duration: 15 seconds
+
+            }, 8000); // Time to reach passenger: 8 seconds
+
+          }, 6000); // Driver travel time: 6 seconds
+
         } else {
           toast({
             title: "No drivers available",
@@ -191,27 +272,21 @@ export default function StartRide() {
             variant: "destructive",
           });
           setBookingPhase("select_ride");
+          setIsPollingRideStatus(false);
+          setCurrentRideId(null);
         }
-      }, 3000);
-      
-      // In a real implementation, we would call the API
-      /*
-      const ride = await requestRide({
-        pickupLocation,
-        dropoffLocation,
-        rideType: selectedRideType,
-        fare: rideDetails.fare,
-        distance: rideDetails.distance,
-        estimatedTime: rideDetails.estimatedTime,
-      }).unwrap();
-      */
-    } catch {
+      }, 4000); // Driver search time: 4 seconds
+
+    } catch (error) {
+      console.error('Error requesting ride:', error);
       toast({
         title: "Error requesting ride",
-        description: "Could not request a ride at this time",
+        description: "Could not request a ride at this time. Please try again.",
         variant: "destructive",
       });
       setBookingPhase("select_ride");
+      setIsPollingRideStatus(false);
+      setCurrentRideId(null);
     }
   };
 

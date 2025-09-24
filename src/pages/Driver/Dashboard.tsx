@@ -1,11 +1,33 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { Car, Clock, DollarSign, Mail, MapPin, Phone, Shield, Star, Truck, User } from "lucide-react";
+import { useAcceptRideMutation, useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
+import { Car, Check, Clock, DollarSign, Mail, MapPin, Phone, Shield, Star, Truck, User, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
+  const { data: availableRides, isLoading: isLoadingRides } = useGetAvailableRidesQuery();
+  const [acceptRide, { isLoading: isAccepting }] = useAcceptRideMutation();
+  const { toast } = useToast();
+
+  const handleAcceptRide = async (rideId: string) => {
+    try {
+      await acceptRide({ id: rideId }).unwrap();
+      toast({
+        title: "Ride accepted!",
+        description: "You have successfully accepted this ride.",
+      });
+    } catch (error) {
+      console.error('Error accepting ride:', error);
+      toast({
+        title: "Failed to accept ride",
+        description: "Could not accept this ride. It may have been taken by another driver.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Mock data for driver dashboard
   const driverStats = {
@@ -22,32 +44,11 @@ export default function DriverDashboard() {
     }
   };
   
-  // Mock upcoming rides
-  const upcomingRides = [
-    {
-      id: "RID-67890",
-      time: "10:15 AM",
-      pickup: "Downtown Plaza",
-      destination: "Shopping Mall",
-      rider: "Sarah Johnson",
-      fare: 18.50,
-      distance: "3.2 miles"
-    },
-    {
-      id: "RID-67891",
-      time: "11:45 AM",
-      pickup: "Central Station",
-      destination: "Business Park",
-      rider: "John Smith",
-      fare: 22.75,
-      distance: "4.5 miles"
-    }
-  ];
   
   return (
-    <div className="container mx-auto py-4 bg-white dark:bg-gray-950">
+    <div className="container mx-auto py-6 bg-white min-h-screen">
       {/* Driver Stats and Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <Card className="lg:col-span-2 border-0 shadow-md">
           <CardHeader>
             <CardTitle>Driver Statistics</CardTitle>
@@ -63,25 +64,25 @@ export default function DriverDashboard() {
                 <p className="text-2xl font-bold">{driverStats.totalRides}</p>
               </div>
               
-              <div className="bg-green-100 dark:bg-green-900/20 rounded-lg p-4">
+              <div className="bg-green-100 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <Clock className="h-5 w-5 text-green-600" />
                   <span className="text-sm font-medium">Today</span>
                 </div>
                 <p className="text-2xl font-bold">{driverStats.completedToday}</p>
               </div>
-              
-              <div className="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-4">
+
+              <div className="bg-blue-100 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <DollarSign className="h-5 w-5 text-blue-600" />
                   <span className="text-sm font-medium">Earnings</span>
                 </div>
                 <p className="text-2xl font-bold">${driverStats.totalEarnings.toFixed(2)}</p>
               </div>
-              
-              <div className="bg-yellow-100 dark:bg-yellow-900/20 rounded-lg p-4">
+
+              <div className="bg-yellow-100 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Star className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  <Star className="h-5 w-5 text-yellow-600" />
                   <span className="text-sm font-medium">Rating</span>
                 </div>
                 <p className="text-2xl font-bold">{driverStats.rating}</p>
@@ -113,23 +114,23 @@ export default function DriverDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4 mb-4">
-              <div className="p-4 rounded-full bg-gray-100 dark:bg-gray-800">
+              <div className="p-4 rounded-full bg-gray-100">
                 <Truck className="h-8 w-8 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{driverStats.vehicleInfo.make} {driverStats.vehicleInfo.model}</h3>
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-gray-500">{driverStats.vehicleInfo.year}</span>
-                  <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-medium">
+                  <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-600 font-medium">
                     {driverStats.vehicleInfo.status}
                   </span>
                 </div>
               </div>
             </div>
-            
-            <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 mb-4">
+
+            <div className="p-3 rounded-lg border border-gray-200 bg-gray-50 mb-4">
               <div className="font-medium mb-2">License Plate</div>
-              <div className="text-xl font-mono tracking-wider text-center py-1 px-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded">
+              <div className="text-xl font-mono tracking-wider text-center py-1 px-3 border-2 border-dashed border-gray-300 rounded">
                 {driverStats.vehicleInfo.licensePlate}
               </div>
             </div>
@@ -149,7 +150,7 @@ export default function DriverDashboard() {
               </div>
               <div className="flex items-center gap-3">
                 <Shield className="h-4 w-4 text-green-500" />
-                <span className="text-green-600 dark:text-green-400 font-medium">Verified driver</span>
+                <span className="text-green-600 font-medium">Verified driver</span>
               </div>
             </div>
           </CardContent>
@@ -157,7 +158,7 @@ export default function DriverDashboard() {
       </div>
       
       {/* Wallet Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
         <Card className="bg-gradient-to-br from-primary/80 to-primary text-white border-0 shadow-md">
           <CardHeader>
             <CardTitle className="text-white">Wallet Balance</CardTitle>
@@ -203,58 +204,95 @@ export default function DriverDashboard() {
         </Card>
       </div>
       
-      {/* Upcoming Rides */}
+      {/* Available Rides */}
       <Card className="border-0 shadow-md">
         <CardHeader>
-          <CardTitle>Upcoming Rides</CardTitle>
-          <CardDescription>Rides scheduled for today</CardDescription>
+          <CardTitle>Available Rides</CardTitle>
+          <CardDescription>Rides waiting for drivers to accept</CardDescription>
         </CardHeader>
         <CardContent>
-          {upcomingRides.length > 0 ? (
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {upcomingRides.map((ride) => (
-                <div key={ride.id} className="py-4 first:pt-0 last:pb-0">
+          {isLoadingRides ? (
+            <div className="text-center py-6">
+              <p className="text-gray-500">Loading available rides...</p>
+            </div>
+          ) : availableRides && availableRides.length > 0 ? (
+            <div className="divide-y divide-gray-200">
+              {availableRides.map((ride) => (
+                <div key={ride._id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap md:flex-nowrap items-start gap-4">
                     <div className="md:w-1/4">
                       <div className="flex items-center gap-2">
                         <Clock className="h-5 w-5 text-gray-500" />
-                        <span className="font-medium">{ride.time}</span>
+                        <span className="font-medium">
+                          {new Date(ride.timestamps.requested).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
                       </div>
                       <div className="mt-1 text-sm text-gray-500">
-                        ID: {ride.id}
+                        ID: {ride._id.slice(-6)}
                       </div>
                     </div>
-                    
+
                     <div className="md:w-1/2">
                       <div className="flex items-start gap-3 mb-2">
                         <div className="flex flex-col items-center">
-                          <div className="rounded-full p-1.5 bg-primary/10">
-                            <MapPin className="h-3 w-3 text-primary" />
+                          <div className="rounded-full p-1.5 bg-green-100">
+                            <MapPin className="h-3 w-3 text-green-600" />
                           </div>
-                          <div className="w-0.5 h-8 bg-gray-200 dark:bg-gray-700 my-1"></div>
-                          <div className="rounded-full p-1.5 bg-red-100 dark:bg-red-900/20">
-                            <MapPin className="h-3 w-3 text-red-500 dark:text-red-400" />
+                          <div className="w-0.5 h-8 bg-gray-300 my-1"></div>
+                          <div className="rounded-full p-1.5 bg-red-100">
+                            <MapPin className="h-3 w-3 text-red-500" />
                           </div>
                         </div>
                         <div className="flex-1">
                           <div className="mb-2">
                             <div className="text-sm text-gray-500">Pickup</div>
-                            <div className="font-medium">{ride.pickup}</div>
+                            <div className="font-medium">{ride.pickupLocation.address}</div>
                           </div>
                           <div>
                             <div className="text-sm text-gray-500">Destination</div>
-                            <div className="font-medium">{ride.destination}</div>
+                            <div className="font-medium">{ride.destinationLocation.address}</div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="md:w-1/4">
-                      <div className="flex flex-col">
-                        <div className="font-medium">{ride.rider}</div>
-                        <div className="text-sm text-gray-500 mb-2">{ride.distance}</div>
-                        <div className="text-lg font-bold text-primary">
-                          ${ride.fare.toFixed(2)}
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="text-right">
+                          <div className="font-medium">{ride.rider.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {(ride.distance?.estimated || 0).toFixed(1)} km
+                          </div>
+                          <div className="text-lg font-bold text-primary">
+                            ৳{Math.round(ride.fare?.totalFare || 0)}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleAcceptRide(ride._id)}
+                            disabled={isAccepting}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {isAccepting ? (
+                              <>Accepting...</>
+                            ) : (
+                              <>
+                                <Check className="h-4 w-4 mr-1" />
+                                Accept
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -264,9 +302,9 @@ export default function DriverDashboard() {
             </div>
           ) : (
             <div className="text-center py-6">
-              <p className="text-gray-500 dark:text-gray-400">No upcoming rides scheduled</p>
+              <p className="text-gray-500">No available rides at the moment</p>
               <Button variant="outline" className="mt-4">
-                Find Rides
+                Refresh
               </Button>
             </div>
           )}

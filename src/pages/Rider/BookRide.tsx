@@ -2,14 +2,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Car, Clock, MapPin } from "lucide-react";
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 export default function BookRide() {
+  const navigate = useNavigate();
+  
+  // Redirect to the new RideBooking component
+  useEffect(() => {
+    navigate("/rider/ride-booking", { replace: true });
+  }, [navigate]);
   
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Book a Ride</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2">
-          Choose your pickup and destination to get started
+          Redirecting to our new booking experience...
         </p>
       </div>
       

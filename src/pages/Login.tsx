@@ -2,11 +2,16 @@ import { useLoginMutation } from '@/redux/features/auth/auth.api';
 import { initiateGoogleLogin } from '@/utils/googleAuth';
 import { Car, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectPath = location.state?.from || "/";
+  const locationData = location.state?.locationData;
+  const useCurrentLocation = location.state?.useCurrentLocation;
+  
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,15 +29,31 @@ export default function Login() {
           navigate("/verify", { state: email });
         } else {
           toast.success("Logged in successfully");
-          if (result.data.redirectTo) {
+          
+          // Check for stored redirect first (from navbar)
+          const storedRedirect = localStorage.getItem('redirectAfterLogin');
+          if (storedRedirect) {
+            localStorage.removeItem('redirectAfterLogin');
+            navigate(storedRedirect);
+          }
+          // Handle redirect with location data if present
+          else if (redirectPath.includes('ride-booking')) {
+            navigate(redirectPath, { 
+              state: { 
+                selectedLocation: locationData,
+                useCurrentLocation: useCurrentLocation 
+              } 
+            });
+          } else if (result.data.redirectTo) {
             navigate(result.data.redirectTo);
           } else {
-            navigate("/");
+            navigate(redirectPath);
           }
         }
       }
-    } catch {
-      toast.error('Login failed');
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Login failed. Please check your credentials.');
     }
     setIsLoading(false);
   };

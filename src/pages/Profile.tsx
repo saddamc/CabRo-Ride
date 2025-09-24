@@ -126,7 +126,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
           <p className="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">Loading profile...</p>
@@ -137,7 +137,7 @@ export default function Profile() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950 p-6">
+      <div className="min-h-screen bg-white p-6">
         <Alert variant="destructive" className="max-w-2xl mx-auto mt-8">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -150,7 +150,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>

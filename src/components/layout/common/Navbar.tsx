@@ -93,6 +93,23 @@ export default function Navbar() {
             >
               FAQ
             </Link>
+            {/* Book a Ride button - accessible to everyone */}
+            <Link
+              to={userInfo?.data ? "/rider/ride-booking" : "/login"}
+              state={userInfo?.data ? undefined : { from: "/rider/ride-booking" }}
+              className="text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors py-2 px-4 rounded-full flex items-center"
+              onClick={(e) => {
+                if (!userInfo?.data) {
+                  e.preventDefault();
+                  // Store the intended destination
+                  localStorage.setItem('redirectAfterLogin', '/rider/ride-booking');
+                  navigate('/login');
+                }
+              }}
+            >
+              <Car className="w-4 h-4 mr-1" />
+              Book a Ride
+            </Link>
           </div>
 
           {/* Right: Auth, theme, user menu */}

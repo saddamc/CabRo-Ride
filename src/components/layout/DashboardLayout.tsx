@@ -6,26 +6,10 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { cva } from "class-variance-authority";
 import { Outlet } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Footer from "./common/Footer";
 import Navbar from "./common/Navbar";
-
-const dashboardVariants = cva(
-    "transition-all duration-300 ease-in-out",
-    {
-        variants: {
-            layout: {
-                default: "bg-white dark:bg-gray-950",
-                gradient: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900",
-            },
-        },
-        defaultVariants: {
-            layout: "default",
-        },
-    }
-);
 
 export default function DashboardLayout() {
     const { data: userInfo, isLoading } = useUserInfoQuery(undefined);
@@ -38,8 +22,8 @@ export default function DashboardLayout() {
             <div className="flex-1 flex">
                 <SidebarProvider>
                     <AppSidebar />
-                    <SidebarInset className={dashboardVariants()}>
-                        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-gray-900">
+                    <SidebarInset className="bg-white">
+                        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
                             <SidebarTrigger className="-ml-1" />
                             <Separator
                                 orientation="vertical"
@@ -72,7 +56,7 @@ export default function DashboardLayout() {
                                 )}
                             </div>
                         </header>
-                        <div className="flex-1 p-0 md:p-6">
+                        <div className="flex-1 p-0 md:p-6 bg-white">
                             <Outlet />
                         </div>
                     </SidebarInset>

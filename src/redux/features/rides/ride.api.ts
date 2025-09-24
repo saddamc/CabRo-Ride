@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { baseApi } from "@/redux/baseApi";
 import type { IResponse } from "@/types";
 
@@ -140,11 +141,11 @@ export const rideApi = baseApi.injectEndpoints({
               address
             }
           };
-        } catch (error) {
+        } catch (error: any) {
           return {
             error: {
               status: 400,
-              data: { message: "Failed to get current location" }
+              data: { message: `Failed to get current location: ${error.message}` }
             }
           };
         }
@@ -163,7 +164,7 @@ export const rideApi = baseApi.injectEndpoints({
     // Request a ride
     requestRide: builder.mutation<IRide, IRideRequest>({
       query: (data) => ({
-        url: "/rider/request",
+        url: "/rides/request",
         method: "POST",
         data,
       }),
@@ -173,17 +174,22 @@ export const rideApi = baseApi.injectEndpoints({
     // Get active ride for current user
     getActiveRide: builder.query<IRide | null, void>({
       query: () => ({
-        url: "/rider/active",
+        url: "/rides/me",
         method: "GET",
       }),
-      transformResponse: (response: IResponse<IRide | null>) => response.data,
+      transformResponse: (response: IResponse<{ rides: IRide[] }>) => {
+        // Find active ride (not completed or cancelled)
+        const activeStatuses = ['requested', 'accepted', 'picked_up', 'in_transit'];
+        const activeRide = response.data.rides.find(ride => activeStatuses.includes(ride.status));
+        return activeRide || null;
+      },
       providesTags: ["RIDES"],
     }),
 
     // Cancel ride
     cancelRide: builder.mutation<IRide, { id: string; reason: string }>({
       query: ({ id, reason }) => ({
-        url: `/rider/${id}/cancel`,
+        url: `/rides/${id}/cancel`,
         method: "PATCH",
         data: { reason },
       }),
@@ -193,7 +199,7 @@ export const rideApi = baseApi.injectEndpoints({
     // Rate ride
     rateRide: builder.mutation<IRide, { id: string; rating: number; feedback?: string }>({
       query: ({ id, rating, feedback }) => ({
-        url: `/rider/rating/${id}`,
+        url: `/rides/rating/${id}`,
         method: "PATCH",
         data: { rating, feedback },
       }),
@@ -209,8 +215,45 @@ export const rideApi = baseApi.injectEndpoints({
         url: `/rider/estimate-price?pickupLng=${pickup[0]}&pickupLat=${pickup[1]}&destLng=${destination[0]}&destLat=${destination[1]}&type=${rideType}`,
         method: "GET",
       }),
-      transformResponse: (response: IResponse<{ estimatedPrice: number; distance: number; duration: number }>) => 
+      transformResponse: (response: IResponse<{ estimatedPrice: number; distance: number; duration: number }>) =>
         response.data,
+    }),
+
+    // Driver accept ride
+    acceptRide: builder.mutation<IRide, { id: string }>({
+      query: ({ id }) => ({
+        url: `/driver/accept-ride/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["RIDES"],
+    }),
+
+    // Driver reject ride
+    rejectRide: builder.mutation<IRide, { id: string }>({
+      query: ({ id }) => ({
+        url: `/driver/reject-ride/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["RIDES"],
+    }),
+
+    // Driver update ride status
+    updateRideStatus: builder.mutation<IRide, { id: string }>({
+      query: ({ id }) => ({
+        url: `/driver/status/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["RIDES"],
+    }),
+
+    // Get available rides for driver
+    getAvailableRides: builder.query<IRide[], void>({
+      query: () => ({
+        url: "/rides/available",
+        method: "GET",
+      }),
+      transformResponse: (response: IResponse<{ rides: IRide[] }>) => response.data.rides,
+      providesTags: ["RIDES"],
     }),
   }),
 });
@@ -225,4 +268,8 @@ export const {
   useCancelRideMutation,
   useRateRideMutation,
   useLazyGetEstimatedPriceQuery,
+  useAcceptRideMutation,
+  useRejectRideMutation,
+  useUpdateRideStatusMutation,
+  useGetAvailableRidesQuery,
 } = rideApi;

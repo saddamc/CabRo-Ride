@@ -1,3 +1,4 @@
+import HeroBooking from '@/components/modules/home/HeroBooking';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Car, Check, ChevronRight, Clock, MapPin, Shield, Star, Users } from 'lucide-react';
@@ -102,18 +103,14 @@ const Home = () => {
                   Affordable, reliable, and trusted rides at your fingertips — anytime, anywhere.
                 </p>
               </div>
-              {/* <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="flex flex-col gap-4 sm:flex-row">
                 <Button size="lg" className="px-8 py-6 text-lg" asChild>
-                  <Link to="/start-ride">
+                  <Link to="/rider/ride-booking">
                     <Car className="w-5 h-5 mr-2" />
-                    Book a Ride Now
+                    Try New Uber-like Experience
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="px-8 py-6 text-lg">
-                  <Play className="w-5 h-5 mr-2" />
-                  Watch Demo
-                </Button>
-              </div> */}
+              </div>
               {/* <div className="flex items-center space-x-8">
                 <div className="text-center">
                   <div className="text-2xl font-bold">1M+</div>
@@ -128,6 +125,7 @@ const Home = () => {
                   <div className="text-sm text-muted-foreground">Average Rating</div>
                 </div>
               </div> */}
+              <HeroBooking />
             </div>
             <div className="relative">
               <img

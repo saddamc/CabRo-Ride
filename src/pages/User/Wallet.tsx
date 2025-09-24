@@ -143,7 +143,7 @@ export default function Wallet() {
 
   if (walletError || transactionsError) {
     return (
-      <div className="container mx-auto px-4 py-8 bg-white dark:bg-gray-950">
+      <div className="container mx-auto px-4 py-8 bg-white">
         <Alert variant="destructive" className="max-w-2xl mx-auto">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -156,7 +156,7 @@ export default function Wallet() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl bg-white dark:bg-gray-950">
+    <div className="container mx-auto px-4 py-8 max-w-5xl bg-white">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Wallet</h1>
         <p className="text-gray-600 dark:text-gray-400">Manage your earnings and transactions</p>

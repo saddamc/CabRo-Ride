@@ -1,5 +1,21 @@
 import { baseApi } from "@/redux/baseApi";
 
+// Helper function to calculate distance between two points using Haversine formula
+function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // Distance in meters
+}
+
 export interface ILocation {
   id: string;
   name: string;
@@ -9,12 +25,15 @@ export interface ILocation {
 }
 
 export interface IRideRequest {
-  pickupLocation: ILocation;
-  dropoffLocation: ILocation;
-  rideType: string;
-  fare: number;
-  distance: number;
-  estimatedTime: number;
+  pickupLocation: {
+    address: string;
+    coordinates: [number, number];
+  };
+  destinationLocation: {
+    address: string;
+    coordinates: [number, number];
+  };
+  notes?: string;
 }
 
 export interface IDriver {
@@ -80,14 +99,51 @@ const rideApi = baseApi.injectEndpoints({
       { fare: number; distance: number; estimatedTime: number },
       { pickupLocation: ILocation; dropoffLocation: ILocation; rideType: string }
     >({
-      query: (data) => ({
-        url: `/rides/calculate-fare`,
-        method: "POST",
-        data,
-      }),
-      transformResponse: (response: {
-        data: { fare: number; distance: number; estimatedTime: number };
-      }) => response.data,
+      // Using queryFn instead of query to implement local calculation
+      // This avoids the 404 error by not making the actual API call
+      queryFn: async (data) => {
+        try {
+          // Calculate distance using Haversine formula
+          const distance = calculateHaversineDistance(
+            data.pickupLocation.coordinates[1],
+            data.pickupLocation.coordinates[0],
+            data.dropoffLocation.coordinates[1],
+            data.dropoffLocation.coordinates[0]
+          );
+          
+          // Calculate time based on average speed of 30 km/h
+          const timeMinutes = (distance / 1000) * 2; // 2 minutes per km
+          
+          // Calculate fare based on ride type
+          let baseFare = 50;
+          let farePerKm = 30;
+          
+          if (data.rideType === 'premium') {
+            baseFare = 80;
+            farePerKm = 45;
+          } else if (data.rideType === 'luxury') {
+            baseFare = 120;
+            farePerKm = 70;
+          }
+          
+          const fare = baseFare + (distance / 1000) * farePerKm;
+          
+          return {
+            data: {
+              fare,
+              distance,
+              estimatedTime: timeMinutes
+            }
+          };
+        } catch {
+          return {
+            error: {
+              status: 500,
+              data: { message: 'Failed to calculate fare' }
+            }
+          };
+        }
+      },
     }),
 
     // Request a ride

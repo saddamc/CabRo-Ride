@@ -6,11 +6,23 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group-simple";
 import { Textarea } from "@/components/ui/textarea";
 import { Car, Clock, CreditCard, Info, MapPin, Navigation, ReceiptText, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function DriverBookRide() {
+  const navigate = useNavigate();
   const [bookingStep, setBookingStep] = useState(1);
   const [rideType, setRideType] = useState("standard");
+  
+  // Drivers should be able to see ride requests, not book rides
+  // Redirect to dashboard after short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate("/driver/dashboard", { replace: true });
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [navigate]);
   
   // Mock locations for quick selection
   const savedLocations = [
