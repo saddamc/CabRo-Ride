@@ -100,6 +100,13 @@ const mockLocations: ILocation[] = [
     coordinates: [91.9847, 21.4272] as [number, number],
     type: "beach"
   },
+  {
+    id: "custom-location-1",
+    name: "Varradi, windy wash Gate, kanchkura",
+    address: "Varradi, windy wash Gate, Kanchkura, uttar khan, Dhaka",
+    coordinates: [90.4591, 23.8675] as [number, number],
+    type: "landmark"
+  },
 ];
 
 /**
@@ -132,12 +139,13 @@ export function reverseGeocode(lat: number, lng: number): ILocation {
     return prevDist < currDist ? prev : curr;
   });
 
-  // If it's very close, return the closest one
+  // Calculate distance in degrees (rough approximation)
   const distance = Math.sqrt(
     Math.pow(closest.coordinates[1] - lat, 2) + Math.pow(closest.coordinates[0] - lng, 2)
   );
-  
-  if (distance < 0.01) {
+
+  // If within ~50 meters (approximately 0.00045 degrees), return the closest stored location
+  if (distance < 0.0005) {
     return closest;
   }
   

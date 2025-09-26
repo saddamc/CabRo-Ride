@@ -20,7 +20,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isDashboard = location.pathname.startsWith('/rider') || location.pathname.startsWith('/driver') || location.pathname.startsWith('/admin');
+  const isDashboard = location.pathname.startsWith('/rider') || location.pathname.startsWith('/driver') || location.pathname.startsWith('/admin') || location.pathname === '/booking-ride';
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -98,8 +98,8 @@ export default function Navbar() {
               >
                 FAQ
               </Link>
-              {/* Book a Ride button - hidden for driver role only */}
-              {(!userInfo?.data || userInfo?.data?.role !== role.driver) && (
+              {/* Book a Ride button - hidden for driver, admin, and super_admin roles */}
+              {(!userInfo?.data || (userInfo?.data?.role !== role.driver && userInfo?.data?.role !== role.admin && userInfo?.data?.role !== role.super_admin)) && (
                 <Link
                   to={userInfo?.data ? "/booking-ride" : "/login"}
                   state={userInfo?.data ? undefined : { from: "/booking-ride" }}

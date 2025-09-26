@@ -116,8 +116,8 @@ export default function MapView({
 
   return (
     <div className={cn(
-      "transition-all duration-300 ease-in-out bg-white rounded-lg overflow-hidden shadow-sm",
-      isExpanded ? "flex-grow" : "h-64"
+      "transition-all duration-300 ease-in-out bg-white rounded-lg overflow-hidden shadow-sm w-full",
+      isExpanded ? "flex-grow min-h-[500px]" : "h-full min-h-[400px]"
     )}>
       <MapContainer
         center={calculatedCenter}

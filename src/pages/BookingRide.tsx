@@ -11,6 +11,7 @@ import { reverseGeocode } from '@/services/mockLocationService';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import Navbar from '@/components/layout/common/Navbar';
 import DriverStatus from '../components/RideBooking/DriverStatus';
 import LocationSearch from '../components/RideBooking/LocationSearch';
 import MapView from '../components/RideBooking/MapView';
@@ -194,6 +195,16 @@ export default function BookingRide() {
     }
   }, [pickupLocation]);
 
+  // Calculate fare when entering select_ride phase with locations
+  useEffect(() => {
+    const calculate = async () => {
+      if (bookingPhase === 'select_ride' && pickupLocation && dropoffLocation && !rideDetails) {
+        await calculateRideFare();
+      }
+    };
+    calculate();
+  }, [bookingPhase, pickupLocation, dropoffLocation, rideDetails]);
+
   // Calculate ride fare
   const calculateRideFare = async () => {
     if (!pickupLocation || !dropoffLocation) return;
@@ -281,11 +292,11 @@ export default function BookingRide() {
       return;
     }
 
-    // Check if user is a driver
-    if (userInfo.data.role === role.driver) {
+    // Check if user is a driver, admin, or super_admin
+    if (userInfo.data.role === role.driver || userInfo.data.role === role.admin || userInfo.data.role === role.super_admin) {
       toast({
         title: 'Access Restricted',
-        description: 'Drivers cannot book rides. This feature is only available for riders.',
+        description: 'Drivers, admins, and super admins cannot book rides. This feature is only available for regular users.',
         variant: 'destructive',
       });
       return;
@@ -303,10 +314,10 @@ export default function BookingRide() {
 
   const handleRequestRide = async () => {
     // Additional role check for booking button
-    if (userInfo?.data?.role === role.driver) {
+    if (userInfo?.data?.role === role.driver || userInfo?.data?.role === role.admin || userInfo?.data?.role === role.super_admin) {
       toast({
         title: 'Access Denied',
-        description: 'Drivers cannot book rides.',
+        description: 'Drivers, admins, and super admins cannot book rides.',
         variant: 'destructive',
       });
       return;
@@ -435,9 +446,9 @@ export default function BookingRide() {
     switch (bookingPhase) {
       case 'search':
         return (
-          <div className="flex h-full">
-            {/* Left: Booking UI (40%) */}
-            <div className="w-full md:w-2/5 flex flex-col bg-white h-full border-r">
+          <div className="flex flex-col lg:flex-row h-full">
+            {/* Left: Booking UI */}
+            <div className="w-full lg:w-2/5 flex flex-col bg-white border-b lg:border-b-0 lg:border-r">
               <LocationSearch
                 pickupLocation={pickupLocation}
                 dropoffLocation={dropoffLocation}
@@ -459,18 +470,25 @@ export default function BookingRide() {
                 userRole={userInfo?.data?.role}
               />
             </div>
-            {/* Right: Map (60%) - hidden in search phase */}
-            <div className="hidden md:block w-3/5 h-full">
-              {/* Map is hidden until 'See Details' is clicked */}
+            {/* Right: Map - Show preview on larger screens */}
+            <div className="hidden lg:block lg:w-3/5 h-full">
+              <MapView
+                pickupLocation={pickupLocation}
+                dropoffLocation={dropoffLocation}
+                matchedDriver={matchedDriver}
+                mapCenter={mapCenter}
+                bookingPhase={bookingPhase}
+                isExpanded={false}
+              />
             </div>
           </div>
         );
 
       case 'select_ride':
         return (
-          <div className="flex h-full">
-            {/* Left: Booking UI (40%) */}
-            <div id="booking-panel" className="md:w-2/5 flex flex-col bg-white h-full border-r">
+          <div className="flex flex-col lg:flex-row h-full">
+            {/* Left: Booking UI */}
+            <div id="booking-panel" className="w-full lg:w-2/5 flex flex-col bg-white border-b lg:border-b-0 lg:border-r">
               <LocationSearch
                 pickupLocation={pickupLocation}
                 dropoffLocation={dropoffLocation}
@@ -492,21 +510,20 @@ export default function BookingRide() {
                 userRole={userInfo?.data?.role}
               />
               <RideSelection
-                selectedRideType={selectedRideType}
-                rideDetails={rideDetails}
-                isMapExpanded={isMapExpanded}
-                onRideTypeChange={handleRideTypeChange}
-                onCalculateFare={calculateRideFare}
-                onToggleMap={handleToggleMap}
-              />
+                 selectedRideType={selectedRideType}
+                 rideDetails={rideDetails}
+                 isMapExpanded={isMapExpanded}
+                 onRideTypeChange={handleRideTypeChange}
+                 onToggleMap={handleToggleMap}
+               />
               <div className="p-4 bg-white border-t">
-                {userInfo?.data?.role === role.driver ? (
+                {(userInfo?.data?.role === role.driver || userInfo?.data?.role === role.admin || userInfo?.data?.role === role.super_admin) ? (
                   <div className="text-center py-4">
                     <div className="text-gray-500 mb-2">
-                      🚫 Drivers cannot book rides
+                      🚫 {userInfo?.data?.role === role.driver ? 'Drivers' : userInfo?.data?.role === role.admin ? 'Admins' : 'Super Admins'} cannot book rides
                     </div>
                     <div className="text-sm text-gray-400">
-                      This feature is only available for riders. You can still view routes and fares.
+                      This feature is only available for regular users. You can still view routes and fares.
                     </div>
                   </div>
                 ) : (
@@ -529,8 +546,8 @@ export default function BookingRide() {
               </div>
             </div>
 
-            {/* Right: Map (60%) */}
-            <div className="hidden md:block w-3/5 h-full">
+            {/* Right: Map - Visible on all screen sizes */}
+            <div className="flex-1 min-h-[400px] lg:h-full">
               <MapView
                 pickupLocation={pickupLocation}
                 dropoffLocation={dropoffLocation}
@@ -630,8 +647,11 @@ export default function BookingRide() {
   };
 
   return (
-    <div className="h-[calc(100vh-64px)] bg-gray-100">
-      {renderContent()}
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="h-[calc(100vh-64px)]">
+        {renderContent()}
+      </div>
     </div>
   );
 }

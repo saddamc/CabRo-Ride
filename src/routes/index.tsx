@@ -69,18 +69,6 @@ export const router = createBrowserRouter([
                 Component: FAQ,
                 path: "faq",
             },
-            // {
-            //     Component: Tours,
-            //     path: "tours",
-            // },
-            // {
-            //     Component: TourDetails,
-            //     path: "tours/:id",
-            // },
-            // {
-            //     Component: withAuth(Booking),
-            //     path: "booking/:id",
-            // },
         ]
     },
     {

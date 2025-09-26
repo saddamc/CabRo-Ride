@@ -1,9 +1,15 @@
+import LocationSearch from '@/components/RideBooking/LocationSearch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import type { ILocation } from '@/redux/features/ride/ride.api';
+import { reverseGeocode } from '@/services/mockLocationService';
 import { Car, Check, ChevronRight, Clock, MapPin, Shield, Star, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const { toast } = useToast();
   const features = [
     {
       icon: Shield,
@@ -86,6 +92,67 @@ const Home = () => {
     },
   ];
 
+  // Local state for LocationSearch props
+  const [pickupLocation, setPickupLocation] = useState<ILocation | null>(null);
+  const [dropoffLocation, setDropoffLocation] = useState<ILocation | null>(null);
+  const [pickupInput, setPickupInput] = useState<string>("");
+  const [destinationInput, setDestinationInput] = useState<string>("");
+
+  // Handlers for LocationSearch
+  const handlePickupInputChange = (value: string) => setPickupInput(value);
+  const handleDestinationInputChange = (value: string) => setDestinationInput(value);
+  const handlePickupSelect = (location: ILocation) => {
+    setPickupLocation(location);
+    setPickupInput(location.name);
+  };
+  const handleDestinationSelect = (location: ILocation) => {
+    setDropoffLocation(location);
+    setDestinationInput(location.name);
+  };
+  const handleGetCurrentLocation = async (isPickup: boolean) => {
+    if (!isPickup) return; // Only handle pickup for now
+
+    try {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const { latitude, longitude } = position.coords;
+          const locationData = reverseGeocode(latitude, longitude);
+          setPickupLocation(locationData);
+          setPickupInput(locationData.name);
+        }, (error) => {
+          toast({
+            title: 'Geolocation error',
+            description: error.message,
+            variant: 'destructive',
+          });
+        });
+      } else {
+        toast({
+          title: 'Geolocation not supported',
+          description: 'Your browser does not support geolocation',
+          variant: 'destructive',
+        });
+      }
+    } catch {
+      toast({
+        title: 'Error getting location',
+        description: 'Could not determine your current location',
+        variant: 'destructive',
+      });
+    }
+  };
+  const navigate = useNavigate();
+  const handleSeeDetails = () => {
+    if (pickupLocation && dropoffLocation) {
+      navigate('/booking-ride', {
+        state: {
+          pickupLocation,
+          dropoffLocation
+        }
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -102,16 +169,23 @@ const Home = () => {
                   Affordable, reliable, and trusted rides at your fingertips — anytime, anywhere.
                 </p>
               </div>
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Button size="lg" className="px-8 py-6 text-lg" asChild>
-                  <Link to="/rider/ride-booking">
-                    <Car className="w-5 h-5 mr-2" />
-                    Book your Ride
-                  </Link>
-                </Button>
-              </div>
-              
-              {/* <HeroBooking /> */}
+             
+              {/* Ride Booking */}
+              <LocationSearch
+                pickupLocation={pickupLocation}
+                dropoffLocation={dropoffLocation}
+                pickupInput={pickupInput}
+                destinationInput={destinationInput}
+                onPickupInputChange={handlePickupInputChange}
+                onDestinationInputChange={handleDestinationInputChange}
+                onPickupSelect={handlePickupSelect}
+                onDestinationSelect={handleDestinationSelect}
+                onGetCurrentLocation={handleGetCurrentLocation}
+                onSeeDetails={handleSeeDetails}
+                showSeeDetails={pickupLocation !== null && dropoffLocation !== null}
+                userRole={undefined}
+              />
+
             </div>
             <div className="relative">
               <img
@@ -125,8 +199,8 @@ const Home = () => {
                     <MapPin className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <div className="font-semibold">Live Tracking</div>
-                    <div className="text-sm text-muted-foreground">Real-time updates</div>
+                    <div className="font-semibold text-black">Live Tracking</div>
+                    <div className="text-sm text-black text-muted-foreground ">Real-time updates</div>
                   </div>
                 </div>
               </div>
