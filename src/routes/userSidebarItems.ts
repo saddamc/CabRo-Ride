@@ -2,14 +2,29 @@
 import type { ISidebarItem } from "@/types";
 
 export const userSidebarItems : ISidebarItem[] = [
-        {
+    {
+        title: "User",
+        items: [
+            {
+                title: "Profile",
+                url: "/user/profile",
+                icon: "user",
+            },
+            {
+                title: "Wallet",
+                url: "/user/wallet",
+                icon: "wallet",
+            },
+        ],
+    },
+    {
         title: "History",
         items: [
-            // {
-            // title: "Analytics",
-            // url: "/user/bookings",
-            // component: Bookings,
-            // },
+            {
+                title: "Ride History",
+                url: "/user/history",
+                icon: "history",
+            },
         ],
-        },
-    ]
+    },
+]

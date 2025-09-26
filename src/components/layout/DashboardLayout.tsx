@@ -21,8 +21,8 @@ export default function DashboardLayout() {
             <div className="flex-1 flex">
                 <SidebarProvider>
                     <AppSidebar />
-                    <SidebarInset className="bg-white">
-                        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
+                    <SidebarInset className="bg-white dark:bg-gray-900">
+                        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                             <SidebarTrigger className="-ml-1" />
                             <Separator
                                 orientation="vertical"
@@ -55,7 +55,7 @@ export default function DashboardLayout() {
                                 )}
                             </div>
                         </header>
-                        <div className="flex-1 p-0 md:p-6 bg-white">
+                        <div className="flex-1 p-0 md:p-6 bg-white dark:bg-gray-900">
                             <Outlet />
                         </div>
                     </SidebarInset>

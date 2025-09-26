@@ -233,6 +233,22 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           >
             Dashboard
           </Link>
+          {/* Wallet Link for all users */}
+          <Link
+            to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin' : `/${userRole}`}/wallet`}
+            onClick={handleMenuClose}
+            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <div className="flex items-center">
+              <Wallet className="h-4 w-4 mr-2" />
+              <span>Wallet</span>
+              {wallet?.balance && (
+                <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
+                  ${wallet?.balance?.toFixed(2)}
+                </span>
+              )}
+            </div>
+          </Link>
           {userRole !== 'driver' && (
             <>
               <Link
@@ -248,6 +264,13 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                 className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 Ride History
+              </Link>
+              <Link
+                to="/profile"
+                onClick={handleMenuClose}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Profile
               </Link>
             </>
           )}
@@ -267,23 +290,22 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
               >
                 History
               </Link>
+              <Link
+                to="/profile"
+                onClick={handleMenuClose}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Profile
+              </Link>
             </>
           )}
-          <Link
-            to="/profile"
-            onClick={handleMenuClose}
-            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Profile
-          </Link>
-
           <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
           <button
             onClick={() => {
               handleLogout();
               handleMenuClose();
             }}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+            className="w-full text-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium rounded-md mx-2"
           >
             Sign out
           </button>

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAddMoneyMutation, useGetWalletQuery, useGetWalletTransactionsQuery, useWithdrawMoneyMutation } from "@/redux/features/auth/Rider/rider.api";
 import { AlertCircle, CreditCard, DollarSign, Minus, Plus, TrendingDown, TrendingUp, WalletIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function Wallet() {
@@ -25,7 +26,9 @@ export default function Wallet() {
 
   const [addAmount, setAddAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawBank, setWithdrawBank] = useState("default");
   const [timeFilter, setTimeFilter] = useState<string>("all");
+  const [paymentMethod, setPaymentMethod] = useState<string>("card");
   
   // Calculate today's and this week's earnings from transactions
   const [todayEarnings, setTodayEarnings] = useState(0);
@@ -73,7 +76,11 @@ export default function Wallet() {
     }
 
     try {
-      await addMoney(parseFloat(addAmount)).unwrap();
+      await addMoney({
+        amount: parseFloat(addAmount),
+        method: paymentMethod,
+        description: 'Manual deposit to wallet'
+      }).unwrap();
       toast.success("Money added successfully!");
       setAddAmount("");
       
@@ -97,7 +104,11 @@ export default function Wallet() {
     }
 
     try {
-      await withdrawMoney(parseFloat(withdrawAmount)).unwrap();
+      await withdrawMoney({
+        amount: parseFloat(withdrawAmount),
+        bankAccount: withdrawBank,
+        description: 'Manual withdrawal to bank account'
+      }).unwrap();
       toast.success("Money withdrawn successfully!");
       setWithdrawAmount("");
       
@@ -241,6 +252,22 @@ export default function Wallet() {
                 className="bg-white dark:bg-gray-900"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="payment-method">Payment Method</Label>
+              <Select 
+                value={paymentMethod} 
+                onValueChange={setPaymentMethod}
+              >
+                <SelectTrigger id="payment-method">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="card">Credit/Debit Card</SelectItem>
+                  <SelectItem value="bank">Bank Transfer</SelectItem>
+                  <SelectItem value="wallet">Digital Wallet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button 
               onClick={handleAddMoney} 
               className="w-full" 
@@ -290,6 +317,22 @@ export default function Wallet() {
                 </p>
               )}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="bank-account">Bank Account</Label>
+              <Select 
+                value={withdrawBank} 
+                onValueChange={setWithdrawBank}
+              >
+                <SelectTrigger id="bank-account">
+                  <SelectValue placeholder="Select bank account" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">My Primary Account (•••• 4567)</SelectItem>
+                  <SelectItem value="savings">My Savings Account (•••• 8901)</SelectItem>
+                  <SelectItem value="new">Add New Account</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               onClick={handleWithdrawMoney}
               variant="outline"
@@ -297,7 +340,8 @@ export default function Wallet() {
               disabled={
                 !withdrawAmount || 
                 parseFloat(withdrawAmount) > (wallet?.balance || 0) || 
-                isWithdrawingMoney
+                isWithdrawingMoney ||
+                withdrawBank === 'new'
               }
             >
               {isWithdrawingMoney ? (
@@ -312,6 +356,13 @@ export default function Wallet() {
                 </>
               )}
             </Button>
+            {withdrawBank === 'new' && (
+              <div className="text-sm text-blue-600">
+                <Link to="/profile/payment-methods">
+                  Click here to add a new bank account
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

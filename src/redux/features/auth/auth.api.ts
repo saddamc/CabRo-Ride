@@ -51,7 +51,7 @@ export const authApi = baseApi.injectEndpoints({
         }),
         updateProfile: builder.mutation({
             query: (userInfo) => ({
-                url: "/users/update/me",
+                url: `/users/update/${userInfo._id || ''}`,
                 method: "PATCH",
                 data: userInfo,
             }),

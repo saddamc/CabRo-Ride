@@ -1,41 +1,34 @@
-// import AddDivision from "@/pages/Admin/AddDivision";
-// import AddTour from "@/pages/Admin/AddTour";
-// import AddTourType from "@/pages/Admin/AddTourType";
-// import Analytics from "@/pages/Admin/Analytics";
 import type { ISidebarItem } from "@/types";
 import { lazy } from "react";
 
-const Analytics = lazy(() => import("@/pages/Admin/Analytics"))
+const Dashboard = lazy(() => import("@/pages/Admin/Dashboard"));
+const DriverManagement = lazy(() => import("@/pages/Admin/DriverManagement"));
+const RiderManagement = lazy(() => import("@/pages/Admin/RiderManagement"));
 
 export const adminSidebarItems : ISidebarItem[] = [
-        {
-        title: "Dashboard",
+    {
+        title: "Overview",
         items: [
             {
-            title: "Analytics",
-            url: "/admin/analytics",
-            component: Analytics,
+                title: "Dashboard",
+                url: "/admin/dashboard",
+                component: Dashboard,
             },
         ],
-        },
-        {
-        title: "Tour Management",
+    },
+    {
+        title: "User Management",
         items: [
-            // {
-            // title: "Add Tour Type",
-            // url: "/admin/add-tour-type",
-            // component: AddTourType,
-            // },
-            // {
-            // title: "Add Tour",
-            // url: "/admin/add-tour",
-            // component: AddTour,
-            // },
-            // {
-            // title: "Add Division",
-            // url: "/admin/add-division",
-            // component: AddDivision,
-            // },
+            {
+                title: "Drivers",
+                url: "/admin/drivers",
+                component: DriverManagement,
+            },
+            {
+                title: "Riders",
+                url: "/admin/riders",
+                component: RiderManagement,
+            },
         ],
-        },
-    ]
+    },
+]

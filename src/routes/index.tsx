@@ -8,12 +8,17 @@ const RoleDashboard = lazy(() => import("@/components/layout/RoleDashboard"));
 const GoogleCallback = lazy(() => import("@/components/modules/Authentication/GoogleCallback"));
 
 const About = lazy(() => import("@/pages/About"));
-const BookRide = lazy(() => import("@/pages/BookRide")); // Universal book ride page for any role
 const Contact = lazy(() => import("@/pages/Contact"));
 // Removed: DriverBookRide (now handled by RideBooking)
 const DriverDashboard = lazy(() => import("@/pages/Driver/Dashboard"));
+const DriverEarnings = lazy(() => import("@/pages/Driver/Earnings"));
 const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
 const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
+
+// Admin pages
+const AdminDashboard = lazy(() => import("@/pages/Admin/Dashboard"));
+const AdminDriverManagement = lazy(() => import("@/pages/Admin/DriverManagement"));
+const AdminRiderManagement = lazy(() => import("@/pages/Admin/RiderManagement"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const Features = lazy(() => import("@/pages/Features"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
@@ -29,6 +34,7 @@ const RiderDashboard = lazy(() => import("@/pages/Rider/Dashboard"));
 const BookingRide = lazy(() => import("@/pages/BookingRide"));
 const RideHistory = lazy(() => import("@/pages/Rider/RideHistory"));
 const StartRide = lazy(() => import("@/pages/Rider/StartRide"));
+const RiderProfile = lazy(() => import("@/pages/Rider/Profile"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 // Universal booking is imported directly in BookRide component
 const Wallet = lazy(() => import("@/pages/User/Wallet"));
@@ -75,12 +81,16 @@ export const router = createBrowserRouter([
         // Allow both super_admin and admin roles to access the admin dashboard
         Component: withAuth(DashboardLayout, [role.super_admin, role.admin] as TRole[]),
         path: "/admin",
-        children: [{index: true, element: <Navigate to="/admin/analytics" />},...generateRoutes(adminSidebarItems)       ]
+    children: [{index: true, element: <Navigate to="/admin/dashboard" />},...generateRoutes(adminSidebarItems)       ]
     },
     {
         Component: withAuth(DashboardLayout, role.user as TRole),
         path: "/user",
         children: [{index: true, element: <Navigate to="/user/bookings" />},...generateRoutes(userSidebarItems) ]
+    },
+    {
+        Component: BookingRide,
+        path: "/booking-ride",
     },
     {
         Component: Login,
@@ -138,6 +148,10 @@ export const router = createBrowserRouter([
             {
                 path: "wallet",
                 element: <Wallet />
+            },
+            {
+                path: "profile",
+                element: <RiderProfile />
             }
         ]
     },
@@ -167,8 +181,16 @@ export const router = createBrowserRouter([
                 element: <DriverWallet />
             },
             {
+                path: "earnings",
+                element: <DriverEarnings />
+            },
+            {
                 path: "fleet",
                 element: <DriverWallet />
+            },
+            {
+                path: "profile",
+                element: <Profile />
             }
         ]
     },
@@ -181,11 +203,6 @@ export const router = createBrowserRouter([
         path: "/unauthorized",
     },
     {
-        // Universal booking ride route - accessible to all users
-        Component: BookRide,
-        path: "/booking-ride",
-    },
-    {
         Component: Success,
         path: "/payment/success",
     },
@@ -196,6 +213,29 @@ export const router = createBrowserRouter([
     {
         Component: GoogleCallback,
         path: "/auth/google/callback",
+    },
+    // Admin Routes
+    {
+        Component: withAuth(RoleDashboard, role.admin as TRole),
+        path: "/admin",
+        children: [
+            {
+                index: true,
+                element: <AdminDashboard />
+            },
+            {
+                path: "dashboard",
+                element: <AdminDashboard />
+            },
+            {
+                path: "drivers",
+                element: <AdminDriverManagement />
+            },
+            {
+                path: "riders",
+                element: <AdminRiderManagement />
+            }
+        ]
     },
 
 ])

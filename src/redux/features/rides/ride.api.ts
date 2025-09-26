@@ -238,10 +238,11 @@ export const rideApi = baseApi.injectEndpoints({
     }),
 
     // Driver update ride status
-    updateRideStatus: builder.mutation<IRide, { id: string }>({
-      query: ({ id }) => ({
+    updateRideStatus: builder.mutation<IRide, { id: string; status: string }>({
+      query: ({ id, status }) => ({
         url: `/driver/status/${id}`,
         method: "PATCH",
+        data: { status },
       }),
       invalidatesTags: ["RIDES"],
     }),

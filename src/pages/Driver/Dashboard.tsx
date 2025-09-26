@@ -1,14 +1,19 @@
+import ActiveRideManagement from "@/components/modules/Driver/ActiveRideManagement";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { useAcceptRideMutation, useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
-import { Car, Check, Clock, DollarSign, Mail, MapPin, Phone, Shield, Star, Truck, User, X } from "lucide-react";
+import { useGetDriverDetailsQuery, useToggleDriverStatusMutation } from "@/redux/features/auth/Driver/driver.api";
+import { useAcceptRideMutation, useGetActiveRideQuery, useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
+import { Car, Check, Clock, DollarSign, Loader2, Mail, MapPin, Phone, Shield, Star, Truck, User, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: availableRides, isLoading: isLoadingRides } = useGetAvailableRidesQuery();
+  const { data: driverDetails, isLoading: isLoadingDriverDetails } = useGetDriverDetailsQuery();
+  const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery();
+  const [toggleDriverStatus, { isLoading: isTogglingStatus }] = useToggleDriverStatusMutation();
   const [acceptRide, { isLoading: isAccepting }] = useAcceptRideMutation();
   const { toast } = useToast();
 
@@ -28,20 +33,50 @@ export default function DriverDashboard() {
       });
     }
   };
+
+  const handleRejectRide = async (rideId: string) => {
+    // For now, just show a toast. In a real app, this might call an API to reject the ride
+    toast({
+      title: "Ride rejected",
+      description: "You have rejected this ride request.",
+      variant: "default",
+    });
+    // Optionally, you could refetch available rides to remove the rejected one
+    // But since it's not persisted server-side for rejection, we'll just notify
+  };
+
+  const handleToggleStatus = async () => {
+    try {
+      const result = await toggleDriverStatus().unwrap();
+      toast({
+        title: result.success ? "Status updated" : "Failed to update status",
+        description: result.message,
+        variant: result.success ? "default" : "destructive",
+      });
+    } catch (error) {
+      console.error('Error toggling driver status:', error);
+      toast({
+        title: "Failed to update status",
+        description: "Could not update your availability status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   
-  // Mock data for driver dashboard
+  // Use real data if available, otherwise fallback to mock data
   const driverStats = {
     totalRides: 128,
     completedToday: 5,
-    totalEarnings: 3450.75,
-    rating: 4.8,
-    vehicleInfo: {
+    totalEarnings: driverDetails?.earnings?.totalEarnings || 3450.75,
+    rating: driverDetails?.rating?.average || 4.8,
+    vehicleInfo: driverDetails?.vehicleType || {
       make: "Toyota",
       model: "Camry",
       year: "2021",
       licensePlate: "ABC-1234",
       status: "active"
-    }
+    },
+    availability: driverDetails?.availability || 'offline'
   };
   
   
@@ -90,9 +125,27 @@ export default function DriverDashboard() {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              <Button className="flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                Go Online
+              <Button 
+                onClick={handleToggleStatus}
+                disabled={isTogglingStatus}
+                className={`flex items-center gap-2 ${driverStats.availability === 'online' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+              >
+                {isTogglingStatus ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : driverStats.availability === 'online' ? (
+                  <>
+                    <Car className="h-4 w-4" />
+                    Go Offline
+                  </>
+                ) : (
+                  <>
+                    <Car className="h-4 w-4" />
+                    Go Online
+                  </>
+                )}
               </Button>
               <Button variant="outline" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
@@ -204,6 +257,9 @@ export default function DriverDashboard() {
         </Card>
       </div>
       
+      {/* Active Ride Management */}
+      <ActiveRideManagement ride={activeRide} />
+      
       {/* Available Rides */}
       <Card className="border-0 shadow-md">
         <CardHeader>
@@ -275,6 +331,7 @@ export default function DriverDashboard() {
                             size="sm"
                             variant="outline"
                             className="text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={() => handleRejectRide(ride._id)}
                           >
                             <X className="h-4 w-4" />
                           </Button>

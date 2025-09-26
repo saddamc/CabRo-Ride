@@ -180,18 +180,21 @@ export default function LocationSearch({
   }, []);
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/50 rounded-t-2xl sticky z-10 flex flex-col gap-4 shadow-xl">
+    <div className="p-6 pb-8 bg-white dark:bg-white backdrop-blur-lg border-b border-white/20 dark:border-gray-300 rounded-t-2xl sticky z-10 flex flex-col gap-4 shadow-xl">
       {/* Pickup location input */}
-      <div className="flex items-center gap-2">
-        <Car className="h-6 w-6 text-black dark:text-white" />
-        <span className="text-2xl pl-4 py-4 text-black dark:text-white font-bold">
+      <div className="flex items-center gap-3">
+        <div className="pl-2">
+          <Car className="h-6 w-6 text-black dark:text-black" />
+        </div>
+        <span className="text-2xl text-black dark:text-black font-bold">
           Get Your Ride
         </span>
       </div>
 
-      <div className="flex items-center relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-600 pointer-events-none" />
-
+      <div className="flex items-center">
+        <div className="h-12 w-12 flex items-center justify-center bg-white dark:bg-gray-700 rounded-l-lg border-r border-gray-200 dark:border-gray-600">
+          <MapPin className="h-5 w-5 text-green-600" />
+        </div>
         <div className="relative w-full">
           <Input
             ref={pickupInputRef}
@@ -200,8 +203,18 @@ export default function LocationSearch({
             value={pickupInput}
             onChange={(e) => handlePickupInputChange(e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, pickupSuggestions, true)}
-            className="pl-11 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-green-400 bg-white dark:bg-gray-700"
+            className="pl-4 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-green-400 bg-white dark:bg-gray-700 rounded-l-none"
           />
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md text-gray-500 dark:text-gray-300 hover:text-green-600 hover:border-green-400 transition-colors p-2 disabled:opacity-50 shadow-sm"
+            onClick={() => onGetCurrentLocation(true)}
+            tabIndex={-1}
+            aria-label="Use current location"
+            style={{ zIndex: 10 }}
+          >
+            <LocateFixed size={20} />
+          </button>
           {showPickupDropdown && pickupSuggestions.length > 0 && (
             <div className="absolute top-full left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-600 rounded-lg shadow-lg z-[200] max-h-60 overflow-y-auto pointer-events-auto">
               {pickupSuggestions.slice(0, 6).map((suggestion, index) => (
@@ -234,22 +247,15 @@ export default function LocationSearch({
             </div>
           )}
         </div>
-        <button
-          type="button"
-          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md text-gray-500 dark:text-gray-300 hover:text-green-600 hover:border-green-400 transition-colors p-2 disabled:opacity-50 shadow-sm"
-          onClick={() => onGetCurrentLocation(true)}
-          tabIndex={-1}
-          aria-label="Use current location"
-        >
-          <LocateFixed size={20} />
-        </button>
       </div>
 
 
       {/* Destination location input and See Details button */}
       <div className="flex flex-col gap-3">
-        <div className="flex items-center relative">
-          <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500 pointer-events-none" />
+        <div className="flex items-center">
+          <div className="h-12 w-12 flex items-center justify-center bg-white dark:bg-gray-700 rounded-l-lg border-r border-gray-200 dark:border-gray-600">
+            <Navigation className="h-5 w-5 text-red-500" />
+          </div>
           <div className="relative w-full">
             <Input
               ref={destinationInputRef}
@@ -258,7 +264,7 @@ export default function LocationSearch({
               value={destinationInput}
               onChange={(e) => handleDestinationInputChange(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, destinationSuggestions, false)}
-              className="pl-11 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-red-400 bg-white dark:bg-gray-700"
+              className="pl-4 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-red-400 bg-white dark:bg-gray-700 rounded-l-none"
             />
             {showDestinationDropdown && destinationSuggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-600 rounded-lg shadow-lg z-[200] max-h-60 overflow-y-auto pointer-events-auto">
