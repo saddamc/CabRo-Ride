@@ -182,7 +182,6 @@ const Home = () => {
                 onDestinationSelect={handleDestinationSelect}
                 onGetCurrentLocation={handleGetCurrentLocation}
                 onSeeDetails={handleSeeDetails}
-                showSeeDetails={pickupLocation !== null && dropoffLocation !== null}
                 userRole={undefined}
               />
 

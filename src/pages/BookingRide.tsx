@@ -221,7 +221,7 @@ export default function BookingRide() {
       } catch (apiError) {
         console.error('API error calculating fare:', apiError);
 
-        // Mock calculation
+        // Mock calculation using regular ride pricing
         const distance = calculateMockDistance(
           pickupLocation.coordinates[1],
           pickupLocation.coordinates[0],
@@ -230,8 +230,8 @@ export default function BookingRide() {
         );
 
         const timeMinutes = (distance / 1000) * 2;
-        const baseFare = 50;
-        const farePerKm = 30;
+        const baseFare = 150; // Regular ride base price
+        const farePerKm = 50; // Regular ride per km price
         const fare = baseFare + (distance / 1000) * farePerKm;
 
         setRideDetails({
@@ -466,7 +466,6 @@ export default function BookingRide() {
                   }
                 }}
                 onSeeDetails={handleSeeDetails}
-                showSeeDetails={pickupLocation !== null && dropoffLocation !== null}
                 userRole={userInfo?.data?.role}
               />
             </div>
@@ -506,7 +505,6 @@ export default function BookingRide() {
                   }
                 }}
                 onSeeDetails={handleSeeDetails}
-                showSeeDetails={false}
                 userRole={userInfo?.data?.role}
               />
               <RideSelection
@@ -583,7 +581,6 @@ export default function BookingRide() {
                  }
                }}
               onSeeDetails={handleSeeDetails}
-              showSeeDetails={false}
               userRole={userInfo?.data?.role}
             />
             {isMapExpanded && (
@@ -638,7 +635,6 @@ export default function BookingRide() {
                    }
                  }}
               onSeeDetails={handleSeeDetails}
-              showSeeDetails={pickupLocation !== null && dropoffLocation !== null}
               userRole={userInfo?.data?.role}
             />
           </div>
@@ -649,7 +645,7 @@ export default function BookingRide() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="h-[calc(100vh-64px)]">
+      <div className="h-[calc(100vh-64px)] max-w-[1536px] mx-auto px-4 lg:px-6">
         {renderContent()}
       </div>
     </div>

@@ -22,12 +22,12 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40"
+        className="fixed inset-0 z-[60]"
         onClick={handleMenuClose}
       />
 
       {/* Dropdown */}
-  <div className="absolute right-0 mt-2 w-60 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 rounded-xl shadow-xl z-50 overflow-hidden">
+  <div className="absolute right-0 mt-2 w-60 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 rounded-xl shadow-xl z-[70] overflow-hidden">
         {/* User Info Header - Different layouts based on role */}
         <div className={`px-4 py-4 border-b border-gray-200 dark:border-gray-700 ${
           userRole === 'rider' ? 'bg-green-50 dark:bg-green-900/20' :

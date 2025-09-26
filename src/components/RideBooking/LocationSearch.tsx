@@ -17,7 +17,6 @@ interface LocationSearchProps {
   onDestinationSelect: (location: ILocation) => void;
   onGetCurrentLocation: (isPickup: boolean) => void;
   onSeeDetails: () => void;
-  showSeeDetails: boolean;
   userRole?: string;
 }
 
@@ -32,7 +31,6 @@ export default function LocationSearch({
   onDestinationSelect,
   onGetCurrentLocation,
   onSeeDetails,
-  showSeeDetails,
   userRole,
 }: LocationSearchProps) {
   const pickupInputRef = useRef<HTMLInputElement>(null);
@@ -182,11 +180,11 @@ export default function LocationSearch({
   }, []);
 
   return (
-    <div className="p-4 bg-white light:bg-black backdrop-blur-lg border-b border-white/20 dark:border-gray-700/50 rounded-2xl sticky z-10 flex flex-col gap-4 shadow-xl">
+    <div className="p-6 bg-white dark:bg-gray-800 backdrop-blur-lg border-b border-white/20 dark:border-gray-700/50 rounded-t-2xl sticky z-10 flex flex-col gap-4 shadow-xl">
       {/* Pickup location input */}
       <div className="flex items-center gap-2">
-        <Car className="h-6 w-6 text-black" />
-        <span className="text-2xl pl-4 py-4 text-black font-bold">
+        <Car className="h-6 w-6 text-black dark:text-white" />
+        <span className="text-2xl pl-4 py-4 text-black dark:text-white font-bold">
           Get Your Ride
         </span>
       </div>
@@ -202,16 +200,16 @@ export default function LocationSearch({
             value={pickupInput}
             onChange={(e) => handlePickupInputChange(e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, pickupSuggestions, true)}
-            className="pl-11 text-[#1c1a1a] h-12 border-2 border-gray-200 focus:border-green-400"
+            className="pl-11 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-green-400 bg-white dark:bg-gray-700"
           />
           {showPickupDropdown && pickupSuggestions.length > 0 && (
             <div className="absolute top-full left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-600 rounded-lg shadow-lg z-[200] max-h-60 overflow-y-auto pointer-events-auto">
               {pickupSuggestions.slice(0, 6).map((suggestion, index) => (
                 <div
                   key={suggestion.name}
-                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors ${
+                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
                     index === pickupSelectedIndex
-                      ? "bg-blue-50 border-blue-200"
+                      ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700"
                       : ""
                   }`}
                   onClick={(e) => {
@@ -225,10 +223,10 @@ export default function LocationSearch({
                     e.preventDefault();
                   }}
                 >
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-gray-900 dark:text-white">
                     {suggestion.name}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
                     {suggestion.address}
                   </div>
                 </div>
@@ -238,7 +236,7 @@ export default function LocationSearch({
         </div>
         <button
           type="button"
-          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded-md text-gray-500 hover:text-green-600 hover:border-green-400 transition-colors p-2 disabled:opacity-50 shadow-sm"
+          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md text-gray-500 dark:text-gray-300 hover:text-green-600 hover:border-green-400 transition-colors p-2 disabled:opacity-50 shadow-sm"
           onClick={() => onGetCurrentLocation(true)}
           tabIndex={-1}
           aria-label="Use current location"
@@ -260,16 +258,16 @@ export default function LocationSearch({
               value={destinationInput}
               onChange={(e) => handleDestinationInputChange(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, destinationSuggestions, false)}
-              className="pl-11 text-[#1c1a1a] h-12 border-2 border-gray-200 focus:border-red-400"
+              className="pl-11 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-red-400 bg-white dark:bg-gray-700"
             />
             {showDestinationDropdown && destinationSuggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-600 rounded-lg shadow-lg z-[200] max-h-60 overflow-y-auto pointer-events-auto">
                 {destinationSuggestions.slice(0, 6).map((suggestion, index) => (
                   <div
                     key={suggestion.name}
-                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors ${
+                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
                       index === destinationSelectedIndex
-                        ? "bg-blue-50 border-blue-200"
+                        ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700"
                         : ""
                     }`}
                     onClick={(e) => {
@@ -286,10 +284,10 @@ export default function LocationSearch({
                       e.preventDefault();
                     }}
                   >
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 dark:text-white">
                       {suggestion.name}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
                       {suggestion.address}
                     </div>
                   </div>

@@ -14,36 +14,36 @@ interface RideSelectionProps {
   onToggleMap: () => void;
 }
 
-// Consistent ride types with fixed base prices and multipliers to ensure economy is always cheapest
+// Consistent ride types with new pricing rates
 const rideTypes = [
-  { 
-    id: 'regular', 
-    name: 'Economy', 
-    basePrice: 50, 
-    perKm: 15, 
-    image: '/car-regular.png', 
-    multiplier: 1, 
-    time: '15 min',
+  {
+    id: 'regular',
+    name: 'Economy',
+    basePrice: 150,
+    perKm: 50,
+    image: '/car-regular.png',
+    multiplier: 1,
+    // time: '15 min',
     description: 'Affordable rides for everyday travel'
   },
-  { 
-    id: 'premium', 
-    name: 'Premium', 
-    basePrice: 80, 
-    perKm: 20, 
-    image: '/car-premium.png', 
-    multiplier: 1.5, 
-    time: '12 min',
+  {
+    id: 'premium',
+    name: 'Premium',
+    basePrice: 200,
+    perKm: 75,
+    image: '/car-premium.png',
+    multiplier: 1.5,
+    // time: '12 min',
     description: 'Newer cars with extra comfort'
   },
-  { 
-    id: 'luxury', 
-    name: 'Luxury', 
-    basePrice: 120, 
-    perKm: 30, 
-    image: '/car-luxury.png', 
-    multiplier: 2, 
-    time: '10 min',
+  {
+    id: 'luxury',
+    name: 'Luxury',
+    basePrice: 300,
+    perKm: 120,
+    image: '/car-luxury.png',
+    multiplier: 2,
+    // time: '10 min',
     description: 'High-end cars with professional drivers'
   },
 ];
@@ -70,22 +70,22 @@ export default function RideSelection({
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
             <div className="flex items-center">
               <Clock size={16} className="mr-1" />
-              <span>20 min</span>
+              <span>{Math.round(rideDetails.estimatedTime)} min</span>
             </div>
             <div>
-              9.6 km
+              {(rideDetails.distance / 1000).toFixed(2)} km
             </div>
             <div className="flex items-center">
               <DollarSign size={16} className="mr-1" />
               <span>৳{(() => {
-                // Calculate price based on selected ride type
+                // Calculate real-time price based on selected ride type and actual distance
                 const selectedRide = rideTypes.find(ride => ride.id === selectedRideType);
-                if (selectedRide) {
-                  if (selectedRide.id === 'regular') return 337;
-                  if (selectedRide.id === 'premium') return Math.round(337 * 1.5);
-                  if (selectedRide.id === 'luxury') return Math.round(337 * 2);
+                if (selectedRide && rideDetails) {
+                  const distanceKm = rideDetails.distance / 1000;
+                  const totalPrice = selectedRide.basePrice + (distanceKm * selectedRide.perKm);
+                  return totalPrice.toFixed(2);
                 }
-                return 337;
+                return '0.00';
               })()}</span>
             </div>
           </div>
@@ -96,21 +96,13 @@ export default function RideSelection({
       <div className="p-4">
         <div className="space-y-4">
           {rideTypes.map((ride) => {
-            // Calculate price consistently - economy is always the base, others are fixed multipliers
+            // Calculate real-time price based on distance and ride type
             let displayPrice;
             if (rideDetails) {
-              // Use fixed base price of 337 for economy, others are multipliers
-              if (ride.id === 'regular') {
-                displayPrice = 337;
-              } else if (ride.id === 'premium') {
-                // Premium is always 1.5x economy price
-                displayPrice = 337 * 1.5;
-              } else {
-                // Luxury is always 2x economy price
-                displayPrice = 337 * 2;
-              }
+              const distanceKm = rideDetails.distance / 1000;
+              displayPrice = (ride.basePrice + (distanceKm * ride.perKm)).toFixed(2);
             } else {
-              displayPrice = ride.basePrice;
+              displayPrice = ride.basePrice.toString();
             }
             
             return (
@@ -147,7 +139,7 @@ export default function RideSelection({
                         {ride.name}
                       </p>
                       <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                        <span>{ride.time}</span>
+                        {/* <span>{ride.time}</span> */}
                         <span>•</span>
                         <span className={cn(
                           "font-medium",
