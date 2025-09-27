@@ -21,31 +21,31 @@ const rideTypes = [
     name: 'Economy',
     basePrice: 150,
     perKm: 50,
-    image: '/car-regular.png',
+    image: 'https://res.cloudinary.com/drtzgyetn/image/upload/v1758985882/image_sxtbf3.png',
     multiplier: 1,
     // time: '15 min',
     description: 'Affordable rides for everyday travel'
   },
-  {
-    id: 'premium',
-    name: 'Premium',
-    basePrice: 200,
-    perKm: 75,
-    image: '/car-premium.png',
-    multiplier: 1.5,
-    // time: '12 min',
-    description: 'Newer cars with extra comfort'
-  },
-  {
-    id: 'luxury',
-    name: 'Luxury',
-    basePrice: 300,
-    perKm: 120,
-    image: '/car-luxury.png',
-    multiplier: 2,
-    // time: '10 min',
-    description: 'High-end cars with professional drivers'
-  },
+  // {
+  //   id: 'premium',
+  //   name: 'Premium',
+  //   basePrice: 200,
+  //   perKm: 75,
+  //   image: '/car-premium.png',
+  //   multiplier: 1.5,
+  //   // time: '12 min',
+  //   description: 'Newer cars with extra comfort'
+  // },
+  // {
+  //   id: 'luxury',
+  //   name: 'Luxury',
+  //   basePrice: 300,
+  //   perKm: 120,
+  //   image: '/car-luxury.png',
+  //   multiplier: 2,
+  //   // time: '10 min',
+  //   description: 'High-end cars with professional drivers'
+  // },
 ];
 
 export default function RideSelection({

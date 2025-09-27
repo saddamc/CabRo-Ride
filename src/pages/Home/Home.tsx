@@ -158,7 +158,7 @@ const Home = () => {
       {/* Hero Section */}
       <section className="relative py-20 bg-gradient-to-br from-primary/10 via-background to-accent/10">
         <div className="container px-4 mx-auto">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="grid items-center gap-12 lg:grid-cols-[50%_50%]">
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold leading-tight lg:text-6xl">

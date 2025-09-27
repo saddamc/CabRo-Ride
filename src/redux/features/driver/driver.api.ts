@@ -95,7 +95,7 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Set driver online/offline status
-    setDriverStatus: builder.mutation<IDriverProfile, IDriverStatus>({
+    setOnlineOffline: builder.mutation<IDriverProfile, IDriverStatus>({
       query: (data) => ({
         url: "/drivers/available",
         method: "POST",
@@ -142,7 +142,7 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Update driver profile
-    updateDriverProfile: builder.mutation<IDriverProfile, Partial<IDriverProfile>>({
+    updateDriverDoc: builder.mutation<IDriverProfile, Partial<IDriverProfile>>({
       query: (data) => ({
         url: "/drivers/update-me",
         method: "PATCH",
@@ -152,13 +152,22 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Rate a ride (as driver)
-    rateRideAsDriver: builder.mutation<IDriverProfile, { id: string; rating: number; feedback?: string }>({
+    ratingRide: builder.mutation<IDriverProfile, { id: string; rating: number; feedback?: string }>({
       query: ({ id, rating, feedback }) => ({
         url: `/drivers/rating/${id}`,
         method: "PATCH",
         data: { rating, feedback },
       }),
       invalidatesTags: ["RIDES", "DRIVER"],
+    }),
+    
+       // Get driver details
+    getDriverDetails: builder.query<IDriverProfile, void>({
+      query: () => ({
+        url: "/me",
+        method: "GET",
+      }),
+      providesTags: ["DRIVER"],
     }),
 
     // NOTE: Driver profile data should be obtained from /users/me endpoint
@@ -167,12 +176,27 @@ export const driverApi = baseApi.injectEndpoints({
 });
 
 export const {
+  // applyDriver
   useApplyDriverMutation,
-  useSetDriverStatusMutation,
+  // setOnlineOffline
+  useSetOnlineOfflineMutation,
+  // acceptRide
   useAcceptRideMutation,
+  // rejectRide
   useRejectRideMutation,
+  // updateRideStatus
   useUpdateRideStatusMutation,
+  // driverEarnings
   useGetDriverEarningsQuery,
-  useUpdateDriverProfileMutation,
-  useRateRideAsDriverMutation,
+  // updateDriverDoc
+  useUpdateDriverDocMutation,
+  // ratingRide
+  useRatingRideMutation,
+  // getDriverDetails
+  useGetDriverDetailsQuery,
+
 } = driverApi;
+
+// findNearbyDrivers
+// approvedDriver
+// suspendDriver

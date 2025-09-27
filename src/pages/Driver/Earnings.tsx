@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetDriverEarningsQuery } from "@/redux/features/auth/Driver/driver.api";
+import { useGetDriverEarningsQuery } from "@/redux/features/auth/Driver/deletedriver.api";
 import { BarChart3, ChevronLeft, ChevronRight, DollarSign, Download, LineChart, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
 

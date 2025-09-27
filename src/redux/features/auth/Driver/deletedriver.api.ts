@@ -60,36 +60,36 @@ export interface IDriverDetails {
 export const driverApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Toggle driver online/offline status
-    toggleDriverStatus: builder.mutation<IDriverUpdateResponse, void>({
-      query: () => ({
-        url: '/drivers/status',
-        method: 'PATCH',
-      }),
-      invalidatesTags: ["DRIVER"],
-    }),
+    // toggleDriverStatus: builder.mutation<IDriverUpdateResponse, void>({
+    //   query: () => ({
+    //     url: '/drivers/status',
+    //     method: 'PATCH',
+    //   }),
+    //   invalidatesTags: ["DRIVER"],
+    // }),
     
-    // Get driver details including availability status
-    getDriverDetails: builder.query<IDriverDetails, void>({
-      query: () => ({
-        url: '/drivers/me',
-        method: 'GET',
-      }),
-      providesTags: ["DRIVER"],
-    }),
+    // // Get driver details including availability status
+    // getDriverDetails: builder.query<IDriverDetails, void>({
+    //   query: () => ({
+    //     url: '/drivers/me',
+    //     method: 'GET',
+    //   }),
+    //   providesTags: ["DRIVER"],
+    // }),
     
-    // Get driver earnings
-    getDriverEarnings: builder.query<IDriverEarnings, void>({
-      query: () => ({
-        url: '/drivers/earnings',
-        method: 'GET',
-      }),
-      providesTags: ["DRIVER"],
-    }),
+    // // Get driver earnings
+    // getDriverEarnings: builder.query<IDriverEarnings, void>({
+    //   query: () => ({
+    //     url: '/drivers/earnings',
+    //     method: 'GET',
+    //   }),
+    //   providesTags: ["DRIVER"],
+    // }),
     
     // Update driver details like vehicle info
     updateDriverDetails: builder.mutation<IDriverUpdateResponse, Partial<IVehicleDetails>>({
       query: (data) => ({
-        url: '/drivers/update',
+        url: '/drivers/update-me',
         method: 'PATCH',
         body: data,
       }),
@@ -99,8 +99,14 @@ export const driverApi = baseApi.injectEndpoints({
 });
 
 export const { 
-  useToggleDriverStatusMutation, 
-  useGetDriverDetailsQuery,
-  useGetDriverEarningsQuery,
+  // setOnlineOffline
+  // useToggleDriverStatusMutation, 
+
+  // useGetDriverDetailsQuery,
+
+  // driverEarnings
+  // useGetDriverEarningsQuery,
+  
+  // updateDriverDoc
   useUpdateDriverDetailsMutation
 } = driverApi;

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useUpdateProfileMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { useGetDriverDetailsQuery, useUpdateDriverDetailsMutation } from "@/redux/features/auth/Driver/driver.api";
+import { useGetDriverDetailsQuery, useUpdateDriverDetailsMutation } from "@/redux/features/auth/Driver/deletedriver.api";
 import { Edit, Save, Star, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 

@@ -1,24 +1,23 @@
 import { useToast } from '@/components/ui/use-toast';
 import { role } from '@/constants/role';
 import { useUserInfoQuery } from '@/redux/features/auth/auth.api';
-import type { IDriver, ILocation } from '@/redux/features/ride/ride.api';
+import type { IDriver, ILocation } from '@/redux/features/rides/ride.api';
 import {
-  useCalculateFareMutation
-} from '@/redux/features/ride/ride.api';
-import {
+  useCalculateFareMutation,
   useGetActiveRideQuery,
   useRequestRideMutation
 } from '@/redux/features/rides/ride.api';
-import { reverseGeocode } from '@/services/mockLocationService';
+import { calculateHaversineDistance, reverseGeocode } from '@/services/mockLocationService';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Navbar from '@/components/layout/common/Navbar';
-import CancelRideHandler from '../components/RideBooking/CancelRideHandler';
-import DriverStatus from '../components/RideBooking/DriverStatus';
-import LocationSearch from '../components/RideBooking/LocationSearch';
-import MapView from '../components/RideBooking/MapView';
-import RideSelection from '../components/RideBooking/RideSelection';
+import BookingButton from '@/components/RideBooking/BookingButton';
+import CancelRide from '@/components/RideBooking/CancelRide';
+import DriverStatus from '@/components/RideBooking/DriverStatus';
+import LocationSearch from '@/components/RideBooking/LocationSearch';
+import MapView from '@/components/RideBooking/MapView';
+import RideSelection from '@/components/RideBooking/RideSelection';
 
 // Booking phases enum
 type BookingPhase =
@@ -167,6 +166,7 @@ export default function BookingRide() {
     if (urlRideId) {
       console.log('On ride-specific URL:', urlRideId, '- setting phase to finding_driver');
       setBookingPhase('finding_driver');
+      setCurrentRideId(urlRideId); // Set the current ride ID from the URL
       return;
     }
 
@@ -315,20 +315,10 @@ export default function BookingRide() {
       const phase = statusToPhase[activeRide.status] || 'finding_driver';
       setBookingPhase(phase);
     }
-  }, [activeRide, isLoadingActiveRide, bookingPhase]);
-
-  // Calculate fare when entering select_ride phase with locations
-  useEffect(() => {
-    const calculate = async () => {
-      if (bookingPhase === 'select_ride' && pickupLocation && dropoffLocation && !rideDetails) {
-        await calculateRideFare();
-      }
-    };
-    calculate();
-  }, [bookingPhase, pickupLocation, dropoffLocation, rideDetails]);
+  }, [activeRide, isLoadingActiveRide, bookingPhase, urlRideId, navigate]);
 
   // Calculate ride fare
-  const calculateRideFare = async () => {
+  const calculateRideFare = useCallback(async () => {
     if (!pickupLocation || !dropoffLocation) return;
 
     try {
@@ -344,7 +334,7 @@ export default function BookingRide() {
         console.error('API error calculating fare:', apiError);
 
         // Mock calculation using regular ride pricing
-        const distance = calculateMockDistance(
+        const distance = calculateHaversineDistance(
           pickupLocation.coordinates[1],
           pickupLocation.coordinates[0],
           dropoffLocation.coordinates[1],
@@ -375,23 +365,17 @@ export default function BookingRide() {
         variant: 'destructive',
       });
     }
-  };
+  }, [pickupLocation, dropoffLocation, selectedRideType, calculateFare, toast]);
 
-  // Helper function
-  const calculateMockDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371e3;
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c;
-  };
+  // Calculate fare when entering select_ride phase with locations
+  useEffect(() => {
+    const calculate = async () => {
+      if (bookingPhase === 'select_ride' && pickupLocation && dropoffLocation && !rideDetails) {
+        await calculateRideFare();
+      }
+    };
+    calculate();
+  }, [bookingPhase, pickupLocation, dropoffLocation, rideDetails, calculateRideFare]);
 
   // Event handlers
   const handlePickupInputChange = (value: string) => setPickupInput(value);
@@ -470,15 +454,29 @@ export default function BookingRide() {
       };
 
       const rideResponse = await requestRideMutation(rideRequestData).unwrap();
-      setCurrentRideId(rideResponse._id);
-
-      toast({
-        title: 'Ride Request Send',
-        description: 'Waiting for driver...',
-      });
-
-      // Navigate to the ride-specific URL
-      navigate(`/booking-ride/${rideResponse._id}`);
+      
+      // Make sure we have a valid ride ID before proceeding
+      if (rideResponse && rideResponse._id) {
+        setCurrentRideId(rideResponse._id);
+        
+        toast({
+          title: 'Ride Request Sent',
+          description: 'Waiting for driver...',
+        });
+        
+        // Navigate to the ride-specific URL
+        navigate(`/booking-ride/${rideResponse._id}`);
+        
+        console.log('Ride created successfully:', rideResponse);
+      } else {
+        console.error('No valid ride ID in response:', rideResponse);
+        toast({
+          title: 'Error requesting ride',
+          description: 'Could not create ride properly. Please try again.',
+          variant: 'destructive',
+        });
+        setBookingPhase('select_ride');
+      }
 
       // Keep finding driver - wait for real driver acceptance
       // The ride status will be updated via API polling or WebSocket
@@ -496,6 +494,7 @@ export default function BookingRide() {
   };
 
   const handleReset = () => {
+    // Clear current ride state
     setPickupLocation(null);
     setDropoffLocation(null);
     setPickupInput('');
@@ -505,6 +504,11 @@ export default function BookingRide() {
     setMatchedDriver(null);
     setIsMapExpanded(false);
     setCurrentRideId(null);
+    
+    // Navigate back to the base booking route to prevent URL issues
+    if (window.location.pathname !== '/booking-ride') {
+      navigate('/booking-ride', { replace: true });
+    }
   };
 
 
@@ -645,34 +649,13 @@ export default function BookingRide() {
                  onRideTypeChange={handleRideTypeChange}
                  onToggleMap={handleToggleMap}
                />
-              <div className="p-4 bg-white border-t">
-                {(userInfo?.data?.role === role.driver || userInfo?.data?.role === role.admin || userInfo?.data?.role === role.super_admin) ? (
-                  <div className="text-center py-4">
-                    <div className="text-gray-500 mb-2">
-                      🚫 {userInfo?.data?.role === role.driver ? 'Drivers' : userInfo?.data?.role === role.admin ? 'Admins' : 'Super Admins'} cannot book rides
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      This feature is only available for regular users. You can still view routes and fares.
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-3">
-                    <button
-                      className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                      onClick={handleReset}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
-                      onClick={handleRequestRide}
-                      disabled={isRequestingRide}
-                    >
-                      {isRequestingRide ? 'Requesting...' : `Book ${selectedRideType.charAt(0).toUpperCase() + selectedRideType.slice(1)}`}
-                    </button>
-                  </div>
-                )}
-              </div>
+              <BookingButton
+                userInfo={userInfo}
+                handleReset={handleReset}
+                handleRequestRide={handleRequestRide}
+                isRequestingRide={isRequestingRide}
+                selectedRideType={selectedRideType}
+              />
             </div>
 
             {/* Right: Map - Visible on all screen sizes */}
@@ -735,7 +718,7 @@ export default function BookingRide() {
                   <div className="text-center mb-2">
                     <span className="text-xs text-gray-500">Need to cancel your ride?</span>
                   </div>
-                  <CancelRideHandler
+                  <CancelRide
                     rideId={currentRideId}
                     currentStatus={bookingPhase === 'finding_driver' ? 'requested' : bookingPhase === 'driver_assigned' ? 'accepted' : 'in_progress'}
                     onCancelSuccess={handleReset}

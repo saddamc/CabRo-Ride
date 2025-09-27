@@ -88,7 +88,7 @@ export default function RoleDashboard() {
               to={`${routePrefix}`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                 isActive(`${routePrefix}/dashboard`) || isActive(`${routePrefix}`) || isActive(`${routePrefix}/`)
-                  ? 'text-white bg-primary'
+                  ? 'text-white bg-black'
                   : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -96,25 +96,11 @@ export default function RoleDashboard() {
               Dashboard
             </Link>
 
-            {/* {userRole !== 'driver' && (
-              <Link
-                to={`${routePrefix}/book-ride`}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                  isActive(`${routePrefix}/book-ride`)
-                    ? 'text-white bg-primary'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Car className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/book-ride`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
-                Book your Ride
-              </Link>
-            )} */}
-
             <Link
               to={`${routePrefix}/history`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                 isActive(`${routePrefix}/history`)
-                  ? 'text-white bg-primary'
+                  ? 'text-white bg-black'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -126,7 +112,7 @@ export default function RoleDashboard() {
               to={`${routePrefix}/wallet`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                 isActive(`${routePrefix}/wallet`)
-                  ? 'text-white bg-primary'
+                  ? 'text-white bg-black'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -142,7 +128,7 @@ export default function RoleDashboard() {
               to={`${routePrefix}/profile`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                 isActive(`${routePrefix}/profile`)
-                  ? 'text-white bg-primary'
+                  ? 'text-white bg-black'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -200,18 +186,6 @@ export default function RoleDashboard() {
             <span className="text-xs mt-1">Dashboard</span>
           </Link>
 
-          {/* <Link
-            to={`${routePrefix}/book-ride`}
-            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/book-ride`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
-          >
-            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/book-ride`) ?
-              (userRole === 'rider' ? 'bg-green-500' : 'bg-primary') :
-              'bg-gray-200 dark:bg-gray-700'
-            }`}>
-              <Car className="h-4 w-4" />
-            </div>
-            <span className="text-xs mt-1">Book</span>
-          </Link> */}
 
           <Link
             to={`${routePrefix}/history`}

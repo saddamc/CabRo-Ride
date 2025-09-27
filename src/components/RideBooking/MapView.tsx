@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import type { IDriver, ILocation } from '@/redux/features/ride/ride.api';
+import type { IDriver } from '@/pages/Admin/DriverManagement';
+import type { ILocation } from '@/redux/features/ride-api';
 import { Icon, LatLng, LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo } from 'react';
