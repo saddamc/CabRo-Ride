@@ -53,6 +53,13 @@ export default function Navbar() {
   const handleMenuToggle = () => setMenuOpen((open) => !open);
   const handleMenuClose = () => setMenuOpen(false);
 
+  // Function to check if a navigation link is active
+  const isActiveLink = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <nav className={`border-b sticky top-0 z-50 ${isDashboard ? 'bg-white border-gray-100' : 'bg-white border-gray-100 dark:bg-black dark:border-gray-800'}`}>
       <div className="container px-4 py-3 mx-auto">
@@ -70,31 +77,51 @@ export default function Navbar() {
             <div className="hidden md:flex items-center space-x-4">
               <Link
                 to="/"
-                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+                className={`text-sm font-medium transition-colors p-2 rounded-full ${
+                  isActiveLink('/')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
+                }`}
               >
                 Home
               </Link>
               <Link
                 to="/about"
-                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+                className={`text-sm font-medium transition-colors p-2 rounded-full ${
+                  isActiveLink('/about')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
+                }`}
               >
                 About
               </Link>
               <Link
                 to="/features"
-                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+                className={`text-sm font-medium transition-colors p-2 rounded-full ${
+                  isActiveLink('/features')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
+                }`}
               >
                 Features
               </Link>
               <Link
                 to="/contact"
-                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+                className={`text-sm font-medium transition-colors p-2 rounded-full ${
+                  isActiveLink('/contact')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
+                }`}
               >
                 Contact
               </Link>
               <Link
                 to="/faq"
-                className="text-sm font-medium text-gray-900 dark:text-white transition-colors hover:text-primary dark:hover:text-primary p-2 rounded-full"
+                className={`text-sm font-medium transition-colors p-2 rounded-full ${
+                  isActiveLink('/faq')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
+                }`}
               >
                 FAQ
               </Link>

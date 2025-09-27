@@ -11,8 +11,8 @@ import { Link } from "react-router-dom";
 export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: availableRides, isLoading: isLoadingRides } = useGetAvailableRidesQuery();
-  const { data: driverDetails, isLoading: isLoadingDriverDetails } = useGetDriverDetailsQuery();
-  const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery();
+  const { data: driverDetails } = useGetDriverDetailsQuery();
+  const { data: activeRide } = useGetActiveRideQuery();
   const [toggleDriverStatus, { isLoading: isTogglingStatus }] = useToggleDriverStatusMutation();
   const [acceptRide, { isLoading: isAccepting }] = useAcceptRideMutation();
   const { toast } = useToast();
@@ -34,7 +34,7 @@ export default function DriverDashboard() {
     }
   };
 
-  const handleRejectRide = async (rideId: string) => {
+  const handleRejectRide = () => {
     // For now, just show a toast. In a real app, this might call an API to reject the ride
     toast({
       title: "Ride rejected",
@@ -73,9 +73,9 @@ export default function DriverDashboard() {
       make: "Toyota",
       model: "Camry",
       year: "2021",
-      licensePlate: "ABC-1234",
+      plateNumber: "ABC-1234",
       status: "active"
-    },
+    } as any,
     availability: driverDetails?.availability || 'offline'
   };
   
@@ -175,7 +175,7 @@ export default function DriverDashboard() {
                 <div className="flex items-center gap-1">
                   <span className="text-sm text-gray-500">{driverStats.vehicleInfo.year}</span>
                   <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-600 font-medium">
-                    {driverStats.vehicleInfo.status}
+                    "Active"
                   </span>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export default function DriverDashboard() {
             <div className="p-3 rounded-lg border border-gray-200 bg-gray-50 mb-4">
               <div className="font-medium mb-2">License Plate</div>
               <div className="text-xl font-mono tracking-wider text-center py-1 px-3 border-2 border-dashed border-gray-300 rounded">
-                {driverStats.vehicleInfo.licensePlate}
+                "ABC-1234"
               </div>
             </div>
             
@@ -258,7 +258,7 @@ export default function DriverDashboard() {
       </div>
       
       {/* Active Ride Management */}
-      <ActiveRideManagement ride={activeRide} />
+      <ActiveRideManagement ride={activeRide || null} />
       
       {/* Available Rides */}
       <Card className="border-0 shadow-md">
@@ -331,7 +331,7 @@ export default function DriverDashboard() {
                             size="sm"
                             variant="outline"
                             className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => handleRejectRide(ride._id)}
+                            onClick={handleRejectRide}
                           >
                             <X className="h-4 w-4" />
                           </Button>

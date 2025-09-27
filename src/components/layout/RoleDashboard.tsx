@@ -60,7 +60,7 @@ export default function RoleDashboard() {
               Dashboard
             </Link>
 
-            {userRole !== 'driver' && (
+            {/* {userRole !== 'driver' && (
               <Link
                 to={`${routePrefix}/book-ride`}
                 className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
@@ -72,7 +72,7 @@ export default function RoleDashboard() {
                 <Car className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/book-ride`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                 Book your Ride
               </Link>
-            )}
+            )} */}
 
             <Link
               to={`${routePrefix}/history`}
@@ -103,10 +103,14 @@ export default function RoleDashboard() {
             </div>
             
             <Link
-              to="profile"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+              to={`${routePrefix}/profile`}
+              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                isActive(`${routePrefix}/profile`)
+                  ? 'text-white bg-primary'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+              }`}
             >
-              <Settings className="mr-2 h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <Settings className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/profile`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
               Profile Settings
             </Link>
           </div>

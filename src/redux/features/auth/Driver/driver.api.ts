@@ -65,7 +65,7 @@ export const driverApi = baseApi.injectEndpoints({
         url: '/drivers/status',
         method: 'PATCH',
       }),
-      invalidatesTags: ["DRIVER_STATUS"],
+      invalidatesTags: ["DRIVER"],
     }),
     
     // Get driver details including availability status
@@ -74,7 +74,7 @@ export const driverApi = baseApi.injectEndpoints({
         url: '/drivers/me',
         method: 'GET',
       }),
-      providesTags: ["DRIVER_STATUS", "DRIVER"],
+      providesTags: ["DRIVER"],
     }),
     
     // Get driver earnings
@@ -83,7 +83,7 @@ export const driverApi = baseApi.injectEndpoints({
         url: '/drivers/earnings',
         method: 'GET',
       }),
-      providesTags: ["EARNINGS"],
+      providesTags: ["DRIVER"],
     }),
     
     // Update driver details like vehicle info

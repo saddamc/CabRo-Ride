@@ -13,7 +13,7 @@ export default function DriverEarnings() {
   // Calculate real earnings data if available
   const calculateEarnings = () => {
     if (!earningsData?.history) return null;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const oneWeekAgo = new Date(today);
@@ -147,7 +147,6 @@ export default function DriverEarnings() {
   };
 
   const getPeriodLabel = () => {
-    const now = new Date();
     
     switch (dateRange) {
       case 'day': {

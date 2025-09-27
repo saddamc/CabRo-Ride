@@ -1,5 +1,10 @@
 
 import type { ISidebarItem } from "@/types";
+import { lazy } from "react";
+
+const RiderProfile = lazy(() => import("@/pages/Rider/Profile"));
+const UserWallet = lazy(() => import("@/pages/User/Wallet"));
+const RiderRideHistory = lazy(() => import("@/pages/Rider/RideHistory"));
 
 export const userSidebarItems : ISidebarItem[] = [
     {
@@ -8,12 +13,12 @@ export const userSidebarItems : ISidebarItem[] = [
             {
                 title: "Profile",
                 url: "/user/profile",
-                icon: "user",
+                component: RiderProfile,
             },
             {
                 title: "Wallet",
                 url: "/user/wallet",
-                icon: "wallet",
+                component: UserWallet,
             },
         ],
     },
@@ -23,7 +28,7 @@ export const userSidebarItems : ISidebarItem[] = [
             {
                 title: "Ride History",
                 url: "/user/history",
-                icon: "history",
+                component: RiderRideHistory,
             },
         ],
     },

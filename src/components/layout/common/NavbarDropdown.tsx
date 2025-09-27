@@ -241,12 +241,14 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           >
             <div className="flex items-center">
               <Wallet className="h-4 w-4 mr-2" />
-              <span>Wallet</span>
-              {wallet?.balance && (
+              <span>Wallet </span>
+              <div className="ml-auto rounded-full px-2 font-bold  bg-yellow-300/15  text-sm">
+                {wallet?.balance && (
                 <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
                   ${wallet?.balance?.toFixed(2)}
                 </span>
               )}
+              </div>
             </div>
           </Link>
           {userRole !== 'driver' && (

@@ -247,6 +247,16 @@ export const rideApi = baseApi.injectEndpoints({
       invalidatesTags: ["RIDES"],
     }),
 
+    // Get ride by ID
+    getRideById: builder.query<IRide, string>({
+      query: (id) => ({
+        url: `/rides/${id}`,
+        method: "GET",
+      }),
+      transformResponse: (response: IResponse<IRide>) => response.data,
+      providesTags: ["RIDES"],
+    }),
+
     // Get available rides for driver
     getAvailableRides: builder.query<IRide[], void>({
       query: () => ({
@@ -273,4 +283,5 @@ export const {
   useRejectRideMutation,
   useUpdateRideStatusMutation,
   useGetAvailableRidesQuery,
+  useGetRideByIdQuery,
 } = rideApi;

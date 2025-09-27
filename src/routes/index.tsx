@@ -14,6 +14,8 @@ const DriverDashboard = lazy(() => import("@/pages/Driver/Dashboard"));
 const DriverEarnings = lazy(() => import("@/pages/Driver/Earnings"));
 const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
 const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
+const DriverProfile = lazy(() => import("@/pages/Driver/Profile"));
+const DriverAcceptRide = lazy(() => import("@/pages/Driver/AcceptRide"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/Admin/Dashboard"));
@@ -129,18 +131,18 @@ export const router = createBrowserRouter([
                 path: "dashboard",
                 element: <RiderDashboard />
             },
-            {
-                path: "book-ride",
-                element: <BookingRide />
-            },
+            // {
+            //     path: "book-ride",
+            //     element: <BookingRide />
+            // },
             {
                 path: "start-ride",
                 element: <StartRide />
             },
-            {
-                path: "ride-booking",
-                element: <BookingRide />
-            },
+            // {
+            //     path: "ride-booking",
+            //     element: <BookingRide />
+            // },
             {
                 path: "history",
                 element: <RideHistory />
@@ -168,10 +170,10 @@ export const router = createBrowserRouter([
                 path: "dashboard",
                 element: <DriverDashboard />
             },
-            {
-                path: "book-ride",
-                element: <BookingRide />
-            },
+            // {
+            //     path: "book-ride",
+            //     element: <BookingRide />
+            // },
             {
                 path: "history",
                 element: <DriverRideHistory />
@@ -190,7 +192,11 @@ export const router = createBrowserRouter([
             },
             {
                 path: "profile",
-                element: <Profile />
+                element: <DriverProfile />
+            },
+            {
+                path: "accept-ride",
+                element: <DriverAcceptRide />
             }
         ]
     },

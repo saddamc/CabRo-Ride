@@ -32,7 +32,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Function to check if a menu item is active
   const isActive = (url: string) => {
-    return location.pathname === url
+    if (url === '/' && location.pathname === '/') return true;
+    if (url !== '/' && location.pathname.startsWith(url)) return true;
+    return false;
   }
 
   
@@ -50,14 +52,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenu>
                  {item.items.map((item) => (
                    <SidebarMenuItem key={item.title}>
-                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                     <SidebarMenuButton asChild>
                        <Link
                          to={item.url}
                          className={cn(
-                           "transition-colors",
-                           isActive(item.url) && userRole === 'rider' && "bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100",
-                           isActive(item.url) && userRole === 'driver' && "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100",
-                           isActive(item.url) && (userRole === 'admin' || userRole === 'super_admin') && "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100"
+                           "transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                           isActive(item.url) && userRole === 'rider' && "bg-green-600 text-white dark:bg-green-700 dark:text-white",
+                           isActive(item.url) && userRole === 'driver' && "bg-blue-600 text-white dark:bg-blue-700 dark:text-white",
+                           isActive(item.url) && (userRole === 'admin' || userRole === 'super_admin') && "bg-purple-600 text-white dark:bg-purple-700 dark:text-white"
                          )}
                        >
                          {item.title}
