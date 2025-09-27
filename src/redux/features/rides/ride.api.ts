@@ -266,6 +266,29 @@ export const rideApi = baseApi.injectEndpoints({
       transformResponse: (response: IResponse<{ rides: IRide[] }>) => response.data.rides,
       providesTags: ["RIDES"],
     }),
+
+    // Get ride history for current user
+    getRideHistory: builder.query<{
+      total: number;
+      page: number;
+      limit: number;
+      rides: IRide[];
+      grouped: { completed: IRide[]; requested: IRide[]; cancelled: IRide[] };
+    }, { page?: number; limit?: number }>({
+      query: (params = {}) => ({
+        url: "/rides/me",
+        method: "GET",
+        params,
+      }),
+      transformResponse: (response: IResponse<{
+        total: number;
+        page: number;
+        limit: number;
+        rides: IRide[];
+        grouped: { completed: IRide[]; requested: IRide[]; cancelled: IRide[] };
+      }>) => response.data,
+      providesTags: ["RIDES"],
+    }),
   }),
 });
 
@@ -284,4 +307,5 @@ export const {
   useUpdateRideStatusMutation,
   useGetAvailableRidesQuery,
   useGetRideByIdQuery,
+  useGetRideHistoryQuery,
 } = rideApi;

@@ -570,7 +570,7 @@ export default function StartRide() {
           <div className="font-medium truncate">{dropoffLocation?.name}</div>
         </div>
       </div>
-      <Button variant="outline" className="mt-8" onClick={handleReset}>
+      <Button variant="outline" className="mt-8 font-bold" onClick={handleReset}>
         Cancel
       </Button>
     </div>

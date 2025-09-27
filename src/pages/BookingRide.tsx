@@ -3,15 +3,18 @@ import { role } from '@/constants/role';
 import { useUserInfoQuery } from '@/redux/features/auth/auth.api';
 import type { IDriver, ILocation } from '@/redux/features/ride/ride.api';
 import {
-  useCalculateFareMutation,
-  useGetNearbyDriversQuery,
-  useRequestRideMutation
+  useCalculateFareMutation
 } from '@/redux/features/ride/ride.api';
+import {
+  useGetActiveRideQuery,
+  useRequestRideMutation
+} from '@/redux/features/rides/ride.api';
 import { reverseGeocode } from '@/services/mockLocationService';
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Navbar from '@/components/layout/common/Navbar';
+import CancelRideHandler from '../components/RideBooking/CancelRideHandler';
 import DriverStatus from '../components/RideBooking/DriverStatus';
 import LocationSearch from '../components/RideBooking/LocationSearch';
 import MapView from '../components/RideBooking/MapView';
@@ -27,15 +30,17 @@ type BookingPhase =
   | 'completed';
 
 export default function BookingRide() {
-   // Router hooks
-   const location = useLocation();
-   const navigate = useNavigate();
-   const heroBookingState = location.state as {
-    pickupLocation?: ILocation;
-    dropoffLocation?: ILocation;
-    estimatedFare?: number;
-    estimatedTime?: number;
-  } | null;
+    // Router hooks
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { rideId: urlRideId } = useParams<{ rideId?: string }>();
+    // Used to check if we're on a ride-specific URL
+    const heroBookingState = location.state as {
+     pickupLocation?: ILocation;
+     dropoffLocation?: ILocation;
+     estimatedFare?: number;
+     estimatedTime?: number;
+   } | null;
 
   // State variables
   const [bookingPhase, setBookingPhase] = useState<BookingPhase>('search');
@@ -52,23 +57,19 @@ export default function BookingRide() {
   const [matchedDriver, setMatchedDriver] = useState<IDriver | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([23.8103, 90.4125]); // Dhaka
   const [isMapExpanded, setIsMapExpanded] = useState(false);
+  const [currentRideId, setCurrentRideId] = useState<string | null>(null);
 
   // Hooks
   const { toast } = useToast();
   const { data: userInfo } = useUserInfoQuery(undefined);
+  const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery();
+  // TODO: Add logic to handle direct navigation to ride URLs
+  // const { data: urlRide, isLoading: isLoadingUrlRide } = useGetRideByIdQuery(urlRideId || '', {
+  //   skip: !urlRideId
+  // });
 
   // RTK Query hooks
   const [calculateFare] = useCalculateFareMutation();
-  const { data: nearbyDrivers } = useGetNearbyDriversQuery(
-    pickupLocation ?
-    {
-      lat: pickupLocation.coordinates[1],
-      lng: pickupLocation.coordinates[0],
-      rideType: selectedRideType
-    } :
-    { lat: 0, lng: 0 },
-    { skip: !pickupLocation || bookingPhase !== 'finding_driver' }
-  );
   const [requestRideMutation, { isLoading: isRequestingRide }] = useRequestRideMutation();
 
   // Get current location
@@ -162,6 +163,13 @@ export default function BookingRide() {
 
   // Effects
   useEffect(() => {
+    // If we're on a ride-specific URL, skip the search phase
+    if (urlRideId) {
+      console.log('On ride-specific URL:', urlRideId, '- setting phase to finding_driver');
+      setBookingPhase('finding_driver');
+      return;
+    }
+
     // Handle hero booking state (from new Uber-like booking)
     if (heroBookingState?.pickupLocation || heroBookingState?.dropoffLocation) {
       if (heroBookingState.pickupLocation) {
@@ -187,13 +195,127 @@ export default function BookingRide() {
     if (location.state?.useCurrentLocation) {
       getCurrentLocation();
     }
-  }, [heroBookingState, location.state?.useCurrentLocation, getCurrentLocation]);
+  }, [heroBookingState, location.state?.useCurrentLocation, getCurrentLocation, urlRideId]);
 
   useEffect(() => {
     if (pickupLocation) {
       setMapCenter([pickupLocation.coordinates[1], pickupLocation.coordinates[0]]);
     }
   }, [pickupLocation]);
+
+  // Check for active rides and restore state on component mount
+  useEffect(() => {
+    if (activeRide && !isLoadingActiveRide && bookingPhase === 'search') {
+      console.log('Active ride found:', activeRide);
+
+      // If we're on the base booking-ride route but have an active ride
+      if (!urlRideId) {
+        // For requested rides, show "Finding Driver" on base route
+        if (activeRide.status === 'requested') {
+          console.log('Showing "Finding Driver" for requested ride on base route');
+          // Don't redirect, just set up the state for showing finding driver
+          setCurrentRideId(activeRide._id);
+          setPickupLocation({
+            id: 'pickup',
+            name: activeRide.pickupLocation.address,
+            address: activeRide.pickupLocation.address,
+            coordinates: activeRide.pickupLocation.coordinates,
+            type: 'saved'
+          });
+          setPickupInput(activeRide.pickupLocation.address);
+
+          setDropoffLocation({
+            id: 'dropoff',
+            name: activeRide.destinationLocation.address,
+            address: activeRide.destinationLocation.address,
+            coordinates: activeRide.destinationLocation.coordinates,
+            type: 'saved'
+          });
+          setDestinationInput(activeRide.destinationLocation.address);
+
+          if (activeRide.fare) {
+            setRideDetails({
+              fare: activeRide.fare.totalFare,
+              distance: activeRide.distance?.estimated || 0,
+              estimatedTime: activeRide.distance?.estimated ? (activeRide.distance.estimated / 1000) * 2 : 0
+            });
+          }
+
+          setBookingPhase('finding_driver');
+          return;
+        } else {
+          // For accepted/in_progress rides, redirect to specific ride URL
+          console.log('Redirecting to ride-specific URL:', activeRide._id);
+          navigate(`/booking-ride/${activeRide._id}`, { replace: true });
+          return;
+        }
+      }
+
+      // Restore ride state from active ride
+      setCurrentRideId(activeRide._id);
+
+      // Set locations from active ride
+      setPickupLocation({
+        id: 'pickup',
+        name: activeRide.pickupLocation.address,
+        address: activeRide.pickupLocation.address,
+        coordinates: activeRide.pickupLocation.coordinates,
+        type: 'saved'
+      });
+      setPickupInput(activeRide.pickupLocation.address);
+
+      setDropoffLocation({
+        id: 'dropoff',
+        name: activeRide.destinationLocation.address,
+        address: activeRide.destinationLocation.address,
+        coordinates: activeRide.destinationLocation.coordinates,
+        type: 'saved'
+      });
+      setDestinationInput(activeRide.destinationLocation.address);
+
+      // Set ride details if available
+      if (activeRide.fare) {
+        setRideDetails({
+          fare: activeRide.fare.totalFare,
+          distance: activeRide.distance?.estimated || 0,
+          estimatedTime: activeRide.distance?.estimated ? (activeRide.distance.estimated / 1000) * 2 : 0
+        });
+      }
+
+      // Set matched driver if available
+      if (activeRide.driver) {
+        setMatchedDriver({
+          id: activeRide.driver._id,
+          name: activeRide.driver.user.name,
+          rating: activeRide.driver.rating || 4.5,
+          profileImage: activeRide.driver.user.profilePicture || 'https://randomuser.me/api/portraits/men/32.jpg',
+          vehicleInfo: {
+            make: activeRide.driver.vehicle?.make || 'Toyota',
+            model: activeRide.driver.vehicle?.model || 'Corolla',
+            year: activeRide.driver.vehicle?.year || '2020',
+            color: activeRide.driver.vehicle?.color || 'Silver',
+            licensePlate: activeRide.driver.vehicle?.licensePlate || 'DHK-1234'
+          },
+          currentLocation: {
+            coordinates: [90.4125, 23.8103] // Default coordinates for demo
+          },
+          estimatedArrival: 5
+        });
+      }
+
+      // Set appropriate booking phase based on ride status
+      const statusToPhase: { [key: string]: BookingPhase } = {
+        'requested': 'finding_driver',
+        'accepted': 'driver_assigned',
+        'in_transit': 'in_progress',
+        'completed': 'completed',
+        'cancelled': 'search'
+      };
+
+      const phase = statusToPhase[activeRide.status] || 'finding_driver';
+      setBookingPhase(phase);
+    }
+  }, [activeRide, isLoadingActiveRide, bookingPhase]);
 
   // Calculate fare when entering select_ride phase with locations
   useEffect(() => {
@@ -347,69 +469,20 @@ export default function BookingRide() {
         notes: `Ride type: ${selectedRideType}`,
       };
 
-      await requestRideMutation(rideRequestData).unwrap();
+      const rideResponse = await requestRideMutation(rideRequestData).unwrap();
+      setCurrentRideId(rideResponse._id);
 
       toast({
-        title: 'Ride requested successfully',
-        description: 'Searching for available drivers...',
+        title: 'Ride Request Send',
+        description: 'Waiting for driver...',
       });
 
-      // Simulate driver matching
-      setTimeout(() => {
-        if (nearbyDrivers && nearbyDrivers.length > 0) {
-          setMatchedDriver(nearbyDrivers[0]);
-          setBookingPhase('driver_assigned');
-          toast({
-            title: 'Driver assigned',
-            description: `${nearbyDrivers[0].name} is on the way!`,
-          });
-        } else {
-          // Mock driver
-          const mockDriver = {
-            id: 'mock-driver-1',
-            name: 'Karim Ahmed',
-            rating: 4.8,
-            profileImage: 'https://randomuser.me/api/portraits/men/32.jpg',
-            vehicleInfo: {
-              make: 'Toyota',
-              model: 'Corolla',
-              year: '2020',
-              color: 'Silver',
-              licensePlate: 'DHK-1234'
-            },
-            currentLocation: {
-              coordinates: [
-                pickupLocation.coordinates[0] + (Math.random() * 0.01 - 0.005),
-                pickupLocation.coordinates[1] + (Math.random() * 0.01 - 0.005)
-              ] as [number, number],
-            },
-            estimatedArrival: 5
-          };
+      // Navigate to the ride-specific URL
+      navigate(`/booking-ride/${rideResponse._id}`);
 
-          setMatchedDriver(mockDriver);
-          setBookingPhase('driver_assigned');
-          toast({
-            title: 'Driver assigned',
-            description: `${mockDriver.name} is on the way!`,
-          });
-        }
-
-        setTimeout(() => {
-          setBookingPhase('in_progress');
-          toast({
-            title: 'Ride started',
-            description: 'Your ride is now in progress',
-          });
-
-          setTimeout(() => {
-            setBookingPhase('completed');
-            toast({
-              title: 'Ride completed',
-              description: 'Thank you for riding with us!',
-            });
-          }, 15000);
-        }, 8000);
-      }, 4000);
+      // Keep finding driver - wait for real driver acceptance
+      // The ride status will be updated via API polling or WebSocket
+      // For now, keep in finding_driver phase until driver accepts
 
     } catch (error) {
       console.error('Error requesting ride:', error);
@@ -431,14 +504,69 @@ export default function BookingRide() {
     setRideDetails(null);
     setMatchedDriver(null);
     setIsMapExpanded(false);
+    setCurrentRideId(null);
   };
 
-  const handleCancelRide = () => {
-    handleReset();
-  };
 
   const handleCompleteRide = () => {
     handleReset();
+  };
+
+  // Render ride status bar (shown after ride request)
+  const renderRideStatusBar = () => {
+    // Don't show status bar for finding_driver on base route (show full DriverStatus instead)
+    if ((bookingPhase === 'search' || bookingPhase === 'select_ride') && !urlRideId) {
+      return null;
+    }
+    if (bookingPhase === 'finding_driver' && !urlRideId) {
+      return null;
+    }
+
+    const getStatusText = () => {
+      switch (bookingPhase) {
+        case 'finding_driver':
+          return 'Finding driver...';
+        case 'driver_assigned':
+          return 'Driver assigned - on the way!';
+        case 'in_progress':
+          return 'Ride in progress';
+        case 'completed':
+          return 'Ride completed';
+        default:
+          return 'Ride requested';
+      }
+    };
+
+    const getStatusColor = () => {
+      switch (bookingPhase) {
+        case 'finding_driver':
+          return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'driver_assigned':
+          return 'bg-green-100 text-green-800 border-green-200';
+        case 'in_progress':
+          return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'completed':
+          return 'bg-gray-100 text-gray-800 border-gray-200';
+        default:
+          return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      }
+    };
+
+    return (
+      <div className={`${getStatusColor()} border px-4 py-2 mb-4 rounded-lg`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium">{getStatusText()}</span>
+          </div>
+          {pickupLocation && dropoffLocation && (
+            <div className="text-xs opacity-75">
+              {pickupLocation.name} → {dropoffLocation.name}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Render content based on booking phase
@@ -488,25 +616,28 @@ export default function BookingRide() {
           <div className="flex flex-col lg:flex-row h-full">
             {/* Left: Booking UI */}
             <div id="booking-panel" className="w-full lg:w-2/5 flex flex-col bg-white border-b lg:border-b-0 lg:border-r">
-              <LocationSearch
-                pickupLocation={pickupLocation}
-                dropoffLocation={dropoffLocation}
-                pickupInput={pickupInput}
-                destinationInput={destinationInput}
-                onPickupInputChange={handlePickupInputChange}
-                onDestinationInputChange={handleDestinationInputChange}
-                onPickupSelect={handlePickupSelect}
-                onDestinationSelect={handleDestinationSelect}
-                onGetCurrentLocation={(isPickup: boolean) => {
-                  if (isPickup) {
-                    getCurrentLocation();
-                  } else {
-                    getCurrentLocationForDestination();
-                  }
-                }}
-                onSeeDetails={handleSeeDetails}
-                userRole={userInfo?.data?.role}
-              />
+              {/* Hide LocationSearch when there's an active ride or we're on a ride-specific URL */}
+              {(!activeRide && !urlRideId) && (
+                <LocationSearch
+                  pickupLocation={pickupLocation}
+                  dropoffLocation={dropoffLocation}
+                  pickupInput={pickupInput}
+                  destinationInput={destinationInput}
+                  onPickupInputChange={handlePickupInputChange}
+                  onDestinationInputChange={handleDestinationInputChange}
+                  onPickupSelect={handlePickupSelect}
+                  onDestinationSelect={handleDestinationSelect}
+                  onGetCurrentLocation={(isPickup: boolean) => {
+                    if (isPickup) {
+                      getCurrentLocation();
+                    } else {
+                      getCurrentLocationForDestination();
+                    }
+                  }}
+                  onSeeDetails={handleSeeDetails}
+                  userRole={userInfo?.data?.role}
+                />
+              )}
               <RideSelection
                  selectedRideType={selectedRideType}
                  rideDetails={rideDetails}
@@ -563,27 +694,58 @@ export default function BookingRide() {
       case 'in_progress':
       case 'completed':
         return (
-          <div className="flex flex-col h-full">
-            <LocationSearch
-              pickupLocation={pickupLocation}
-              dropoffLocation={dropoffLocation}
-              pickupInput={pickupInput}
-              destinationInput={destinationInput}
-              onPickupInputChange={handlePickupInputChange}
-              onDestinationInputChange={handleDestinationInputChange}
-              onPickupSelect={handlePickupSelect}
-              onDestinationSelect={handleDestinationSelect}
-              onGetCurrentLocation={(isPickup: boolean) => {
-                 if (isPickup) {
-                   getCurrentLocation();
-                 } else {
-                   getCurrentLocationForDestination();
-                 }
-               }}
-              onSeeDetails={handleSeeDetails}
-              userRole={userInfo?.data?.role}
-            />
-            {isMapExpanded && (
+          <div className="flex flex-col lg:flex-row h-full">
+            {/* Left side: Driver status and ride info */}
+            <div className="w-full lg:w-2/5 flex flex-col bg-white border-b lg:border-b-0 lg:border-r">
+              {renderRideStatusBar()}
+              {/* Hide LocationSearch when there's an active ride or we're on a ride-specific URL */}
+              {(!activeRide && !urlRideId) && (
+                <LocationSearch
+                  pickupLocation={pickupLocation}
+                  dropoffLocation={dropoffLocation}
+                  pickupInput={pickupInput}
+                  destinationInput={destinationInput}
+                  onPickupInputChange={handlePickupInputChange}
+                  onDestinationInputChange={handleDestinationInputChange}
+                  onPickupSelect={handlePickupSelect}
+                  onDestinationSelect={handleDestinationSelect}
+                  onGetCurrentLocation={(isPickup: boolean) => {
+                    if (isPickup) {
+                      getCurrentLocation();
+                    } else {
+                      getCurrentLocationForDestination();
+                    }
+                  }}
+                  onSeeDetails={handleSeeDetails}
+                  userRole={userInfo?.data?.role}
+                />
+              )}
+              <DriverStatus
+                bookingPhase={bookingPhase}
+                pickupLocation={pickupLocation}
+                dropoffLocation={dropoffLocation}
+                matchedDriver={matchedDriver}
+                isMapExpanded={isMapExpanded}
+                onToggleMap={handleToggleMap}
+                onCancelRide={handleReset}
+                onCompleteRide={handleCompleteRide}
+              />
+              {(bookingPhase === 'finding_driver' || bookingPhase === 'driver_assigned' || bookingPhase === 'in_progress') && currentRideId && (
+                <div className="p-4 bg-white border-t border-gray-200">
+                  <div className="text-center mb-2">
+                    <span className="text-xs text-gray-500">Need to cancel your ride?</span>
+                  </div>
+                  <CancelRideHandler
+                    rideId={currentRideId}
+                    currentStatus={bookingPhase === 'finding_driver' ? 'requested' : bookingPhase === 'driver_assigned' ? 'accepted' : 'in_progress'}
+                    onCancelSuccess={handleReset}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Right side: Map */}
+            <div className="hidden lg:block lg:w-3/5 h-full">
               <MapView
                 pickupLocation={pickupLocation}
                 dropoffLocation={dropoffLocation}
@@ -591,52 +753,35 @@ export default function BookingRide() {
                 mapCenter={mapCenter}
                 bookingPhase={bookingPhase}
               />
-            )}
-            <DriverStatus
-              bookingPhase={bookingPhase}
-              pickupLocation={pickupLocation}
-              dropoffLocation={dropoffLocation}
-              matchedDriver={matchedDriver}
-              isMapExpanded={isMapExpanded}
-              onToggleMap={handleToggleMap}
-              onCancelRide={handleCancelRide}
-              onCompleteRide={handleCompleteRide}
-            />
-            {bookingPhase !== 'completed' && (
-              <div className="p-4 bg-white border-t">
-                <button
-                  className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  onClick={handleCancelRide}
-                >
-                  Cancel Ride
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         );
 
       default:
         return (
           <div className="flex flex-col h-full">
-            <LocationSearch
-              pickupLocation={pickupLocation}
-              dropoffLocation={dropoffLocation}
-              pickupInput={pickupInput}
-              destinationInput={destinationInput}
-              onPickupInputChange={handlePickupInputChange}
-              onDestinationInputChange={handleDestinationInputChange}
-              onPickupSelect={handlePickupSelect}
-              onDestinationSelect={handleDestinationSelect}
-              onGetCurrentLocation={(isPickup: boolean) => {
-                   if (isPickup) {
-                     getCurrentLocation();
-                   } else {
-                     getCurrentLocationForDestination();
-                   }
-                 }}
-              onSeeDetails={handleSeeDetails}
-              userRole={userInfo?.data?.role}
-            />
+            {/* Hide LocationSearch when there's an active ride or we're on a ride-specific URL */}
+            {(!activeRide && !urlRideId) && (
+              <LocationSearch
+                pickupLocation={pickupLocation}
+                dropoffLocation={dropoffLocation}
+                pickupInput={pickupInput}
+                destinationInput={destinationInput}
+                onPickupInputChange={handlePickupInputChange}
+                onDestinationInputChange={handleDestinationInputChange}
+                onPickupSelect={handlePickupSelect}
+                onDestinationSelect={handleDestinationSelect}
+                onGetCurrentLocation={(isPickup: boolean) => {
+                     if (isPickup) {
+                       getCurrentLocation();
+                     } else {
+                       getCurrentLocationForDestination();
+                     }
+                   }}
+                onSeeDetails={handleSeeDetails}
+                userRole={userInfo?.data?.role}
+              />
+            )}
           </div>
         );
     }
@@ -645,7 +790,7 @@ export default function BookingRide() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="h-[calc(100vh-64px)] max-w-[1536px] mx-auto px-4 lg:px-6">
+      <div className="h-[calc(100vh-64px)] max-h-screen max-w-[1536px] mx-auto px-4 lg:px-6">
         {renderContent()}
       </div>
     </div>

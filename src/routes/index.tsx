@@ -35,7 +35,6 @@ const Register = lazy(() => import("@/pages/Register"));
 const RiderDashboard = lazy(() => import("@/pages/Rider/Dashboard"));
 const BookingRide = lazy(() => import("@/pages/BookingRide"));
 const RideHistory = lazy(() => import("@/pages/Rider/RideHistory"));
-const StartRide = lazy(() => import("@/pages/Rider/StartRide"));
 const RiderProfile = lazy(() => import("@/pages/Rider/Profile"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 // Universal booking is imported directly in BookRide component
@@ -92,7 +91,7 @@ export const router = createBrowserRouter([
     },
     {
         Component: BookingRide,
-        path: "/booking-ride",
+        path: "/booking-ride/:rideId?",
     },
     {
         Component: Login,
@@ -135,10 +134,6 @@ export const router = createBrowserRouter([
             //     path: "book-ride",
             //     element: <BookingRide />
             // },
-            {
-                path: "start-ride",
-                element: <StartRide />
-            },
             // {
             //     path: "ride-booking",
             //     element: <BookingRide />

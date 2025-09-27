@@ -1,38 +1,26 @@
+import CancelRideHandler from "@/components/RideBooking/CancelRideHandler";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { useCancelRideMutation } from "@/redux/features/ride/ride.api";
-import { useGetActiveRideQuery } from "@/redux/features/rides/ride.api";
-import { Car, Clock, Mail, MapPin, Phone, Shield, Star, User, X } from "lucide-react";
+import { useGetActiveRideQuery, useGetCurrentLocationQuery, useGetRideHistoryQuery } from "@/redux/features/rides/ride.api";
+import { Car, Clock, Mail, MapPin, Phone, Shield, Star, User } from "lucide-react";
 
 export default function RiderDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: activeRide, isLoading: isLoadingRide } = useGetActiveRideQuery();
-  const [cancelRide, { isLoading: isCancelling }] = useCancelRideMutation();
-  const { toast } = useToast();
+  const { data: currentLocation, isLoading: isLoadingLocation } = useGetCurrentLocationQuery();
+  const { data: rideHistory } = useGetRideHistoryQuery({ limit: 100 });
 
-  const handleCancelRide = async (rideId: string) => {
-    try {
-      await cancelRide(rideId).unwrap();
-      toast({
-        title: "Ride cancelled",
-        description: "Your ride request has been cancelled successfully.",
-      });
-    } catch (error) {
-      console.error('Error cancelling ride:', error);
-      toast({
-        title: "Failed to cancel ride",
-        description: "Could not cancel your ride. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  // Mock current location
-  const currentLocation = "123 Main Street, New York";
-  
-  // Mock popular destinations
+  // Calculate real stats from ride history
+  const completedRides = rideHistory?.grouped?.completed || [];
+  const totalRides = rideHistory?.total || 0;
+
+  // Calculate average rating from completed rides
+  const averageRating = completedRides.length > 0
+    ? completedRides.reduce((sum: number, ride: any) => sum + (ride.rating?.riderRating || 0), 0) / completedRides.length
+    : 0;
+
+  // Popular destinations - keeping as static for now since this seems intentional
   const popularDestinations = [
     { id: 1, name: "Central Park", distance: "2.5 miles", eta: "15 min" },
     { id: 2, name: "Grand Central Station", distance: "1.8 miles", eta: "12 min" },
@@ -63,14 +51,16 @@ export default function RiderDashboard() {
               <div className="p-2 rounded-full bg-primary/10">
                 <MapPin className="h-5 w-5 text-primary" />
               </div>
-              <div className="font-medium">{currentLocation}</div>
+              <div className="font-medium">
+                {isLoadingLocation ? "Getting your location..." : (currentLocation?.address || "Location not available")}
+              </div>
             </div>
             
             <div className="flex flex-wrap gap-3">
               <Button className="flex items-center gap-2" asChild>
-                <a href="/rider/start-ride">
+                <a href="/booking-ride">
                   <Car className="h-4 w-4" />
-                  Start a Ride
+                  Book a Ride
                 </a>
               </Button>
               <Button variant="outline" className="flex items-center gap-2">
@@ -99,8 +89,8 @@ export default function RiderDashboard() {
                 <h3 className="font-semibold text-lg">{userInfo?.data?.name || 'User'}</h3>
                 <div className="flex items-center gap-1 text-yellow-500">
                   <Star className="h-4 w-4 fill-current" />
-                  <span className="font-medium">4.9</span>
-                  <span className="text-gray-500 text-sm">(32 rides)</span>
+                  <span className="font-medium">{averageRating.toFixed(1) || '0.0'}</span>
+                  <span className="text-gray-500 text-sm">({totalRides} rides)</span>
                 </div>
               </div>
             </div>
@@ -108,7 +98,7 @@ export default function RiderDashboard() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <User className="h-4 w-4 text-gray-500" />
-                <span>Rider since Sept 2025</span>
+                <span>Rider since {userInfo?.data?.createdAt ? new Date(userInfo.data.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Unknown'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-gray-500" />
@@ -120,7 +110,9 @@ export default function RiderDashboard() {
               </div>
               <div className="flex items-center gap-3">
                 <Shield className="h-4 w-4 text-green-500" />
-                <span className="text-green-600 font-medium">Verified account</span>
+                <span className={`font-medium ${userInfo?.data?.isVerified ? 'text-green-600' : 'text-red-600'}`}>
+                  {userInfo?.data?.isVerified ? 'Verified account' : 'Unverified account'}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -233,24 +225,22 @@ export default function RiderDashboard() {
                   </div>
                 </div>
 
-                {activeRide.status === 'requested' && (
+                {(activeRide.status === 'requested' || activeRide.status === 'pending' || activeRide.status === 'accepted' || activeRide.status === 'in_transit') && (
                   <div className="mt-4">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleCancelRide(activeRide._id)}
-                      disabled={isCancelling}
-                    >
-                      {isCancelling ? (
-                        <>Cancelling...</>
-                      ) : (
-                        <>
-                          <X className="h-4 w-4 mr-1" />
+                    <CancelRideHandler
+                      rideId={activeRide._id}
+                      currentStatus={activeRide.status}
+                      onCancelSuccess={() => window.location.reload()}
+                      trigger={
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="w-full"
+                        >
                           Cancel Ride
-                        </>
-                      )}
-                    </Button>
+                        </Button>
+                      }
+                    />
                   </div>
                 )}
               </div>

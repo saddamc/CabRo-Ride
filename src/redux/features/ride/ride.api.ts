@@ -218,7 +218,7 @@ const rideApi = baseApi.injectEndpoints({
       { page?: number; limit?: number; status?: string }
     >({
       query: (params) => ({
-        url: `/rides/history`,
+        url: `/rides/me`,
         method: "GET",
         params,
       }),

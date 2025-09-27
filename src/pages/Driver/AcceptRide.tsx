@@ -46,7 +46,7 @@ export default function AcceptRide() {
       console.error('Error accepting ride:', error);
       toast({
         title: "Failed to accept ride",
-        description: "Could not accept this ride. It may have been taken by another driver.",
+       description: "Could not accept this ride. It may have been taken by another driver.",
         variant: "destructive",
       });
       navigate('/driver/dashboard');

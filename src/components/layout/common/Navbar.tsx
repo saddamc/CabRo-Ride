@@ -20,7 +20,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isDashboard = location.pathname.startsWith('/rider') || location.pathname.startsWith('/driver') || location.pathname.startsWith('/admin') || location.pathname === '/booking-ride';
+  const isDashboard = location.pathname.startsWith('/rider') || location.pathname.startsWith('/driver') || location.pathname.startsWith('/admin');
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -61,7 +61,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`border-b sticky top-0 z-50 ${isDashboard ? 'bg-white border-gray-100' : 'bg-white border-gray-100 dark:bg-black dark:border-gray-800'}`}>
+    <nav className={`border-b sticky top-0 z-[10000] ${isDashboard ? 'bg-white border-gray-100' : 'bg-white border-gray-100 dark:bg-black dark:border-gray-800'}`}>
       <div className="container px-4 py-3 mx-auto">
         <div className="flex items-center justify-between">
           {/* Left: Logo */}

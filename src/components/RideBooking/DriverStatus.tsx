@@ -41,7 +41,7 @@ export default function DriverStatus({
         <div className="bg-blue-600 h-2 rounded-full animate-[progress_2s_ease-in-out_infinite]" style={{ width: '70%' }}></div>
       </div>
       <p className="text-sm text-gray-500">This usually takes less than 60 seconds</p>
-      <Button variant="outline" className="mt-8" onClick={onCancelRide}>
+      <Button variant="outline" className="mt-8 font-bold bg-red-600 text-white text-md" onClick={onCancelRide}>
         Cancel
       </Button>
     </div>
