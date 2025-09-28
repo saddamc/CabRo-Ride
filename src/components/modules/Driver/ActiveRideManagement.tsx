@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCancelRideMutation, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
+import { useAcceptRideMutation } from "@/redux/features/driver/driver.api";
+import { useCancelRideMutation, useGetActiveRideQuery, useGetAvailableRidesQuery, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -41,26 +43,78 @@ interface ActiveRideProps {
 
 export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   // For refetching active ride data after cancellation
-  // const { refetch: refetchActiveRide } = useGetActiveRideQuery();
-  // console.log('ActiveRide ✅:', refetchActiveRide);
-  const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
+  const { refetch: refetchActiveRide } = useGetActiveRideQuery();
+  const [acceptRideMutation] = useAcceptRideMutation();
   const [cancelRideMutation] = useCancelRideMutation();
+  const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
+  const { data: activeRides, isLoading: isLoadingRides, error } = useGetAvailableRidesQuery();
   const [currentStatus, setCurrentStatus] = useState<string>(ride?.status || 'accepted');
+  console.log("activeRides:", activeRides);
+if (isLoadingRides) return <div>Loading...</div>;
+if (error) return <div>Error loading rides</div>;
+if (!activeRides) return <div>No rides found</div>;
+  
+
+  if (!activeRides) {
+  return <div>Loading...</div>;
+}
+// Now you can safely use activeRides
 
   if (!ride) {
     return (
-      <Card className="border-0 shadow-md mb-8">
-        <CardHeader>
-          <CardTitle>Active Ride</CardTitle>
-          <CardDescription>You don't have any active rides at the moment</CardDescription>
-        </CardHeader>
-        <CardContent className="text-center py-8">
-          <div className="p-4 bg-gray-100 inline-block rounded-full mb-4">
-            <Navigation className="h-8 w-8 text-gray-400" />
-          </div>
-          <p className="text-gray-500">Go online to receive ride requests</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card className="border-0 shadow-md mb-8">
+          <CardHeader>
+            <CardTitle>Active Ride</CardTitle>
+            <CardDescription>You don't have any active rides at the moment</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center py-8">
+            <div className="p-4 bg-gray-100 inline-block rounded-full mb-4">
+              <Navigation className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500">Go online to receive ride requests</p>
+          </CardContent>
+        </Card>
+
+        {/* Available Rides Section */}
+        <Card className="border-0 shadow-md">
+          <CardHeader>
+            <CardTitle>Available Rides</CardTitle>
+            <CardDescription>Rides waiting for drivers</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeRides && activeRides.length > 0 ? (
+              <div className="space-y-4">
+                {activeRides.map((ride: any) => (
+                  <div key={ride._id} className="border rounded-lg p-4 bg-gray-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-semibold">{ride.rider.name}</p>
+                        <p className="text-sm text-gray-600">{ride.rider.phone}</p>
+                      </div>
+                      <Button
+                        onClick={() => handleAcceptRide(ride._id)}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        Accept Ride
+                      </Button>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <p>Pickup: {ride.pickupLocation.address}</p>
+                      <p>Destination: {ride.destinationLocation.address}</p>
+                      <p>Distance: {ride.distance?.estimated?.toFixed(1)} km</p>
+                      <p>Fare: ৳{Math.round(ride.fare?.totalFare || 0)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-gray-500 py-4">No available rides at the moment</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -125,6 +179,18 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
     } catch (error) {
       console.error('Error cancelling ride:', error);
       toast.error('Failed to cancel ride. Please try again.');
+    }
+  };
+
+  const handleAcceptRide = async (rideId: string) => {
+    try {
+      await acceptRideMutation({ id: rideId }).unwrap();
+      toast.success('Ride accepted successfully!');
+      // Refetch available rides to update the list
+      // You might want to refetch active ride as well
+    } catch (error) {
+      console.error('Error accepting ride:', error);
+      toast.error('Failed to accept ride. Please try again.');
     }
   };
 

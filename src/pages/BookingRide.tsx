@@ -252,7 +252,7 @@ export default function BookingRide() {
         setMatchedDriver({
           id: activeRide.driver._id,
           name: activeRide.driver.user.name,
-          rating: activeRide.driver.rating || 4.5,
+          rating: (activeRide.driver.rating as any)?.average ?? 4.5,
           profileImage: activeRide.driver.user.profilePicture || 'https://randomuser.me/api/portraits/men/32.jpg',
           vehicleInfo: {
             make: activeRide.driver.vehicle?.make || 'Toyota',

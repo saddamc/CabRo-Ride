@@ -164,37 +164,47 @@ useEffect(() => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <SetOnlineModal
-                isOnline={driverStats.availability === "online"}
-                isLoading={isTogglingStatus}
-                onConfirm={handleToggleStatus}
-              >
+              {activeRide ? (
                 <Button
-                  disabled={isTogglingStatus}
-                  className={`flex items-center gap-2 ${
-                    driverStats.availability === "online"
-                      ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
-                  }`}
+                  disabled
+                  className="flex items-center gap-2 bg-[#f56803] hover:bg-blue-700"
                 >
-                  {isTogglingStatus ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Updating...
-                    </>
-                  ) : driverStats.availability === "online" ? (
-                    <>
-                      <Car className="h-4 w-4 " />
-                      Online
-                    </>
-                  ) : (
-                    <>
-                      <Car className="h-4 w-4" />
-                      Offline
-                    </>
-                  )}
+                  <Car className="h-4 w-4" />
+                  Busy (Active Ride)
                 </Button>
-              </SetOnlineModal>
+              ) : (
+                <SetOnlineModal
+                  isOnline={driverStats.availability === "online"}
+                  isLoading={isTogglingStatus}
+                  onConfirm={handleToggleStatus}
+                >
+                  <Button
+                    disabled={isTogglingStatus}
+                    className={`flex items-center gap-2 ${
+                      driverStats.availability === "online"
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
+                  >
+                    {isTogglingStatus ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : driverStats.availability === "online" ? (
+                      <>
+                        <Car className="h-4 w-4 " />
+                        Online
+                      </>
+                    ) : (
+                      <>
+                        <Car className="h-4 w-4" />
+                        Offline
+                      </>
+                    )}
+                  </Button>
+                </SetOnlineModal>
+              )}
 
               <Button variant="outline" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />

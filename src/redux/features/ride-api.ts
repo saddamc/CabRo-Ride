@@ -405,7 +405,7 @@ export const rideApi = baseApi.injectEndpoints({
         url: "/rides/available",
         method: "GET",
       }),
-      transformResponse: (response: IResponse<{ rides: IRide[] }>) => response.data.rides,
+      transformResponse: (response: IResponse<IRide[]>) => response.data,
       providesTags: ["RIDES"],
     }),
 
@@ -471,7 +471,7 @@ export const {
   useGetNearbyDriversQuery,
   useCalculateFareMutation,
   useRequestRideMutation, // requestRide
-  useGetActiveRideQuery,    // getActiveRide
+  useGetActiveRideQuery,    // getActiveRide   Driver, Rider
   useCancelRideMutation,    // cancelRide
   useRatingRideMutation,   // ratingRide      Driver, Rider
   useLazyGetEstimatedPriceQuery,
