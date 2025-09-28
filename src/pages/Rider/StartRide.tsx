@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import useDebounce from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
-import type { IDriver, ILocation } from "@/redux/features/ride/ride.api";
-import { useCalculateFareMutation, useGetNearbyDriversQuery, useLazyReverseGeocodeQuery, useLazySearchLocationsQuery, useRequestRideMutation } from "@/redux/features/ride/ride.api";
+import { useCalculateFareMutation, useGetNearbyDriversQuery, useLazyReverseGeocodeQuery, useLazySearchLocationsQuery, useRequestRideMutation, type IDriver, type ILocation } from "@/redux/features/ride-api";
+
+// import { useCalculateFareMutation, useGetNearbyDriversQuery, useLazyReverseGeocodeQuery, useLazySearchLocationsQuery, useRequestRideMutation } from "@/redux/features/ride/ride.api";
 import { ChevronRight, Clock, Loader2, MapPin, Navigation, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 

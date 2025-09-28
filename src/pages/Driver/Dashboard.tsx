@@ -23,7 +23,7 @@ export default function DriverDashboard() {
   const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
   // console.log("User Info:", userInfo ?? "Loading...");
   // console.log("Available Rides:", availableRides ?? "Loading...");
-  console.log("Driver Details:", driverDetails ?? "Loading...");
+  // console.log("Driver Details:", driverDetails ?? "Loading...");
   // console.log("Driver Availability:", driverDetails?.availability ?? "undefined");
   // console.log("Driver isOnline:", driverDetails?.isOnline ?? "undefined");
   // console.log("Full driverDetails object:", JSON.stringify(driverDetails, null, 2));

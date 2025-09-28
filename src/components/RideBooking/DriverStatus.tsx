@@ -4,6 +4,8 @@ import { Separator } from '@/components/ui/separator';
 import type { IDriver, ILocation } from '@/redux/features/ride-api';
 // import type { IDriver, ILocation } from '@/redux/features/ride/rideapi';
 import { Car, Clock, MapPin, Navigation } from 'lucide-react';
+import { useState } from 'react';
+import CancelRideModal from '../modal/cancelRideModal';
 
 interface DriverStatusProps {
   bookingPhase: string;
@@ -24,8 +26,15 @@ export default function DriverStatus({
   onToggleMap,
   onCompleteRide
 }: DriverStatusProps) {
+  const [showCancelModal, setShowCancelModal] = useState(false);
+
   const renderFindingDriver = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-6 bg-white">
+      {/* <div className="w-full mb-6 flex justify-end">
+        <Button variant="outline" onClick={() => setShowCancelModal(true)}>
+          Cancel Rid
+        </Button>
+      </div> */}
       <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-6">
         <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
@@ -43,6 +52,14 @@ export default function DriverStatus({
       {/* <p className="text-xs text-gray-400 mt-4 text-center">
         Use the cancel button below to cancel this ride request
       </p> */}
+      <CancelRideModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={() => {
+          setShowCancelModal(false);
+          // Here we could call a cancel function, but for now just close
+        }}
+      />
     </div>
   );
 

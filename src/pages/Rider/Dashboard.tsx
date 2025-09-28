@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import CancelRideHandler from "@/components/RideBooking/CancelRideHandler";
+import CancelRide from "@/components/RideBooking/CancelRide";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
@@ -228,7 +228,7 @@ export default function RiderDashboard() {
 
                 {(activeRide.status === 'requested' || activeRide.status === 'pending' || activeRide.status === 'accepted' || activeRide.status === 'in_transit') && (
                   <div className="mt-4">
-                    <CancelRideHandler
+                    <CancelRide
                       rideId={activeRide._id}
                       currentStatus={activeRide.status}
                       onCancelSuccess={() => window.location.reload()}

@@ -188,33 +188,52 @@ export const driverApi = baseApi.injectEndpoints({
       providesTags: ["DRIVER"],
     }),
 
+    // findNearByDriver
+    getFindNearbyDrivers: builder.query<IDriverProfile[], { latitude: number; longitude: number }>({
+      query: ({ latitude, longitude }) => ({
+        url: `/drivers/nearby?latitude=${latitude}&longitude=${longitude}`,
+        method: "GET",
+      }),
+      providesTags: ["DRIVER"],
+    }),
+
+    // approvedDriver
+    approvedDriver: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        url: `/drivers/approved-driver/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["DRIVER"],
+    }),
+
+    // suspendDriver
+    suspendDriver: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        url: `/drivers/suspend/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["DRIVER"],
+    }),
+
     // NOTE: Driver profile data should be obtained from /users/me endpoint
     // when the authenticated user has role 'driver'. The user info will include driver data.
   }),
 });
 
 export const {
-  // applyDriver
-  useApplyDriverMutation,
-  // setOnlineOffline
-  useSetOnlineOfflineMutation,
-  // acceptRide
-  useAcceptRideMutation,
-  // rejectRide
-  useRejectRideMutation,
-  // updateRideStatus
-  useUpdateRideStatusMutation,
-  // driverEarnings
-  useGetDriverEarningsQuery,
-  // updateDriverDoc
-  useUpdateDriverDocMutation,
-  // ratingRide
-  useRatingRideMutation,
-  // getDriverDetails
-  useGetDriverDetailsQuery,
-
+  useApplyDriverMutation,      // applyDriver
+  useSetOnlineOfflineMutation, // setOnlineOffline
+  useAcceptRideMutation,        // acceptRide
+  useRejectRideMutation,    // rejectRide
+  useUpdateRideStatusMutation, // updateRideStatus
+  useGetDriverEarningsQuery,    // driverEarnings
+  useUpdateDriverDocMutation,   // updateDriverDoc
+  useRatingRideMutation,        // ratingRide
+  useGetDriverDetailsQuery,   // getDriverDetails
+  useGetFindNearbyDriversQuery,   // findNearbyDrivers
+  useApprovedDriverMutation,    // approvedDriver   admin
+  useSuspendDriverMutation,         // suspendDrive   admin 
 } = driverApi;
 
-// findNearbyDrivers
-// approvedDriver
-// suspendDriver
+
+

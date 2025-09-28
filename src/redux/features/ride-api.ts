@@ -290,7 +290,7 @@ export const rideApi = baseApi.injectEndpoints({
       },
     }),
 
-    // Request a ride
+    // requestRide
     requestRide: builder.mutation<IResponse<IRide>, IRideRequest>({
       query: (data) => ({
         url: "/rides/request",
@@ -338,8 +338,8 @@ export const rideApi = baseApi.injectEndpoints({
       invalidatesTags: ["RIDES"],
     }),
 
-    // Rate ride
-    rateRide: builder.mutation<IRide, { id: string; rating: number; feedback?: string }>({
+    // ratingRide
+    ratingRide: builder.mutation<IRide, { id: string; rating: number; feedback?: string }>({
       query: ({ id, rating, feedback }) => ({
         url: `/rides/rating/${id}`,
         method: "PATCH",
@@ -440,8 +440,27 @@ export const rideApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["RIDES"],
     }),
+
+    // getAllRide
+    getAllRide: builder.query<{ total: number; rides: IRide[] }, { page?: number; limit?: number }>({
+      query: (params = {}) => ({
+        url: "/rides",
+        method: "GET",
+        params,
+      }),
+      transformResponse: (response: IResponse<{ total: number; rides: IRide[] }>) => response.data,
+      providesTags: ["RIDES"],
+    }),
+
+
+// Endpoints
   }),
 });
+
+// searchLocations
+// getCurrentLocation
+// reverseGeocode
+// getNearbyDrivers
 
 export const {
   useSearchLocationsQuery,
@@ -451,17 +470,21 @@ export const {
   useLazyReverseGeocodeQuery,
   useGetNearbyDriversQuery,
   useCalculateFareMutation,
-  useRequestRideMutation,
-  useGetActiveRideQuery,
-  useCancelRideMutation,
-  useRateRideMutation,
+  useRequestRideMutation, // requestRide
+  useGetActiveRideQuery,    // getActiveRide
+  useCancelRideMutation,    // cancelRide
+  useRatingRideMutation,   // ratingRide      Driver, Rider
   useLazyGetEstimatedPriceQuery,
   useGetEstimatedPriceQuery,
   useAcceptRideMutation,
   useRejectRideMutation,
   useUpdateRideStatusMutation,
   useGetRideByIdQuery,
-  useGetAvailableRidesQuery,
+  useGetAvailableRidesQuery,  //getAvailableRides  Driver
+  useGetAllRideQuery,     // getAllRide   Admin
   useGetRideHistoryQuery,
   useCompleteRideMutation,
 } = rideApi;
+
+
+// getMyRides
