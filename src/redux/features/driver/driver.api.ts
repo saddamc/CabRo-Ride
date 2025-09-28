@@ -179,7 +179,7 @@ export const driverApi = baseApi.injectEndpoints({
        // Get driver details
     getDriverDetails: builder.query<IDriverProfile, void>({
       query: () => ({
-        url: "/me",
+        url: "drivers/me",
         method: "GET",
       }),
       providesTags: ["DRIVER"],

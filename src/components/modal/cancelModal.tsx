@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useCancelRideMutation } from '@/redux/features/ride/ride.api';
-// import { useCancelRideMutation } from '@/redux/features/rides/ride.api';
+import { useCancelRideMutation } from '@/redux/features/ride-api';
+
 import { AlertTriangle } from 'lucide-react';
 
 interface CancelModalProps {

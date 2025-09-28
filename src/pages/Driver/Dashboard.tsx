@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import SetOnlineModal from "@/components/modal/setOnline";
 import ActiveRideManagement from "@/components/modules/Driver/ActiveRideManagement";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,23 +12,30 @@ import {
   Car, Check, Clock, DollarSign, Loader2, Mail,
   MapPin, Phone, Shield, Star, Truck, User, X
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
-  console.log("User Info:", userInfo ?? "Loading...");
   const { data: availableRides, isLoading: isLoadingRides } = useGetAvailableRidesQuery();
-  console.log("Available Rides:", availableRides ?? "Loading...");
-  const { data: driverDetails } = useGetDriverDetailsQuery();
-  console.log("Driver Details:", driverDetails ?? "Loading...");
+  const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
+  // console.log("User Info:", userInfo ?? "Loading...");
+  // console.log("Available Rides:", availableRides ?? "Loading...");
+  // console.log("Driver Details:", driverDetails ?? "Loading...");
+  // console.log("Driver Availability:", driverDetails?.availability ?? "undefined");
+  // console.log("Driver isOnline:", driverDetails?.isOnline ?? "undefined");
+  // console.log("Full driverDetails object:", JSON.stringify(driverDetails, null, 2));
   const { data: activeRide } = useGetActiveRideQuery();
-  console.log("Active Ride:", activeRide ?? "Loading...");
+  // console.log("Active Ride:", activeRide ?? "Loading...");
   const [toggleDriverStatus, { isLoading: isTogglingStatus }] = useSetOnlineOfflineMutation();
-  console.log("Toggling Status:", isTogglingStatus);
+
+  // Local state for availability status since server might not return it initially
+  const [localAvailability, setLocalAvailability] = useState<string>("offline");
+  // console.log("Toggling Status:", isTogglingStatus);
   const [acceptRide, { isLoading: isAccepting }] = useAcceptRideMutation();
   const { toast } = useToast();
 
-  console.log("Driver Details:", driverDetails ?? "Loading...");
+  // console.log("Driver Details:", driverDetails ?? "Loading...");
 
   const handleAcceptRide = async (rideId: string) => {
     try {
@@ -54,16 +63,41 @@ export default function DriverDashboard() {
 
   const handleToggleStatus = async () => {
     try {
-      // Toggle the current availability status
-      const newStatus = driverStats.availability === "online" ? false : true;
-      await toggleDriverStatus({ isOnline: newStatus }).unwrap();
+      console.log("Current localAvailability:", localAvailability);
+      console.log("Current driverDetails.availability:", driverDetails?.availability);
+
+      // Toggle the current availability status locally first for immediate UI feedback
+      const newLocalStatus = localAvailability === "online" ? "offline" : "online";
+      const newApiStatus = newLocalStatus === "online" ? true : false;
+
+      // console.log("Setting local status to:", newLocalStatus);
+      // console.log("Sending isOnline:", newApiStatus, "to API");
+
+      // Update local state immediately for instant UI feedback
+      setLocalAvailability(newLocalStatus);
+
+      await toggleDriverStatus({ isOnline: newApiStatus }).unwrap();
+
+      // Refetch to sync with server (in case of discrepancies)
+      const refetchedData = await refetchDriverDetails();
+      // console.log("Refetched data:", refetchedData.data);
+
+      // If server returns different status, update local state to match server
+      if (refetchedData.data?.availability && refetchedData.data.availability !== newLocalStatus) {
+        // console.log("Server returned different status, updating local state to match");
+        setLocalAvailability(refetchedData.data.availability);
+      }
+
       toast({
         title: "Status updated successfully",
-        description: `You are now ${newStatus ? 'online' : 'offline'}`,
+        description: `You are now ${newLocalStatus}`,
         variant: "default",
       });
     } catch (error) {
       console.error("Error toggling driver status:", error);
+      // Revert local state on error
+      setLocalAvailability(localAvailability === "online" ? "offline" : "online");
+
       toast({
         title: "Failed to update status",
         description: "Could not update your availability status. Please try again.",
@@ -71,6 +105,13 @@ export default function DriverDashboard() {
       });
     }
   };
+
+  // Sync local availability with server data when it changes
+  useEffect(() => {
+    if (driverDetails?.availability) {
+      setLocalAvailability(driverDetails.availability);
+    }
+  }, [driverDetails?.availability]);
 
   // ✅ Safe defaults
   const driverStats = {
@@ -85,7 +126,8 @@ export default function DriverDashboard() {
       plateNumber: "N/A",
       status: "inactive",
     },
-    availability: driverDetails?.availability ?? "offline",
+    // Use local availability state for immediate UI updates
+    availability: localAvailability,
   };
 
   return (
@@ -133,32 +175,37 @@ export default function DriverDashboard() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={handleToggleStatus}
-                disabled={isTogglingStatus}
-                className={`flex items-center gap-2 ${
-                  driverStats.availability === "online"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
+              <SetOnlineModal
+                isOnline={driverStats.availability === "online"}
+                isLoading={isTogglingStatus}
+                onConfirm={handleToggleStatus}
               >
-                {isTogglingStatus ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : driverStats.availability === "online" ? (
-                  <>
-                    <Car className="h-4 w-4" />
-                    Go Offline
-                  </>
-                ) : (
-                  <>
-                    <Car className="h-4 w-4" />
-                    Go Online
-                  </>
-                )}
-              </Button>
+                <Button
+                  disabled={isTogglingStatus}
+                  className={`flex items-center gap-2 ${
+                    driverStats.availability === "online"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {isTogglingStatus ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : driverStats.availability === "online" ? (
+                    <>
+                      <Car className="h-4 w-4 bg-green-500" />
+                      Online
+                    </>
+                  ) : (
+                    <>
+                      <Car className="h-4 w-4" />
+                      Offline
+                    </>
+                  )}
+                </Button>
+              </SetOnlineModal>
 
               <Button variant="outline" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
