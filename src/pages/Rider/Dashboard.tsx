@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import CancelRideHandler from "@/components/RideBooking/CancelRideHandler";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +59,7 @@ export default function RiderDashboard() {
             
             <div className="flex flex-wrap gap-3">
               <Button className="flex items-center gap-2" asChild>
-                <a href="/booking-ride">
+                <a href="/ride">
                   <Car className="h-4 w-4" />
                   Book a Ride
                 </a>

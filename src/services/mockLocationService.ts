@@ -122,8 +122,8 @@ export function searchLocations(query: string): ILocation[] {
   const lowerQuery = query.toLowerCase();
   
   return mockLocations.filter(location => 
-    location.name.toLowerCase().includes(lowerQuery) || 
-    location.address.toLowerCase().includes(lowerQuery)
+    (location.name?.toLowerCase().includes(lowerQuery) || false) || 
+    (location.address?.toLowerCase().includes(lowerQuery) || false)
   );
 }
 

@@ -128,14 +128,14 @@ export default function Navbar() {
               {/* Book a Ride button - hidden for driver, admin, and super_admin roles */}
               {(!userInfo?.data || (userInfo?.data?.role !== role.driver && userInfo?.data?.role !== role.admin && userInfo?.data?.role !== role.super_admin)) && (
                 <Link
-                  to={userInfo?.data ? "/booking-ride" : "/login"}
-                  state={userInfo?.data ? undefined : { from: "/booking-ride" }}
+                  to={userInfo?.data ? "/ride" : "/login"}
+                  state={userInfo?.data ? undefined : { from: "/ride" }}
                   className="text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors py-2 px-4 rounded-full flex items-center"
                   onClick={(e) => {
                     if (!userInfo?.data) {
                       e.preventDefault();
                       // Store the intended destination
-                      localStorage.setItem('redirectAfterLogin', '/booking-ride');
+                      localStorage.setItem('redirectAfterLogin', '/ride');
                       navigate('/login');
                     }
                   }}

@@ -207,7 +207,7 @@ export default function BookingRide() {
   useEffect(() => {
     if (activeRide && !isLoadingActiveRide && !urlRideId) {
       console.log('Active ride found on base route, redirecting to:', activeRide._id);
-      navigate(`/booking-ride/${activeRide._id}`, { replace: true });
+      navigate(`/ride/${activeRide._id}`, { replace: true });
     }
   }, [activeRide, isLoadingActiveRide, urlRideId, navigate]);
 
@@ -359,7 +359,7 @@ export default function BookingRide() {
   const handleSeeDetails = async () => {
     // Check if user is authenticated
     if (!userInfo?.data) {
-      navigate('/login', { state: { from: '/booking-ride' } });
+      navigate('/login', { state: { from: '/ride' } });
       return;
     }
 
@@ -431,7 +431,7 @@ export default function BookingRide() {
         });
 
         // Navigate to the ride-specific URL
-        navigate(`/booking-ride/${rideResponse.data._id}`);
+        navigate(`/ride/${rideResponse.data._id}`);
 
         console.log('Ride created successfully - Full response:', rideResponse);
         console.log('Ride data:', rideResponse.data);
@@ -476,8 +476,8 @@ export default function BookingRide() {
     setCurrentRideId(null);
     
     // Navigate back to the base booking route to prevent URL issues
-    if (window.location.pathname !== '/booking-ride') {
-      navigate('/booking-ride', { replace: true });
+    if (window.location.pathname !== '/ride') {
+      navigate('/ride', { replace: true });
     }
   };
 

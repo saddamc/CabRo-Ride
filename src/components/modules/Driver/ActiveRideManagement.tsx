@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
+import { useCancelRideMutation, useGetActiveRideQuery, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ActiveRideProps {
   ride: {
@@ -40,8 +40,11 @@ interface ActiveRideProps {
 }
 
 export default function ActiveRideManagement({ ride }: ActiveRideProps) {
-  const { toast } = useToast();
+  // For refetching active ride data after cancellation
+  const { refetch: refetchActiveRide } = useGetActiveRideQuery();
+  console.log('ActiveRide ✅:', refetchActiveRide);
   const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
+  const [cancelRideMutation] = useCancelRideMutation();
   const [currentStatus, setCurrentStatus] = useState<string>(ride?.status || 'accepted');
 
   if (!ride) {
@@ -99,43 +102,29 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
         status: nextStatus
       }).unwrap();
 
-      toast({
-        title: "Ride status updated!",
-        description: `Ride status has been updated to ${nextStatus.replace('_', ' ')}.`,
-      });
+      toast.success(`Ride status updated! Status has been updated to ${nextStatus.replace('_', ' ')}.`);
 
       setCurrentStatus(nextStatus);
     } catch (error) {
       console.error('Error updating ride status:', error);
-      toast({
-        title: "Failed to update status",
-        description: "Could not update the ride status. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to update status. Could not update the ride status. Please try again.");
     }
   };
 
+
+
+
   const handleCancelRide = async () => {
+    if (!ride?._id) return;
     try {
-      await updateRideStatus({
-        id: ride._id,
-        status: 'cancelled'
-      }).unwrap();
-
-      toast({
-        title: "Ride cancelled",
-        description: "You have successfully cancelled this ride.",
-        variant: "destructive",
-      });
-
+      await cancelRideMutation({ id: ride._id, reason: 'Driver cancelled' }).unwrap();
+      toast.success('Ride has been cancelled.');
       setCurrentStatus('cancelled');
+      // Refetch active ride data to update UI
+      await refetchActiveRide();
     } catch (error) {
       console.error('Error cancelling ride:', error);
-      toast({
-        title: "Failed to cancel ride",
-        description: "Could not cancel the ride. Please try again.",
-        variant: "destructive",
-      });
+      toast.error('Failed to cancel ride. Please try again.');
     }
   };
 

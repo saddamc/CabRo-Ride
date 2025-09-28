@@ -91,7 +91,7 @@ export const router = createBrowserRouter([
     },
     {
         Component: BookingRide,
-        path: "/booking-ride/:rideId?",
+        path: "/ride/:rideId?",
     },
     {
         Component: Login,

@@ -2,7 +2,8 @@ import LocationSearch from '@/components/RideBooking/LocationSearch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import type { ILocation } from '@/redux/features/ride/ride.api';
+import type { ILocation } from '@/redux/features/ride-api';
+
 import { reverseGeocode } from '@/services/mockLocationService';
 import { Car, Check, ChevronRight, Clock, MapPin, Shield, Star, Users } from 'lucide-react';
 import { useState } from 'react';
@@ -103,11 +104,11 @@ const Home = () => {
   const handleDestinationInputChange = (value: string) => setDestinationInput(value);
   const handlePickupSelect = (location: ILocation) => {
     setPickupLocation(location);
-    setPickupInput(location.name);
+    setPickupInput(location.address);
   };
   const handleDestinationSelect = (location: ILocation) => {
     setDropoffLocation(location);
-    setDestinationInput(location.name);
+    setDestinationInput(location.address);
   };
   const handleGetCurrentLocation = async (isPickup: boolean) => {
     if (!isPickup) return; // Only handle pickup for now
@@ -118,7 +119,7 @@ const Home = () => {
           const { latitude, longitude } = position.coords;
           const locationData = reverseGeocode(latitude, longitude);
           setPickupLocation(locationData);
-          setPickupInput(locationData.name);
+          setPickupInput(locationData.address);
         }, (error) => {
           toast({
             title: 'Geolocation error',
@@ -144,7 +145,7 @@ const Home = () => {
   const navigate = useNavigate();
   const handleSeeDetails = () => {
     if (pickupLocation && dropoffLocation) {
-      navigate('/booking-ride', {
+      navigate('/ride', {
         state: {
           pickupLocation,
           dropoffLocation
