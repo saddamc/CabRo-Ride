@@ -291,7 +291,7 @@ export const rideApi = baseApi.injectEndpoints({
     }),
 
     // Request a ride
-    requestRide: builder.mutation<IRide, IRideRequest>({
+    requestRide: builder.mutation<IResponse<IRide>, IRideRequest>({
       query: (data) => ({
         url: "/rides/request",
         method: "POST",

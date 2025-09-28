@@ -80,7 +80,7 @@ export default function BookingRide() {
           setMapCenter([latitude, longitude]);
           const locationData = reverseGeocode(latitude, longitude);
           setPickupLocation(locationData);
-          setPickupInput(locationData.name);
+          setPickupInput(locationData.address);
         }, (error) => {
           toast({
             title: 'Geolocation error',
@@ -135,7 +135,7 @@ export default function BookingRide() {
             // Fallback to mock reverse geocode
             const locationData = reverseGeocode(latitude, longitude);
             setDropoffLocation(locationData);
-            setDestinationInput(locationData.name);
+            setDestinationInput(locationData.name || locationData.address);
           }
         }, (error) => {
           toast({
@@ -174,11 +174,11 @@ export default function BookingRide() {
     if (heroBookingState?.pickupLocation || heroBookingState?.dropoffLocation) {
       if (heroBookingState.pickupLocation) {
         setPickupLocation(heroBookingState.pickupLocation);
-        setPickupInput(heroBookingState.pickupLocation.name);
+        setPickupInput(heroBookingState.pickupLocation.name || heroBookingState.pickupLocation.address);
       }
       if (heroBookingState.dropoffLocation) {
         setDropoffLocation(heroBookingState.dropoffLocation);
-        setDestinationInput(heroBookingState.dropoffLocation.name);
+        setDestinationInput(heroBookingState.dropoffLocation.name || heroBookingState.dropoffLocation.address);
       }
       if (heroBookingState.estimatedFare && heroBookingState.estimatedTime) {
         setRideDetails({
@@ -203,53 +203,18 @@ export default function BookingRide() {
     }
   }, [pickupLocation]);
 
+  // Redirect to active ride URL if on base route with active ride
+  useEffect(() => {
+    if (activeRide && !isLoadingActiveRide && !urlRideId) {
+      console.log('Active ride found on base route, redirecting to:', activeRide._id);
+      navigate(`/booking-ride/${activeRide._id}`, { replace: true });
+    }
+  }, [activeRide, isLoadingActiveRide, urlRideId, navigate]);
+
   // Check for active rides and restore state on component mount
   useEffect(() => {
-    if (activeRide && !isLoadingActiveRide && bookingPhase === 'search') {
+    if (activeRide && !isLoadingActiveRide) {
       console.log('Active ride found:', activeRide);
-
-      // If we're on the base booking-ride route but have an active ride
-      if (!urlRideId) {
-        // For requested rides, show "Finding Driver" on base route
-        if (activeRide.status === 'requested') {
-          console.log('Showing "Finding Driver" for requested ride on base route');
-          // Don't redirect, just set up the state for showing finding driver
-          setCurrentRideId(activeRide._id);
-          setPickupLocation({
-            id: 'pickup',
-            name: activeRide.pickupLocation.address,
-            address: activeRide.pickupLocation.address,
-            coordinates: activeRide.pickupLocation.coordinates,
-            type: 'saved'
-          });
-          setPickupInput(activeRide.pickupLocation.address);
-
-          setDropoffLocation({
-            id: 'dropoff',
-            name: activeRide.destinationLocation.address,
-            address: activeRide.destinationLocation.address,
-            coordinates: activeRide.destinationLocation.coordinates,
-            type: 'saved'
-          });
-          setDestinationInput(activeRide.destinationLocation.address);
-
-          if (activeRide.fare) {
-            setRideDetails({
-              fare: activeRide.fare.totalFare,
-              distance: activeRide.distance?.estimated || 0,
-              estimatedTime: activeRide.distance?.estimated ? (activeRide.distance.estimated / 1000) * 2 : 0
-            });
-          }
-
-          setBookingPhase('finding_driver');
-          return;
-        } else {
-          // For accepted/in_progress rides, redirect to specific ride URL
-          console.log('Redirecting to ride-specific URL:', activeRide._id);
-          navigate(`/booking-ride/${activeRide._id}`, { replace: true });
-          return;
-        }
-      }
 
       // Restore ride state from active ride
       setCurrentRideId(activeRide._id);
@@ -315,7 +280,7 @@ export default function BookingRide() {
       const phase = statusToPhase[activeRide.status] || 'finding_driver';
       setBookingPhase(phase);
     }
-  }, [activeRide, isLoadingActiveRide, bookingPhase, urlRideId, navigate]);
+  }, [activeRide, isLoadingActiveRide]);
 
   // Calculate ride fare
   const calculateRideFare = useCallback(async () => {
@@ -383,12 +348,12 @@ export default function BookingRide() {
 
   const handlePickupSelect = (location: ILocation) => {
     setPickupLocation(location);
-    setPickupInput(location.name);
+    setPickupInput(location.name || location.address);
   };
 
   const handleDestinationSelect = (location: ILocation) => {
     setDropoffLocation(location);
-    setDestinationInput(location.name);
+    setDestinationInput(location.name || location.address);
   };
 
   const handleSeeDetails = async () => {
@@ -456,20 +421,25 @@ export default function BookingRide() {
       const rideResponse = await requestRideMutation(rideRequestData).unwrap();
       
       // Make sure we have a valid ride ID before proceeding
-      if (rideResponse && rideResponse._id) {
-        setCurrentRideId(rideResponse._id);
-        
+      if (rideResponse && rideResponse.data && rideResponse.data._id) {
+        setCurrentRideId(rideResponse.data._id);
+        // setCurrentRideData(rideResponse.data); // Store the full ride data
+
         toast({
           title: 'Ride Request Sent',
           description: 'Waiting for driver...',
         });
-        
+
         // Navigate to the ride-specific URL
-        navigate(`/booking-ride/${rideResponse._id}`);
-        
-        console.log('Ride created successfully:', rideResponse);
+        navigate(`/booking-ride/${rideResponse.data._id}`);
+
+        console.log('Ride created successfully - Full response:', rideResponse);
+        console.log('Ride data:', rideResponse.data);
+        console.log('Ride ID:', rideResponse.data._id);
+        console.log('Rider info:', rideResponse.data.rider);
       } else {
-        console.error('No valid ride ID in response:', rideResponse);
+        console.error('No valid ride ID in response - Full response:', rideResponse);
+        console.error('Response data:', rideResponse?.data);
         toast({
           title: 'Error requesting ride',
           description: 'Could not create ride properly. Please try again.',
@@ -565,7 +535,7 @@ export default function BookingRide() {
           </div>
           {pickupLocation && dropoffLocation && (
             <div className="text-xs opacity-75">
-              {pickupLocation.name} → {dropoffLocation.name}
+              {pickupLocation.name || pickupLocation.address} → {dropoffLocation.name || dropoffLocation.address}
             </div>
           )}
         </div>
@@ -710,17 +680,16 @@ export default function BookingRide() {
                 matchedDriver={matchedDriver}
                 isMapExpanded={isMapExpanded}
                 onToggleMap={handleToggleMap}
-                onCancelRide={handleReset}
                 onCompleteRide={handleCompleteRide}
               />
-              {(bookingPhase === 'finding_driver' || bookingPhase === 'driver_assigned' || bookingPhase === 'in_progress') && currentRideId && (
+              {bookingPhase === 'finding_driver' && currentRideId && (
                 <div className="p-4 bg-white border-t border-gray-200">
-                  <div className="text-center mb-2">
+                  {/* <div className="text-center mb-2">
                     <span className="text-xs text-gray-500">Need to cancel your ride?</span>
-                  </div>
+                  </div> */}
                   <CancelRide
                     rideId={currentRideId}
-                    currentStatus={bookingPhase === 'finding_driver' ? 'requested' : bookingPhase === 'driver_assigned' ? 'accepted' : 'in_progress'}
+                    currentStatus="requested"
                     onCancelSuccess={handleReset}
                   />
                 </div>

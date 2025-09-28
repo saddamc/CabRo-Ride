@@ -23,15 +23,15 @@ export default function CancelRide({
   currentStatus,
   onCancelSuccess,
   trigger,
-  buttonText = '🚫 Cancel Ride',
-  className = "w-full px-4 py-3 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 hover:border-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+  buttonText = 'Cancel Ride',
+  className = "w-full px-4 py-3 text-sm font-medium text-red-600 bg-red-100 border border-red-200 rounded-md hover:bg-red-300 hover:border-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 }: CancelRideProps) {
   console.log('CancelRide rendered with:', { rideId, currentStatus });
 
   const [showWarning, setShowWarning] = useState(false);
   const [cancelRideMutation, { isLoading: isCancelling }] = useCancelRideMutation();
   const { refetch: refetchActiveRide } = useGetActiveRideQuery();
-  
+
   const { toast } = useToast();
 
   const handleCancelClick = () => {

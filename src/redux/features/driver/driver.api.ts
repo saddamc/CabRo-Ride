@@ -34,16 +34,31 @@ export interface IDriverProfile {
     color: string;
     licensePlate: string;
   };
+  vehicleType?: {
+    make: string;
+    model: string;
+    year: string;
+    plateNumber: string;
+    status: string;
+  };
   isOnline: boolean;
   isApproved: boolean;
   isSuspended: boolean;
-  rating: number;
+  rating: number | {
+    average: number;
+  };
   totalRides: number;
+  stats?: {
+    totalRides: number;
+    completedToday: number;
+  };
   earnings: {
     total: number;
     thisMonth: number;
     thisWeek: number;
+    totalEarnings?: number;
   };
+  availability?: string;
   currentLocation?: {
     coordinates: [number, number];
     address: string;

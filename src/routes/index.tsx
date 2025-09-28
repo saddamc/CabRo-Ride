@@ -130,14 +130,6 @@ export const router = createBrowserRouter([
                 path: "dashboard",
                 element: <RiderDashboard />
             },
-            // {
-            //     path: "book-ride",
-            //     element: <BookingRide />
-            // },
-            // {
-            //     path: "ride-booking",
-            //     element: <BookingRide />
-            // },
             {
                 path: "history",
                 element: <RideHistory />
@@ -165,10 +157,6 @@ export const router = createBrowserRouter([
                 path: "dashboard",
                 element: <DriverDashboard />
             },
-            // {
-            //     path: "book-ride",
-            //     element: <BookingRide />
-            // },
             {
                 path: "history",
                 element: <DriverRideHistory />

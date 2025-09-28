@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import type { IDriver, ILocation } from '@/redux/features/ride/ride.api';
+import type { IDriver, ILocation } from '@/redux/features/ride-api';
+// import type { IDriver, ILocation } from '@/redux/features/ride/rideapi';
 import { Car, Clock, MapPin, Navigation } from 'lucide-react';
 
 interface DriverStatusProps {
@@ -11,7 +12,6 @@ interface DriverStatusProps {
   matchedDriver: IDriver | null;
   isMapExpanded: boolean;
   onToggleMap: () => void;
-  onCancelRide: () => void;
   onCompleteRide?: () => void;
 }
 
@@ -22,7 +22,6 @@ export default function DriverStatus({
   matchedDriver,
   isMapExpanded,
   onToggleMap,
-  onCancelRide,
   onCompleteRide
 }: DriverStatusProps) {
   const renderFindingDriver = () => (
@@ -41,9 +40,9 @@ export default function DriverStatus({
         <div className="bg-blue-600 h-2 rounded-full animate-[progress_2s_ease-in-out_infinite]" style={{ width: '70%' }}></div>
       </div>
       <p className="text-sm text-gray-500">This usually takes less than 60 seconds</p>
-      <Button variant="outline" className="mt-8 font-bold bg-red-600 text-white text-md" onClick={onCancelRide}>
-        Cancel
-      </Button>
+      {/* <p className="text-xs text-gray-400 mt-4 text-center">
+        Use the cancel button below to cancel this ride request
+      </p> */}
     </div>
   );
 

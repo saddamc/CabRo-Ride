@@ -54,11 +54,13 @@ export default function DriverDashboard() {
 
   const handleToggleStatus = async () => {
     try {
-      const result = await toggleDriverStatus().unwrap();
+      // Toggle the current availability status
+      const newStatus = driverStats.availability === "online" ? false : true;
+      await toggleDriverStatus({ isOnline: newStatus }).unwrap();
       toast({
-        title: result?.success ? "Status updated" : "Failed to update status",
-        description: result?.message ?? "Something went wrong",
-        variant: result?.success ? "default" : "destructive",
+        title: "Status updated successfully",
+        description: `You are now ${newStatus ? 'online' : 'offline'}`,
+        variant: "default",
       });
     } catch (error) {
       console.error("Error toggling driver status:", error);
@@ -75,7 +77,7 @@ export default function DriverDashboard() {
     totalRides: driverDetails?.stats?.totalRides ?? 0,
     completedToday: driverDetails?.stats?.completedToday ?? 0,
     totalEarnings: driverDetails?.earnings?.totalEarnings ?? 0,
-    rating: driverDetails?.rating?.average ?? 0,
+    rating: typeof driverDetails?.rating === 'object' ? driverDetails.rating.average ?? 0 : driverDetails?.rating ?? 0,
     vehicleInfo: driverDetails?.vehicleType ?? {
       make: "Unknown",
       model: "Unknown",
