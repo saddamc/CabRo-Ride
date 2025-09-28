@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
  
 import { baseApi } from "@/redux/baseApi";
 
@@ -19,6 +20,8 @@ export interface IDriverApplication {
 }
 
 export interface IDriverProfile {
+  // data, type from /drivers/me endpoint
+  data: any;
   _id: string;
   user: {
     _id: string;
