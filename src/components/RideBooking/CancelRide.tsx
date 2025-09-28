@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
-import { useCancelRideMutation } from '@/redux/features/rides/ride.api';
+import { useCancelRideMutation, useGetActiveRideQuery } from '@/redux/features/rides/ride.api';
 import { AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 
@@ -30,6 +30,8 @@ export default function CancelRide({
 
   const [showWarning, setShowWarning] = useState(false);
   const [cancelRideMutation, { isLoading: isCancelling }] = useCancelRideMutation();
+  const { refetch: refetchActiveRide } = useGetActiveRideQuery();
+  
   const { toast } = useToast();
 
   const handleCancelClick = () => {
@@ -75,8 +77,11 @@ export default function CancelRide({
       });
 
       setShowWarning(false);
-      
-      // Call the success callback after a small delay to ensure state updates properly
+
+      // Refetch active ride to ensure cache is updated before calling success callback
+      await refetchActiveRide();
+
+      // Call the success callback after refetch to ensure state updates properly
       setTimeout(() => {
         onCancelSuccess?.();
       }, 100);
