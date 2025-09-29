@@ -4,11 +4,12 @@ import ActiveRideManagement from "@/components/modules/Driver/ActiveRideManageme
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { useGetDriverDetailsQuery, useSetOnlineOfflineMutation } from "@/redux/features/driver/driver.api";
+import { useGetDriverDetailsQuery, useGetDriverEarningsQuery, useSetOnlineOfflineMutation } from "@/redux/features/driver/driver.api";
 
 import { useAcceptRideMutation, useGetActiveRideQuery, useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
 import {
-  Car, Check, Clock, DollarSign, Loader2, Mail,
+  Car, Check, Clock,
+  DollarSign, Loader2, Mail,
   MapPin, Phone, Shield, Star,
   User, X
 } from "lucide-react";
@@ -21,9 +22,11 @@ export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: availableRides, isLoading: isLoadingRides } = useGetAvailableRidesQuery();
   const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
+  const { data: driverEarnings, refetch: refetchDriverEarnings } = useGetDriverEarningsQuery();
+  console.log("Driver Earnings:", driverEarnings);
   // console.log("User Info:", userInfo ?? "Loading...");
   // console.log("Available Rides:", availableRides ?? "Loading...");
-  // console.log("Driver Details:", driverDetails ?? "Loading...");
+  console.log("Driver Details:", driverDetails ?? "Loading...");
   // console.log("Driver Availability:", driverDetails?.availability ?? "undefined");
   // console.log("Driver isOnline:", driverDetails?.isOnline ?? "undefined");
   // console.log("Full driverDetails object:", JSON.stringify(driverDetails, null, 2));
@@ -135,23 +138,24 @@ useEffect(() => {
                   <Car className="h-5 w-5 text-primary" />
                   <span className="text-sm font-medium">Total Rides</span>
                 </div>
-                <p className="text-2xl font-bold">{driverStats.totalRides}</p>
+                <p className="text-2xl font-bold">{driverEarnings?.totalTrips}</p>
               </div>
 
               <div className="bg-green-100 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="h-5 w-5 text-green-600" />
-                  <span className="text-sm font-medium">Today</span>
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium">Today's Earnings</span>
                 </div>
-                <p className="text-2xl font-bold">{driverStats.completedToday}</p>
+                <p className="text-2xl font-bold">&#2547; {driverEarnings?.todayEarnings || 0}</p>
               </div>
 
               <div className="bg-blue-100 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium">Earnings</span>
+                  {/* <Currency className="h-5 w-5 text-blue-600" /> */}
+                  <span className="text-sm font-medium">Total Earnings</span>
                 </div>
-                <p className="text-2xl font-bold">${driverStats.totalEarnings.toFixed(2)}</p>
+                <p className="text-2xl font-bold">&#2547; {driverEarnings?.totalEarnings || 0}</p>
+
               </div>
 
               <div className="bg-yellow-100 rounded-lg p-4">
@@ -159,7 +163,7 @@ useEffect(() => {
                   <Star className="h-5 w-5 text-yellow-600" />
                   <span className="text-sm font-medium">Rating</span>
                 </div>
-                <p className="text-2xl font-bold">{driverStats.rating}</p>
+                <p className="text-2xl font-bold">{driverEarnings?.averageRating || 0}</p>
               </div>
             </div>
 
@@ -282,7 +286,7 @@ useEffect(() => {
       <ActiveRideManagement ride={activeRide ?? null} />
 
       {/* Available Rides */}
-      <Card className="border-0 shadow-md">
+      <Card id="available-rides" className="border-0 shadow-md">
         <CardHeader>
           <CardTitle>Available Rides</CardTitle>
           <CardDescription>Rides waiting for drivers to accept</CardDescription>

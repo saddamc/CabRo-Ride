@@ -16,6 +16,11 @@ export const driverSidebarItems: ISidebarItem[] = [
         url: "/driver/dashboard",
         component: DriverDashboard,
       },
+      {
+        title: "Available Rides",
+        url: "/driver/dashboard#available",
+        component: DriverDashboard,
+      },
     ],
   },
   {

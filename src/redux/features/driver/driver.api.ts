@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
  
 import { baseApi } from "@/redux/baseApi";
+import type { IResponse } from "@/types";
 
 export interface IDriverApplication {
   vehicleInfo: {
@@ -78,6 +79,17 @@ export interface IDriverStatus {
   };
 }
 
+export interface IDriverDashboard {
+  totalTrips: number;
+  completedRides: number;
+  pendingRides: number;
+  cancelledRides: number;
+  totalEarnings: number;
+  todayEarnings: number;
+  completedToday: number;
+  averageRating: number;
+}
+
 export interface IDriverEarnings {
   totalEarnings: number;
   monthlyEarnings: number;
@@ -151,11 +163,12 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Get driver earnings
-    getDriverEarnings: builder.query<IDriverEarnings, void>({
+    getDriverEarnings: builder.query<IDriverDashboard, void>({
       query: () => ({
         url: "/drivers/earnings",
         method: "GET",
       }),
+      transformResponse: (response: IResponse<IDriverDashboard>) => response.data,
       providesTags: ["DRIVER"],
     }),
 

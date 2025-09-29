@@ -15,7 +15,6 @@ const DriverEarnings = lazy(() => import("@/pages/Driver/Earnings"));
 const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
 const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
 const DriverProfile = lazy(() => import("@/pages/Driver/Profile"));
-const DriverAcceptRide = lazy(() => import("@/pages/Driver/AcceptRide"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/Admin/Dashboard"));
@@ -177,10 +176,6 @@ export const router = createBrowserRouter([
                 path: "profile",
                 element: <DriverProfile />
             },
-            {
-                path: "accept-ride",
-                element: <DriverAcceptRide />
-            }
         ]
     },
     {
