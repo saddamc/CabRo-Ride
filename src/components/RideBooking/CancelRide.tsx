@@ -1,6 +1,7 @@
 import { useToast } from '@/components/ui/use-toast';
 import { useCancelRideMutation, useGetActiveRideQuery } from '@/redux/features/rides/ride.api';
 import { useState } from 'react';
+import { toast as sonnerToast } from 'sonner';
 import CancelRideModal from '../modal/cancelRideModal';
 
 interface CancelRideProps {
@@ -63,6 +64,9 @@ export default function CancelRide({
 
       console.log('Cancel ride success:', result);
 
+
+      // Sonner toast notification for successful ride cancellation
+      sonnerToast.success('Ride cancelled successfully.');
       toast({
         title: 'Ride cancelled successfully',
         description: 'Your ride has been cancelled.',

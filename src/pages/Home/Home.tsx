@@ -2,7 +2,7 @@ import LocationSearch from '@/components/RideBooking/LocationSearch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import type { ILocation } from '@/redux/features/ride-api';
+import type { ILocation } from '@/redux/features/rides/ride.api';
 
 import { reverseGeocode } from '@/services/mockLocationService';
 import { Car, Check, ChevronRight, Clock, MapPin, Shield, Star, Users } from 'lucide-react';

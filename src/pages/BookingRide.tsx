@@ -10,6 +10,7 @@ import {
 import { calculateHaversineDistance, reverseGeocode } from '@/services/mockLocationService';
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast as sonnerToast } from 'sonner';
 
 import Navbar from '@/components/layout/common/Navbar';
 import BookingButton from '@/components/RideBooking/BookingButton';
@@ -61,7 +62,9 @@ export default function BookingRide() {
   // Hooks
   const { toast } = useToast();
   const { data: userInfo } = useUserInfoQuery(undefined);
-  const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery();
+  const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery(undefined, {
+    pollingInterval: bookingPhase === 'finding_driver' ? 3000 : undefined, // Poll every 3 seconds when finding driver
+  });
   // TODO: Add logic to handle direct navigation to ride URLs
   // const { data: urlRide, isLoading: isLoadingUrlRide } = useGetRideByIdQuery(urlRideId || '', {
   //   skip: !urlRideId
@@ -213,74 +216,85 @@ export default function BookingRide() {
 
   // Check for active rides and restore state on component mount
   useEffect(() => {
-    if (activeRide && !isLoadingActiveRide) {
-      console.log('Active ride found:', activeRide);
+    if (!isLoadingActiveRide) {
+      if (activeRide) {
+        console.log('Active ride found:', activeRide);
 
-      // Restore ride state from active ride
-      setCurrentRideId(activeRide._id);
+        // Restore ride state from active ride
+        setCurrentRideId(activeRide._id);
 
-      // Set locations from active ride
-      setPickupLocation({
-        id: 'pickup',
-        name: activeRide.pickupLocation.address,
-        address: activeRide.pickupLocation.address,
-        coordinates: activeRide.pickupLocation.coordinates,
-        type: 'saved'
-      });
-      setPickupInput(activeRide.pickupLocation.address);
-
-      setDropoffLocation({
-        id: 'dropoff',
-        name: activeRide.destinationLocation.address,
-        address: activeRide.destinationLocation.address,
-        coordinates: activeRide.destinationLocation.coordinates,
-        type: 'saved'
-      });
-      setDestinationInput(activeRide.destinationLocation.address);
-
-      // Set ride details if available
-      if (activeRide.fare) {
-        setRideDetails({
-          fare: activeRide.fare.totalFare,
-          distance: activeRide.distance?.estimated || 0,
-          estimatedTime: activeRide.distance?.estimated ? (activeRide.distance.estimated / 1000) * 2 : 0
+        // Set locations from active ride
+        setPickupLocation({
+          id: 'pickup',
+          name: activeRide.pickupLocation.address,
+          address: activeRide.pickupLocation.address,
+          coordinates: activeRide.pickupLocation.coordinates,
+          type: 'saved'
         });
-      }
+        setPickupInput(activeRide.pickupLocation.address);
 
-      // Set matched driver if available
-      if (activeRide.driver) {
-        setMatchedDriver({
-          id: activeRide.driver._id,
-          name: activeRide.driver.user.name,
-          rating: (activeRide.driver.rating as any)?.average ?? 4.5,
-          profileImage: activeRide.driver.user.profilePicture || 'https://randomuser.me/api/portraits/men/32.jpg',
-          vehicleInfo: {
-            make: activeRide.driver.vehicle?.make || 'Toyota',
-            model: activeRide.driver.vehicle?.model || 'Corolla',
-            year: activeRide.driver.vehicle?.year || '2020',
-            color: activeRide.driver.vehicle?.color || 'Silver',
-            licensePlate: activeRide.driver.vehicle?.licensePlate || 'DHK-1234'
-          },
-          currentLocation: {
-            coordinates: [90.4125, 23.8103] // Default coordinates for demo
-          },
-          estimatedArrival: 5
+        setDropoffLocation({
+          id: 'dropoff',
+          name: activeRide.destinationLocation.address,
+          address: activeRide.destinationLocation.address,
+          coordinates: activeRide.destinationLocation.coordinates,
+          type: 'saved'
         });
+        setDestinationInput(activeRide.destinationLocation.address);
+
+        // Set ride details if available
+        if (activeRide.fare) {
+          setRideDetails({
+            fare: activeRide.fare.totalFare,
+            distance: activeRide.distance?.estimated || 0,
+            estimatedTime: activeRide.distance?.estimated ? (activeRide.distance.estimated / 1000) * 2 : 0
+          });
+        }
+
+        // Set matched driver if available
+        if (activeRide.driver) {
+          setMatchedDriver({
+            id: activeRide.driver._id,
+            name: activeRide.driver.user.name,
+            rating: (activeRide.driver.rating as any)?.average ?? 4.5,
+            profileImage: activeRide.driver.user.profilePicture || 'https://randomuser.me/api/portraits/men/32.jpg',
+            vehicleInfo: {
+              make: activeRide.driver.vehicle?.make || 'Toyota',
+              model: activeRide.driver.vehicle?.model || 'Corolla',
+              year: activeRide.driver.vehicle?.year || '2020',
+              color: activeRide.driver.vehicle?.color || 'Silver',
+              licensePlate: activeRide.driver.vehicle?.licensePlate || 'DHK-1234'
+            },
+            currentLocation: {
+              coordinates: [90.4125, 23.8103] // Default coordinates for demo
+            },
+            estimatedArrival: 5
+          });
+        }
+
+        // Set appropriate booking phase based on ride status
+        const statusToPhase: { [key: string]: BookingPhase } = {
+          'requested': 'finding_driver',
+          'accepted': 'driver_assigned',
+          'in_transit': 'in_progress',
+          'completed': 'completed',
+          'cancelled': 'search'
+        };
+
+        const phase = statusToPhase[activeRide.status] || 'finding_driver';
+        setBookingPhase(phase);
+      } else {
+        // No active ride - reset to search phase if we're currently in an active ride phase
+        const activePhases = ['finding_driver', 'driver_assigned', 'in_progress', 'completed'];
+        if (activePhases.includes(bookingPhase)) {
+          console.log('No active ride found, resetting to search phase');
+          setBookingPhase('search');
+          setCurrentRideId(null);
+          setMatchedDriver(null);
+        }
       }
-
-      // Set appropriate booking phase based on ride status
-      const statusToPhase: { [key: string]: BookingPhase } = {
-        'requested': 'finding_driver',
-        'accepted': 'driver_assigned',
-        'in_transit': 'in_progress',
-        'completed': 'completed',
-        'cancelled': 'search'
-      };
-
-      const phase = statusToPhase[activeRide.status] || 'finding_driver';
-      setBookingPhase(phase);
     }
-  }, [activeRide, isLoadingActiveRide]);
+  }, [activeRide, isLoadingActiveRide, bookingPhase]);
 
   // Calculate ride fare
   const calculateRideFare = useCallback(async () => {
@@ -425,6 +439,8 @@ export default function BookingRide() {
         setCurrentRideId(rideResponse.data._id);
         // setCurrentRideData(rideResponse.data); // Store the full ride data
 
+        // Sonner toast notification for successful ride request
+        sonnerToast.success('Ride request sent! Waiting for driver...');
         toast({
           title: 'Ride Request Sent',
           description: 'Waiting for driver...',

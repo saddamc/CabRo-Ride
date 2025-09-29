@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
-  const { data: availableRides, isLoading: isLoadingRides } = useGetAvailableRidesQuery();
+  const { data: availableRides, isLoading: isLoadingRides, refetch: refetchAvailableRides } = useGetAvailableRidesQuery();
   const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
   const { data: driverEarnings, refetch: refetchDriverEarnings } = useGetDriverEarningsQuery();
   console.log("Driver Earnings:", driverEarnings);
@@ -387,7 +387,7 @@ useEffect(() => {
           ) : (
             <div className="text-center py-6">
               <p className="text-gray-500">No available rides at the moment</p>
-              <Button variant="outline" className="mt-4">
+              <Button variant="outline" className="mt-4" onClick={() => refetchAvailableRides()}>
                 Refresh
               </Button>
             </div>

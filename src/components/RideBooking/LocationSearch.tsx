@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { role } from "@/constants/role";
 import { dhakaLocations } from "@/data/dhakaLocations";
-import type { ILocation } from "@/redux/features/ride/ride.api";
+import type { ILocation } from "@/redux/features/rides/ride.api";
+
+
 import { Car, LocateFixed, MapPin, Navigation } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -180,7 +182,7 @@ export default function LocationSearch({
   }, []);
 
   return (
-    <div className="p-6 pb-8 bg-white dark:bg-white backdrop-blur-lg border-b border-white/20 dark:border-gray-300 rounded-t-2xl sticky z-10 flex flex-col gap-4 shadow-xl">
+    <div className="p-6 pb-8 bg-white dark:bg-white backdrop-blur-lg border-b border-white/20 dark:border-gray-300 rounded-2xl sticky z-10 flex flex-col gap-4 ">
       {/* Pickup location input */}
       <div className="flex items-center gap-3">
         <div className="pl-2">

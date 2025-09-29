@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAcceptRideMutation } from "@/redux/features/driver/driver.api";
 import { useCancelRideMutation, useGetActiveRideQuery, useGetAvailableRidesQuery, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
 import { useState } from "react";
@@ -44,7 +43,7 @@ interface ActiveRideProps {
 export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   // For refetching active ride data after cancellation
   const { refetch: refetchActiveRide } = useGetActiveRideQuery();
-  const [acceptRideMutation] = useAcceptRideMutation();
+  // const [acceptRideMutation] = useAcceptRideMutation();
   const [cancelRideMutation] = useCancelRideMutation();
   const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
   const { data: activeRides, isLoading: isLoadingRides, error } = useGetAvailableRidesQuery();
@@ -77,7 +76,7 @@ if (!activeRides) return <div>No rides found</div>;
         </Card>
 
         {/* Available Rides Section */}
-        <Card className="border-0 shadow-md">
+        {/* <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle>Available Rides</CardTitle>
             <CardDescription>Rides waiting for drivers</CardDescription>
@@ -113,7 +112,7 @@ if (!activeRides) return <div>No rides found</div>;
               <p className="text-center text-gray-500 py-4">No available rides at the moment</p>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     );
   }
@@ -182,17 +181,17 @@ if (!activeRides) return <div>No rides found</div>;
     }
   };
 
-  const handleAcceptRide = async (rideId: string) => {
-    try {
-      await acceptRideMutation({ id: rideId }).unwrap();
-      toast.success('Ride accepted successfully!');
-      // Refetch available rides to update the list
-      // You might want to refetch active ride as well
-    } catch (error) {
-      console.error('Error accepting ride:', error);
-      toast.error('Failed to accept ride. Please try again.');
-    }
-  };
+  // const handleAcceptRide = async (rideId: string) => {
+  //   try {
+  //     await acceptRideMutation({ id: rideId }).unwrap();
+  //     toast.success('Ride accepted successfully!');
+  //     // Refetch available rides to update the list
+  //     // You might want to refetch active ride as well
+  //   } catch (error) {
+  //     console.error('Error accepting ride:', error);
+  //     toast.error('Failed to accept ride. Please try again.');
+  //   }
+  // };
 
   const isCompleteDisabled = currentStatus === 'completed' || currentStatus === 'cancelled';
   const isCancelDisabled = currentStatus === 'in_transit' || currentStatus === 'completed' || currentStatus === 'cancelled';

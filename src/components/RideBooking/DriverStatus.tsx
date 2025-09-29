@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import type { IDriver, ILocation } from '@/redux/features/ride-api';
+import type { IDriver, ILocation } from '@/redux/features/rides/ride.api';
 // import type { IDriver, ILocation } from '@/redux/features/ride/rideapi';
 import { Car, Clock, MapPin, Navigation } from 'lucide-react';
 import { useState } from 'react';
