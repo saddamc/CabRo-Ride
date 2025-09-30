@@ -1,7 +1,7 @@
  
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCancelRideMutation, useGetActiveRideQuery, useGetAvailableRidesQuery, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
+import { useGetActiveRideQuery, useGetAvailableRidesQuery, useRejectRideMutation, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   // For refetching active ride data after cancellation
   const { refetch: refetchActiveRide } = useGetActiveRideQuery();
   // const [acceptRideMutation] = useAcceptRideMutation();
-  const [cancelRideMutation] = useCancelRideMutation();
+  const [cancelRideMutation] = useRejectRideMutation();
   const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
   const { data: activeRides, isLoading: isLoadingRides, error } = useGetAvailableRidesQuery();
   const [currentStatus, setCurrentStatus] = useState<string>(ride?.status || 'accepted');

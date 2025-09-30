@@ -183,57 +183,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
 
         {/* Menu Items */}
         <div className="py-2">
-          {/* Driver specific options at top */}
-          {/* {userRole === 'driver' && (
-            <>
-              <Link
-                to="/driver/earnings"
-                onClick={handleMenuClose}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <DollarSign className="w-4 h-4" />
-                Earnings
-              </Link>
-              <Link
-                to="/driver/wallet"
-                onClick={handleMenuClose}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <CreditCard className="w-4 h-4" />
-                Wallet
-              </Link>
-              <Link
-                to="/driver/history"
-                onClick={handleMenuClose}
-                className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <Wallet className="w-4 h-4" />
-                My Trips
-              </Link>
-              <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-            </>
-          )} */}
-
-          <Link
-            to={`${userRole === 'super_admin' ? '/admin' : `/${userRole}`}/fleet`}
-            onClick={handleMenuClose}
-            className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <span>Fleet</span>
-            <div className="flex gap-2">
-              <span className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">Top</span>
-              <span className="px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">Fleet</span>
-              <span className="px-2 py-0.5 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full">Prime</span>
-            </div>
-          </Link>
-          <Link
-            to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin/analytics' : `/${userRole}/dashboard`}`}
-            onClick={handleMenuClose}
-            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Dashboard
-          </Link>
-          {/* Wallet Link for all users */}
+          {/* Cabro wallet */}
           <Link
             to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin' : `/${userRole}`}/wallet`}
             onClick={handleMenuClose}
@@ -251,6 +201,16 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
               </div>
             </div>
           </Link>
+          {/*  */}
+          <Link
+            to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin/analytics' : `/${userRole}/dashboard`}`}
+            onClick={handleMenuClose}
+            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            Dashboard
+          </Link>
+          {/* Wallet Link for all users */}
+          
           {userRole !== 'driver' && (
             <>
               <Link
@@ -279,7 +239,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           {userRole === 'driver' && (
             <>
               <Link
-                to="/driver/dashboard#available"
+                to="/driver/dashboard#available-rides"
                 onClick={handleMenuClose}
                 className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >

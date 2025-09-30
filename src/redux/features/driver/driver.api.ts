@@ -236,8 +236,8 @@ export const driverApi = baseApi.injectEndpoints({
 export const {
   useApplyDriverMutation,      // applyDriver
   useSetOnlineOfflineMutation, // setOnlineOffline
-  useAcceptRideMutation,        // acceptRide
-  useRejectRideMutation,    // rejectRide
+  useAcceptRideMutation,        // acceptRide = Rider 
+  useRejectRideMutation,    // rejectRide    = Rider
   useUpdateRideStatusMutation, // updateRideStatus
   useGetDriverEarningsQuery,    // driverEarnings
   useUpdateDriverDocMutation,   // updateDriverDoc

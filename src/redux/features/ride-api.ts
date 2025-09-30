@@ -364,16 +364,16 @@ export const rideApi = baseApi.injectEndpoints({
     // Driver accept ride
     acceptRide: builder.mutation<IRide, { id: string }>({
       query: ({ id }) => ({
-        url: `/driver/accept-ride/${id}`,
+        url: `/drivers/accept-ride/${id}`,
         method: "POST",
       }),
       invalidatesTags: ["RIDES"],
     }),
 
     // Driver reject ride
-    rejectRide: builder.mutation<IRide, { id: string }>({
+    rejectRide: builder.mutation<IRide, { id: string, reason: string }>({
       query: ({ id }) => ({
-        url: `/driver/reject-ride/${id}`,
+        url: `/drivers/reject-ride/${id}`,
         method: "PATCH",
       }),
       invalidatesTags: ["RIDES"],

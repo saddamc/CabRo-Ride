@@ -13,7 +13,7 @@ import {
   MapPin, Phone, Shield, Star,
   User, X
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -23,6 +23,19 @@ export default function DriverDashboard() {
   const { data: availableRides, isLoading: isLoadingRides, refetch: refetchAvailableRides } = useGetAvailableRidesQuery();
   const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
   const { data: driverEarnings, refetch: refetchDriverEarnings } = useGetDriverEarningsQuery();
+
+  // Auto-refetch available rides on mount and every 15 seconds
+  const refetchInterval = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    refetchAvailableRides(); // Initial fetch
+    if (refetchInterval.current) clearInterval(refetchInterval.current);
+    refetchInterval.current = setInterval(() => {
+      refetchAvailableRides();
+    }, 15000); // 15 seconds
+    return () => {
+      if (refetchInterval.current) clearInterval(refetchInterval.current);
+    };
+  }, [refetchAvailableRides]);
   console.log("Driver Earnings:", driverEarnings);
   // console.log("User Info:", userInfo ?? "Loading...");
   // console.log("Available Rides:", availableRides ?? "Loading...");
@@ -45,9 +58,13 @@ export default function DriverDashboard() {
     try {
       await acceptRide({ id: rideId }).unwrap();
       toast.success("Ride accepted! You have successfully accepted this ride.");
+      // Refetch available rides after accepting
+      refetchAvailableRides();
     } catch (error) {
       console.error("Error accepting ride:", error);
       toast.error("Failed to accept ride. Could not accept this ride. It may have been taken by another driver.");
+      // Optionally refetch in case of error (to update list)
+      refetchAvailableRides();
     }
   };
 
