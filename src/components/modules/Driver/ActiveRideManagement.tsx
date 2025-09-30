@@ -333,14 +333,17 @@ if (!activeRides) return <div>No rides found</div>;
                   {isLoading ? 'Updating...' : getButtonText(ride.status)}
                 </Button>
                 
-                <Button 
-                  onClick={handleCancelRide} 
-                  disabled={isLoading || isCancelDisabled}
-                  variant="outline" 
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  Cancel Ride
-                </Button>
+                {/* Hide Cancel button after pick up */}
+                {!(ride.status === 'picked_up' || ride.status === 'in_transit' || ride.status === 'completed') && (
+                  <Button 
+                    onClick={handleCancelRide} 
+                    disabled={isLoading || isCancelDisabled}
+                    variant="outline" 
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    Cancel Ride
+                  </Button>
+                )}
               </div>
             </div>
           </div>

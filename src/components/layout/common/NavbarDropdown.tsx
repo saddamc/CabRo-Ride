@@ -1,5 +1,6 @@
-import { useGetWalletQuery } from "@/redux/features/auth/Rider/rider.api";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
+import { useGetWalletQuery } from "@/redux/features/auth/Rider/rider.api";
+import { useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
 import { DollarSign, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -11,10 +12,12 @@ interface NavbarDropdownProps {
 
 export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout }: NavbarDropdownProps) {
   const { data: userInfo } = useUserInfoQuery(undefined);
-  const { data: wallet } = useGetWalletQuery(undefined);
   // Map API roles to our application roles
   const role = userInfo?.data?.role;
   const userRole = role === 'user' ? 'rider' : role || 'rider';
+  // For driver: get available ride requests
+  const { data: availableRides } = useGetAvailableRidesQuery(undefined, { skip: userRole !== 'driver' });
+  const { data: wallet } = useGetWalletQuery(undefined);
 
   if (!menuOpen) return null;
 
@@ -183,24 +186,37 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
 
         {/* Menu Items */}
         <div className="py-2">
-          {/* Cabro wallet */}
-          <Link
-            to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin' : `/${userRole}`}/wallet`}
-            onClick={handleMenuClose}
-            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <div className="flex items-center">
-              <Wallet className="h-4 w-4 mr-2" />
-              <span>Wallet </span>
-              <div className="ml-auto rounded-full px-2 font-bold  bg-yellow-300/15  text-sm">
-                {wallet?.balance && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
-                  ${wallet?.balance?.toFixed(2)}
-                </span>
-              )}
+          {/* Rider wallet */}
+          {userRole === 'rider' && (
+            <Link
+              to="/rider/wallet"
+              onClick={handleMenuClose}
+              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <div className="flex items-center">
+                <div className="mr-2 rounded-full px-2 font-bold bg-yellow-300/15 text-sm">
+                  {wallet?.balance && (
+                    <span
+                      className="px-2 py-0.5 text-xs rounded-full font-bold"
+                      style={{
+                        background: 'linear-gradient(90deg, #22d3ee 0%, #16a34a 100%)',
+                        color: '#fff',
+                        boxShadow: '0 0 8px 2px #16a34a99, 0 2px 8px 0 #22d3ee55',
+                        border: '2px solid #16a34a',
+                        letterSpacing: '0.5px',
+                        fontWeight: 800,
+                        textShadow: '0 1px 4px #065f46cc'
+                      }}
+                    >
+                      ${wallet?.balance?.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                <Wallet className="h-4 w-4 mr-2" />
+                <span>Wallet</span>
               </div>
-            </div>
-          </Link>
+            </Link>
+          )}
           {/*  */}
           <Link
             to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin/analytics' : `/${userRole}/dashboard`}`}
@@ -241,8 +257,14 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
               <Link
                 to="/driver/dashboard#available-rides"
                 onClick={handleMenuClose}
-                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
               >
+                {/* Ride request badge for drivers - moved to left */}
+                {userRole === 'driver' && Array.isArray(availableRides) && availableRides.length > 0 && (
+                  <span className="absolute top-2 right-24 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-bounce shadow-lg">
+                    {availableRides.length}
+                  </span>
+                )}
                 Accept Ride
               </Link>
               <Link
