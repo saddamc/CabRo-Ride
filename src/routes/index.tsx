@@ -1,3 +1,4 @@
+import ErrorPage from "@/components/ui/ErrorPage";
 import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
@@ -220,6 +221,11 @@ export const router = createBrowserRouter([
                 element: <AdminRiderManagement />
             }
         ]
+    },
+    // 404 Not Found route - must be last
+    {
+        path: "*",
+        Component: ErrorPage,
     },
 
 ])
