@@ -15,6 +15,7 @@ interface DriverStatusProps {
   isMapExpanded: boolean;
   onToggleMap: () => void;
   onCompleteRide?: () => void;
+  pin?: string;
 }
 
 export default function DriverStatus({
@@ -24,7 +25,8 @@ export default function DriverStatus({
   matchedDriver,
   isMapExpanded,
   onToggleMap,
-  onCompleteRide
+  onCompleteRide,
+  pin
 }: DriverStatusProps) {
   const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -109,6 +111,100 @@ export default function DriverStatus({
             <p className="font-bold">{matchedDriver?.estimatedArrival || 5} minutes</p>
           </div>
         </div>
+
+        <div className="flex justify-between">
+          <Button variant="outline" className="flex-1 mr-2">Call Driver</Button>
+          <Button variant="outline" className="flex-1">Message</Button>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-medium mb-3">Trip details</h3>
+        <div className="space-y-3">
+          <div className="flex items-start">
+            <div className="w-10 flex-shrink-0">
+              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                <MapPin size={16} />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Pickup</p>
+              <p className="font-medium">{pickupLocation?.name}</p>
+            </div>
+          </div>
+          <div className="flex items-start">
+            <div className="w-10 flex-shrink-0">
+              <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center text-white">
+                <Navigation size={16} />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Destination</p>
+              <p className="font-medium">{dropoffLocation?.name}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDriverArrived = () => (
+    <div className="flex-1 bg-white overflow-y-auto">
+      <div className="p-6 border-b">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Driver has arrived</h2>
+          <Button variant="ghost" size="sm" onClick={onToggleMap}>
+            {isMapExpanded ? 'Hide Map' : 'Show Map'}
+          </Button>
+        </div>
+
+        <div className="flex items-center mb-4">
+          <div className="h-16 w-16 bg-gray-100 rounded-full mr-4 overflow-hidden">
+            {matchedDriver?.profileImage ? (
+              <img
+                src={matchedDriver.profileImage}
+                alt={matchedDriver.name}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-2xl font-bold">
+                {matchedDriver?.name?.charAt(0) || 'D'}
+              </div>
+            )}
+          </div>
+          <div>
+            <h3 className="font-bold text-lg">{matchedDriver?.name}</h3>
+            <div className="flex items-center">
+              <span className="text-yellow-500 mr-1">★</span>
+              <span className="mr-2">{matchedDriver?.rating}</span>
+              <span className="text-gray-500">
+                {matchedDriver?.vehicleInfo?.make} {matchedDriver?.vehicleInfo?.model}
+              </span>
+            </div>
+            <p className="text-gray-600 text-sm">
+              {matchedDriver?.vehicleInfo?.color} • {matchedDriver?.vehicleInfo?.licensePlate}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-green-50 p-3 rounded-lg flex items-center mb-4">
+          <Clock className="text-green-600 mr-3" size={20} />
+          <div>
+            <p className="text-sm text-green-700">Driver is waiting</p>
+            <p className="font-bold">Ready to start your ride</p>
+          </div>
+        </div>
+
+        {pin && (
+          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 mb-4">
+            <div className="text-center">
+              <p className="text-sm text-yellow-700 mb-2">Share this PIN with your driver</p>
+              <div className="text-2xl font-mono font-bold text-yellow-800 tracking-wider">
+                {pin}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between">
           <Button variant="outline" className="flex-1 mr-2">Call Driver</Button>
@@ -297,6 +393,8 @@ export default function DriverStatus({
       return renderFindingDriver();
     case 'driver_assigned':
       return renderDriverAssigned();
+    case 'picked_up':
+      return renderDriverArrived();
     case 'in_progress':
       return renderInProgress();
     case 'completed':

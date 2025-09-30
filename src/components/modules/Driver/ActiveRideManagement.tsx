@@ -1,8 +1,9 @@
  
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetActiveRideQuery, useGetAvailableRidesQuery, useRejectRideMutation, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
+import { useGetActiveRideQuery, useGetAvailableRidesQuery, useRejectRideMutation, useUpdateRideStatusMutation, useVerifyPinMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
+import { useState } from "react";
 // No local status state; always use ride.status from server
 import { toast } from "sonner";
 
@@ -46,6 +47,9 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   // const [acceptRideMutation] = useAcceptRideMutation();
   const [cancelRideMutation] = useRejectRideMutation();
   const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
+  const [verifyPin, { isLoading: isVerifying }] = useVerifyPinMutation();
+  const [showPinInput, setShowPinInput] = useState(false);
+  const [enteredPin, setEnteredPin] = useState('');
   const { data: activeRides, isLoading: isLoadingRides, error } = useGetAvailableRidesQuery();
   console.log("activeRides:", activeRides);
 if (isLoadingRides) return <div>Loading...</div>;
@@ -134,7 +138,7 @@ if (!activeRides) return <div>No rides found</div>;
       case 'accepted':
         return 'Mark as Picked Up';
       case 'picked_up':
-        return 'Start Ride';
+        return 'Enter PIN to Start Ride';
       case 'in_transit':
         return 'Complete Ride';
       case 'completed':
@@ -145,6 +149,11 @@ if (!activeRides) return <div>No rides found</div>;
   };
 
   const handleStatusUpdate = async () => {
+    if (ride.status === 'picked_up') {
+      setShowPinInput(true);
+      return;
+    }
+
     const nextStatus = getNextStatus(ride.status);
     if (nextStatus === ride.status) return;
 
@@ -159,6 +168,25 @@ if (!activeRides) return <div>No rides found</div>;
     } catch (error) {
       console.error('Error updating ride status:', error);
       toast.error("Failed to update status. Could not update the ride status. Please try again.");
+    }
+  };
+
+  const handleVerifyPin = async () => {
+    if (!enteredPin) return;
+
+    try {
+      await verifyPin({
+        id: ride._id,
+        pin: enteredPin
+      }).unwrap();
+
+      toast.success('PIN verified! Ride started.');
+      setShowPinInput(false);
+      setEnteredPin('');
+      await refetchActiveRide();
+    } catch (error) {
+      console.error('Error verifying PIN:', error);
+      toast.error("Invalid PIN. Please try again.");
     }
   };
 
@@ -270,6 +298,9 @@ if (!activeRides) return <div>No rides found</div>;
                       : new Date(ride.timestamps.requested).toLocaleString()}
                   </p>
                 </li>
+
+
+
                 
                 {(ride.status === 'picked_up' || ride.status === 'in_transit' || ride.status === 'completed') && (
                   <li className="mb-6 ml-6">
@@ -325,16 +356,45 @@ if (!activeRides) return <div>No rides found</div>;
               </ol>
               
               <div className="pt-2 space-y-3">
-                <Button 
-                  onClick={handleStatusUpdate} 
-                  disabled={isLoading || isCompleteDisabled}
-                  className="w-full"
-                >
-                  {isLoading ? 'Updating...' : getButtonText(ride.status)}
-                </Button>
+                {showPinInput ? (
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      value={enteredPin}
+                      onChange={(e) => setEnteredPin(e.target.value)}
+                      placeholder="Enter 4-digit PIN"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                      maxLength={4}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleVerifyPin}
+                        disabled={isVerifying || enteredPin.length !== 4}
+                        className="flex-1"
+                      >
+                        {isVerifying ? 'Verifying...' : 'Verify PIN'}
+                      </Button>
+                      <Button
+                        onClick={() => setShowPinInput(false)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleStatusUpdate}
+                    disabled={isLoading || isCompleteDisabled}
+                    className="w-full"
+                  >
+                    {isLoading ? 'Updating...' : getButtonText(ride.status)}
+                  </Button>
+                )}
                 
-                {/* Hide Cancel button after pick up */}
-                {!(ride.status === 'picked_up' || ride.status === 'in_transit' || ride.status === 'completed') && (
+                {/* Allow cancel unless completed or cancelled */}
+                {!(ride.status === 'completed' || ride.status === 'cancelled') && (
                   <Button 
                     onClick={handleCancelRide} 
                     disabled={isLoading || isCancelDisabled}

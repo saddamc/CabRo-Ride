@@ -3,9 +3,9 @@ import { role } from '@/constants/role';
 import { useUserInfoQuery } from '@/redux/features/auth/auth.api';
 import type { IDriver, ILocation } from '@/redux/features/rides/ride.api';
 import {
-    useCalculateFareMutation,
-    useGetActiveRideQuery,
-    useRequestRideMutation
+  useCalculateFareMutation,
+  useGetActiveRideQuery,
+  useRequestRideMutation
 } from '@/redux/features/rides/ride.api';
 import { calculateHaversineDistance, reverseGeocode } from '@/services/mockLocationService';
 import { useCallback, useEffect, useState } from 'react';
@@ -26,6 +26,7 @@ type BookingPhase =
   | 'select_ride'
   | 'finding_driver'
   | 'driver_assigned'
+  | 'picked_up'
   | 'in_progress'
   | 'completed';
 
@@ -63,7 +64,7 @@ export default function BookingRide() {
   const { toast } = useToast();
   const { data: userInfo } = useUserInfoQuery(undefined);
   // Poll for all active ride phases (not just 'finding_driver')
-  const activePhases: BookingPhase[] = ['finding_driver', 'driver_assigned', 'in_progress'];
+  const activePhases: BookingPhase[] = ['finding_driver', 'driver_assigned', 'picked_up', 'in_progress'];
   const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery(undefined, {
     pollingInterval: activePhases.includes(bookingPhase) ? 3000 : undefined, // Poll every 3 seconds for all active ride phases
   });
@@ -278,7 +279,7 @@ export default function BookingRide() {
         const statusToPhase: { [key: string]: BookingPhase } = {
           'requested': 'finding_driver',
           'accepted': 'driver_assigned',
-          'picked_up': 'in_progress',
+          'picked_up': 'picked_up',
           'in_transit': 'in_progress',
           'completed': 'completed',
           'cancelled': 'search'
@@ -686,6 +687,7 @@ export default function BookingRide() {
 
       case 'finding_driver':
       case 'driver_assigned':
+      case 'picked_up':
       case 'in_progress':
       case 'completed':
         return (
@@ -723,6 +725,7 @@ export default function BookingRide() {
                 isMapExpanded={isMapExpanded}
                 onToggleMap={handleToggleMap}
                 onCompleteRide={handleCompleteRide}
+                pin={activeRide?.pin}
               />
               {bookingPhase === 'finding_driver' && currentRideId && (
                 <div className="p-4 bg-white border-t border-gray-200">

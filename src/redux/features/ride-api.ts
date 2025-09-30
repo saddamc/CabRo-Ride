@@ -107,6 +107,7 @@ export interface IRide {
     riderFeedback?: string;
     driverFeedback?: string;
   };
+  pin?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -389,6 +390,16 @@ export const rideApi = baseApi.injectEndpoints({
       invalidatesTags: ["RIDES"],
     }),
 
+    // Driver verify PIN and start ride
+    verifyPin: builder.mutation<IRide, { id: string; pin: string }>({
+      query: ({ id, pin }) => ({
+        url: `/drivers/verify-pin/${id}`,
+        method: "POST",
+        data: { pin },
+      }),
+      invalidatesTags: ["RIDES"],
+    }),
+
     // Get ride by ID
     getRideById: builder.query<IRide, string>({
       query: (id) => ({
@@ -479,6 +490,7 @@ export const {
   useAcceptRideMutation,
   useRejectRideMutation,
   useUpdateRideStatusMutation,
+  useVerifyPinMutation,
   useGetRideByIdQuery,
   useGetAvailableRidesQuery,  //getAvailableRides  Driver
   useGetAllRideQuery,     // getAllRide   Admin
