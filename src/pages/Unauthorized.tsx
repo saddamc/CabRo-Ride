@@ -33,7 +33,7 @@ const Unauthorized = () => {
                                     <Link to="/rider/dashboard">
                                         <Button variant="outline" size="sm">Go to Rider Dashboard</Button>
                                     </Link>
-                                    <Link to="/rider/ride-booking">
+                                    <Link to="/ride">
                                         <Button size="sm">Book a Ride</Button>
                                     </Link>
                                 </div>

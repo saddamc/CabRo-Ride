@@ -37,12 +37,12 @@ export default function Login() {
             navigate(storedRedirect);
           }
           // Handle redirect with location data if present
-          else if (redirectPath.includes('ride-booking')) {
-            navigate(redirectPath, { 
-              state: { 
+          else if (redirectPath.includes('/ride')) {
+            navigate(redirectPath, {
+              state: {
                 selectedLocation: locationData,
-                useCurrentLocation: useCurrentLocation 
-              } 
+                useCurrentLocation: useCurrentLocation,
+              }
             });
           } else if (result.data.redirectTo) {
             navigate(result.data.redirectTo);

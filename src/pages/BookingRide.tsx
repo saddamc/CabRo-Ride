@@ -373,7 +373,10 @@ export default function BookingRide() {
   const handleSeeDetails = async () => {
     // Check if user is authenticated
     if (!userInfo?.data) {
-      navigate('/login', { state: { from: '/ride' } });
+      navigate('/login', {
+        state: {
+          from: '/ride',  }
+      });
       return;
     }
 
@@ -398,6 +401,26 @@ export default function BookingRide() {
   const handleToggleMap = () => setIsMapExpanded(!isMapExpanded);
 
   const handleRequestRide = async () => {
+
+    // Redirect to login if not authenticated
+    if (!userInfo?.data) {
+      navigate('/login', {
+        state: {
+          from: location.pathname,
+          bookingState: {
+            pickupLocation,
+            dropoffLocation,
+            pickupInput,
+            destinationInput,
+            selectedRideType,
+            bookingPhase,
+            rideDetails
+          }
+        }
+      });
+      console.log("location redirect ✅✅:", { state: { from: location.pathname } });
+      return;
+    }
     // Additional role check for booking button
     if (userInfo?.data?.role === role.driver || userInfo?.data?.role === role.admin || userInfo?.data?.role === role.super_admin) {
       toast({

@@ -125,11 +125,11 @@ export default function HeroBooking() {
       // Book the ride directly
       const rideRequestData = {
         pickupLocation: {
-          address: pickupLocation.address || pickupLocation.name,
+          address: pickupLocation.address || pickupLocation.name || "Current Location",
           coordinates: pickupLocation.coordinates,
         },
         destinationLocation: {
-          address: dropoffLocation.address || dropoffLocation.name,
+          address: dropoffLocation.address || dropoffLocation.name || "Destination",
           coordinates: dropoffLocation.coordinates,
         },
         notes: `Booked from hero section - Fare: ৳${estimatedFare}`,
