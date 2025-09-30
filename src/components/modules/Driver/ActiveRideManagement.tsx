@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetActiveRideQuery, useGetAvailableRidesQuery, useRejectRideMutation, useUpdateRideStatusMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
-import { useState } from "react";
+// No local status state; always use ride.status from server
 import { toast } from "sonner";
 
 interface ActiveRideProps {
@@ -47,7 +47,6 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   const [cancelRideMutation] = useRejectRideMutation();
   const [updateRideStatus, { isLoading }] = useUpdateRideStatusMutation();
   const { data: activeRides, isLoading: isLoadingRides, error } = useGetAvailableRidesQuery();
-  const [currentStatus, setCurrentStatus] = useState<string>(ride?.status || 'accepted');
   console.log("activeRides:", activeRides);
 if (isLoadingRides) return <div>Loading...</div>;
 if (error) return <div>Error loading rides</div>;
@@ -146,8 +145,8 @@ if (!activeRides) return <div>No rides found</div>;
   };
 
   const handleStatusUpdate = async () => {
-    const nextStatus = getNextStatus(currentStatus);
-    if (nextStatus === currentStatus) return;
+    const nextStatus = getNextStatus(ride.status);
+    if (nextStatus === ride.status) return;
 
     try {
       await updateRideStatus({
@@ -156,8 +155,7 @@ if (!activeRides) return <div>No rides found</div>;
       }).unwrap();
 
       toast.success(`Ride status updated! Status has been updated to ${nextStatus.replace('_', ' ')}.`);
-
-      setCurrentStatus(nextStatus);
+      await refetchActiveRide();
     } catch (error) {
       console.error('Error updating ride status:', error);
       toast.error("Failed to update status. Could not update the ride status. Please try again.");
@@ -172,8 +170,6 @@ if (!activeRides) return <div>No rides found</div>;
     try {
       await cancelRideMutation({ id: ride._id, reason: 'Driver cancelled' }).unwrap();
       toast.success('Ride has been cancelled.');
-      setCurrentStatus('cancelled');
-      // Refetch active ride data to update UI
       await refetchActiveRide();
     } catch (error) {
       console.error('Error cancelling ride:', error);
@@ -193,8 +189,8 @@ if (!activeRides) return <div>No rides found</div>;
   //   }
   // };
 
-  const isCompleteDisabled = currentStatus === 'completed' || currentStatus === 'cancelled';
-  const isCancelDisabled = currentStatus === 'in_transit' || currentStatus === 'completed' || currentStatus === 'cancelled';
+  const isCompleteDisabled = ride.status === 'completed' || ride.status === 'cancelled';
+  const isCancelDisabled = ride.status === 'in_transit' || ride.status === 'completed' || ride.status === 'cancelled';
 
   return (
     <Card className="border-0 shadow-md mb-8">
@@ -205,7 +201,7 @@ if (!activeRides) return <div>No rides found</div>;
             <CardDescription>Manage your current ride</CardDescription>
           </div>
           <div className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-medium text-sm capitalize">
-            {currentStatus.replace('_', ' ')}
+            {ride.status.replace('_', ' ')}
           </div>
         </div>
       </CardHeader>
@@ -275,7 +271,7 @@ if (!activeRides) return <div>No rides found</div>;
                   </p>
                 </li>
                 
-                {(currentStatus === 'picked_up' || currentStatus === 'in_transit' || currentStatus === 'completed') && (
+                {(ride.status === 'picked_up' || ride.status === 'in_transit' || ride.status === 'completed') && (
                   <li className="mb-6 ml-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-green-100 rounded-full -left-3 ring-8 ring-white">
                       <CheckCircle2 className="w-3 h-3 text-green-600" />
@@ -289,7 +285,7 @@ if (!activeRides) return <div>No rides found</div>;
                   </li>
                 )}
                 
-                {(currentStatus === 'in_transit' || currentStatus === 'completed') && (
+                {(ride.status === 'in_transit' || ride.status === 'completed') && (
                   <li className="mb-6 ml-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white">
                       <Navigation className="w-3 h-3 text-blue-600" />
@@ -299,7 +295,7 @@ if (!activeRides) return <div>No rides found</div>;
                   </li>
                 )}
                 
-                {currentStatus === 'completed' && (
+                {ride.status === 'completed' && (
                   <li className="ml-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-green-100 rounded-full -left-3 ring-8 ring-white">
                       <CheckCircle2 className="w-3 h-3 text-green-600" />
@@ -313,7 +309,7 @@ if (!activeRides) return <div>No rides found</div>;
                   </li>
                 )}
                 
-                {currentStatus === 'cancelled' && (
+                {ride.status === 'cancelled' && (
                   <li className="ml-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-red-100 rounded-full -left-3 ring-8 ring-white">
                       <CheckCircle2 className="w-3 h-3 text-red-600" />
@@ -334,7 +330,7 @@ if (!activeRides) return <div>No rides found</div>;
                   disabled={isLoading || isCompleteDisabled}
                   className="w-full"
                 >
-                  {isLoading ? 'Updating...' : getButtonText(currentStatus)}
+                  {isLoading ? 'Updating...' : getButtonText(ride.status)}
                 </Button>
                 
                 <Button 

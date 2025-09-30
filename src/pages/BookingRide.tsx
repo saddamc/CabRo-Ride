@@ -3,9 +3,9 @@ import { role } from '@/constants/role';
 import { useUserInfoQuery } from '@/redux/features/auth/auth.api';
 import type { IDriver, ILocation } from '@/redux/features/rides/ride.api';
 import {
-  useCalculateFareMutation,
-  useGetActiveRideQuery,
-  useRequestRideMutation
+    useCalculateFareMutation,
+    useGetActiveRideQuery,
+    useRequestRideMutation
 } from '@/redux/features/rides/ride.api';
 import { calculateHaversineDistance, reverseGeocode } from '@/services/mockLocationService';
 import { useCallback, useEffect, useState } from 'react';
@@ -62,8 +62,10 @@ export default function BookingRide() {
   // Hooks
   const { toast } = useToast();
   const { data: userInfo } = useUserInfoQuery(undefined);
+  // Poll for all active ride phases (not just 'finding_driver')
+  const activePhases: BookingPhase[] = ['finding_driver', 'driver_assigned', 'in_progress'];
   const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery(undefined, {
-    pollingInterval: bookingPhase === 'finding_driver' ? 3000 : undefined, // Poll every 3 seconds when finding driver
+    pollingInterval: activePhases.includes(bookingPhase) ? 3000 : undefined, // Poll every 3 seconds for all active ride phases
   });
   // TODO: Add logic to handle direct navigation to ride URLs
   // const { data: urlRide, isLoading: isLoadingUrlRide } = useGetRideByIdQuery(urlRideId || '', {
@@ -276,6 +278,7 @@ export default function BookingRide() {
         const statusToPhase: { [key: string]: BookingPhase } = {
           'requested': 'finding_driver',
           'accepted': 'driver_assigned',
+          'picked_up': 'in_progress',
           'in_transit': 'in_progress',
           'completed': 'completed',
           'cancelled': 'search'
