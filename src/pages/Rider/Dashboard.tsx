@@ -31,14 +31,6 @@ export default function RiderDashboard() {
   
   return (
     <div className="container mx-auto py-6 px-4 bg-white min-h-screen">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome, <span className="text-primary">{userInfo?.data?.name || 'Rider'}</span>
-        </h1>
-        <p className="text-gray-600 mt-2 text-lg">
-          Ready for your next journey?
-        </p>
-      </div>
 
       {/* Current Location and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">

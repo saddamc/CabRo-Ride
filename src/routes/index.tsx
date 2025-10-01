@@ -20,6 +20,7 @@ const DriverProfile = lazy(() => import("@/pages/Driver/Profile"));
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/Admin/Dashboard"));
 const AdminDriverManagement = lazy(() => import("@/pages/Admin/DriverManagement"));
+const AdminProfile = lazy(() => import("@/pages/Admin/Profile"));
 const AdminRiderManagement = lazy(() => import("@/pages/Admin/RiderManagement"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const Features = lazy(() => import("@/pages/Features"));
@@ -27,9 +28,9 @@ const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
 const Home = lazy(() => import("@/pages/Home/Home"));
 const Login = lazy(() => import("@/pages/Login"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const Payment = lazy(() => import("@/pages/Payment/payment"));
 const Fail = lazy(() => import("@/pages/Payment/Fail"));
 const Success = lazy(() => import("@/pages/Payment/Success"));
-const Profile = lazy(() => import("@/pages/Profile"));
 const Register = lazy(() => import("@/pages/Register"));
 // Removed: RiderBookRide (now handled by RideBooking)
 const RiderDashboard = lazy(() => import("@/pages/Rider/Dashboard"));
@@ -90,6 +91,8 @@ export const router = createBrowserRouter([
         children: [{index: true, element: <Navigate to="/user/bookings" />},...generateRoutes(userSidebarItems) ]
     },
     {
+        // Allow only riders and public users to access the booking page
+        // DriverRedirect component will handle the redirect for drivers
         Component: BookingRide,
         path: "/ride/:rideId?",
     },
@@ -104,10 +107,6 @@ export const router = createBrowserRouter([
     {
         Component: ForgotPassword,
         path: "/forgot-password",
-    },
-    {
-        Component: Profile,
-        path: "/profile",
     },
     {
         Component: withAuth(Wallet, role.user as TRole),
@@ -188,6 +187,10 @@ export const router = createBrowserRouter([
         path: "/unauthorized",
     },
     {
+        Component: Payment,
+        path: "/payment",
+    },
+    {
         Component: Success,
         path: "/payment/success",
     },
@@ -219,6 +222,10 @@ export const router = createBrowserRouter([
             {
                 path: "riders",
                 element: <AdminRiderManagement />
+            },
+            {
+                path: "profile",
+                element: <AdminProfile />
             }
         ]
     },

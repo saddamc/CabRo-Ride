@@ -189,7 +189,7 @@ export const driverApi = baseApi.injectEndpoints({
         method: "PATCH",
         data: { rating, feedback },
       }),
-      invalidatesTags: ["RIDES", "DRIVER"],
+      invalidatesTags: ["DRIVER"],
     }),
     
        // Get driver details
@@ -228,6 +228,28 @@ export const driverApi = baseApi.injectEndpoints({
       invalidatesTags: ["DRIVER"],
     }),
 
+    // Confirm payment received
+    confirmPaymentReceived: builder.mutation<IDriverProfile, { id: string }>({
+      query: ({ id }) => ({
+        url: `/drivers/confirm-payment/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["RIDES", "DRIVER"],
+    }),
+
+    // Get current driver status (for availability checking)
+    getDriverStatus: builder.query<{ availability: string; status: string }, void>({
+      query: () => ({
+        url: "/drivers/me",
+        method: "GET",
+      }),
+      transformResponse: (response: IResponse<any>) => ({
+        availability: response.data.availability || 'offline',
+        status: response.data.status || 'pending'
+      }),
+      providesTags: ["DRIVER"],
+    }),
+
     // NOTE: Driver profile data should be obtained from /users/me endpoint
     // when the authenticated user has role 'driver'. The user info will include driver data.
   }),
@@ -236,7 +258,7 @@ export const driverApi = baseApi.injectEndpoints({
 export const {
   useApplyDriverMutation,      // applyDriver
   useSetOnlineOfflineMutation, // setOnlineOffline
-  useAcceptRideMutation,        // acceptRide = Rider 
+  useAcceptRideMutation,        // acceptRide = Rider
   useRejectRideMutation,    // rejectRide    = Rider
   useUpdateRideStatusMutation, // updateRideStatus
   useGetDriverEarningsQuery,    // driverEarnings
@@ -245,7 +267,9 @@ export const {
   useGetDriverDetailsQuery,   // getDriverDetails
   useGetFindNearbyDriversQuery,   // findNearbyDrivers
   useApprovedDriverMutation,    // approvedDriver   admin
-  useSuspendDriverMutation,         // suspendDrive   admin 
+  useSuspendDriverMutation,         // suspendDrive   admin
+  useConfirmPaymentReceivedMutation, // confirmPaymentReceived
+  useGetDriverStatusQuery,          // getDriverStatus
 } = driverApi;
 
 

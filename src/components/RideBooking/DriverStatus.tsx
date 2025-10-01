@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import type { IDriver, ILocation } from '@/redux/features/rides/ride.api';
-// import type { IDriver, ILocation } from '@/redux/features/ride/rideapi';
-import { Car, Clock, MapPin, Navigation } from 'lucide-react';
-import { useState } from 'react';
+import { type IDriver, type ILocation } from '@/redux/features/rides/ride.api';
+import { Car, Clock, CreditCard, MapPin, Navigation } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CancelRideModal from '../modal/cancelRideModal';
+import RatingModal from '../ui/RatingModal';
 
 interface DriverStatusProps {
   bookingPhase: string;
@@ -16,6 +17,9 @@ interface DriverStatusProps {
   onToggleMap: () => void;
   onCompleteRide?: () => void;
   pin?: string;
+  fare?: number;
+  rideId?: string;
+  rideStatus?: string;
 }
 
 export default function DriverStatus({
@@ -26,9 +30,38 @@ export default function DriverStatus({
   isMapExpanded,
   onToggleMap,
   onCompleteRide,
-  pin
+  pin,
+  fare,
+  rideId,
+  rideStatus
 }: DriverStatusProps) {
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const navigate = useNavigate();
+
+  // Automatically show rating modal when ride is completed
+  useEffect(() => {
+    if (rideStatus === 'completed' && bookingPhase === 'completed') {
+      setShowRatingModal(true);
+    }
+  }, [rideStatus, bookingPhase]);
+
+  // Poll for ride status updates when there's an active ride
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (bookingPhase !== 'completed' && bookingPhase !== 'finding_driver') {
+      interval = setInterval(() => {
+        // Instead of page reload, use RTK Query refetch mechanism through a prop
+        // Using onToggleMap as a dummy function to trigger a re-render
+        // This should be replaced with a proper refetch function
+        console.log("Fetching ride updates...");
+        // No reload needed - we'll use data refetching
+      }, 2000); // Check every 2 seconds
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [bookingPhase, onToggleMap]);
 
   const renderFindingDriver = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-6 bg-white">
@@ -365,41 +398,99 @@ export default function DriverStatus({
               <Separator className="my-2" />
               <div className="flex justify-between font-bold">
                 <span>Total fare</span>
-                <span>$25.50</span>
+                <span>৳{fare?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="mb-6">
-          <h3 className="font-bold text-lg mb-2">Rate your trip</h3>
-          <div className="flex justify-center space-x-2 mb-4">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button key={star} className="text-2xl text-yellow-400">★</button>
-            ))}
+        {rideStatus === 'completed' ? (
+          <div className="mb-6 text-center">
+            <h3 className="font-bold text-lg mb-2">Ride Completed Successfully!</h3>
+            <p className="text-gray-500 mb-4">Thank you for riding with us.</p>
+            <div className="space-y-2">
+              <Button className="w-full" onClick={() => setShowRatingModal(true)}>
+                Rate Driver (Optional)
+              </Button>
+              <Button variant="outline" className="w-full" onClick={onCompleteRide}>
+                Finish Ride
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-gray-500 mb-4">How was your ride with {matchedDriver?.name}?</p>
-        </div>
-
-        <Button className="w-full" onClick={onCompleteRide}>
-          Done
-        </Button>
+        ) : rideStatus === 'payment_completed' ? (
+          <div className="mb-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Payment Completed</h3>
+            <p className="text-gray-500 mb-4">Waiting for driver confirmation...</p>
+            <p className="text-sm text-gray-400">Your payment has been processed. The driver will confirm receipt shortly.</p>
+          </div>
+        ) : (
+         <div className="mb-6">
+           <h3 className="font-bold text-lg mb-2">Payment</h3>
+           <p className="mb-4">Total fare: ৳{fare?.toFixed(2) || '0.00'}</p>
+           <div className="space-y-3">
+             <Button
+               onClick={() => {
+                 if (rideId) {
+                   localStorage.setItem('currentRideId', rideId);
+                 }
+                 navigate('/payment');
+               }}
+               className="w-full flex items-center gap-3 justify-center bg-gradient-to-r from-blue-500 to-green-500 text-white text-lg font-bold py-3 rounded-xl shadow-lg hover:from-blue-600 hover:to-green-600 transition-all duration-200"
+               style={{ letterSpacing: 2 }}
+             >
+               <CreditCard className="h-6 w-6 mr-1" />
+               PAY
+             </Button>
+           </div>
+         </div>
+       )}
       </div>
     </div>
   );
 
-  switch (bookingPhase) {
-    case 'finding_driver':
-      return renderFindingDriver();
-    case 'driver_assigned':
-      return renderDriverAssigned();
-    case 'picked_up':
-      return renderDriverArrived();
-    case 'in_progress':
-      return renderInProgress();
-    case 'completed':
-      return renderCompleted();
-    default:
-      return null;
-  }
+  const handleRatingComplete = () => {
+    setShowRatingModal(false);
+    // Navigate back to home or show completion message
+    if (onCompleteRide) {
+      onCompleteRide();
+    }
+  };
+
+  return (
+    <>
+      {(() => {
+        switch (bookingPhase) {
+          case 'finding_driver':
+            return renderFindingDriver();
+          case 'driver_assigned':
+            return renderDriverAssigned();
+          case 'picked_up':
+            return renderDriverArrived();
+          case 'in_progress':
+            return renderInProgress();
+          case 'completed':
+            return renderCompleted();
+          default:
+            return null;
+        }
+      })()}
+
+      {/* Rating Modal for Rider */}
+      <RatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        rideId={rideId || ''}
+        rideStatus={rideStatus || 'completed'}
+        userRole="rider"
+        targetName={matchedDriver?.name || 'Driver'}
+        onRatingComplete={handleRatingComplete}
+      />
+    </>
+  );
 }

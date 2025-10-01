@@ -1,10 +1,13 @@
  
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetActiveRideQuery, useGetAvailableRidesQuery, useRejectRideMutation, useUpdateRideStatusMutation, useVerifyPinMutation } from "@/redux/features/rides/ride.api";
+import { useConfirmPaymentReceivedMutation } from "@/redux/features/driver/driver.api";
+import { useGetActiveRideQuery, useRejectRideMutation, useUpdateRideStatusMutation, useVerifyPinMutation } from "@/redux/features/rides/ride.api";
 import { CheckCircle2, Clock, MapPin, Navigation, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 // No local status state; always use ride.status from server
+import RatingModal from "@/components/ui/RatingModal";
 import { toast } from "sonner";
 
 interface ActiveRideProps {
@@ -38,11 +41,20 @@ interface ActiveRideProps {
       completed?: string;
       cancelled?: string;
     };
+    rating?: {
+      riderRating?: number;
+      driverRating?: number;
+      riderFeedback?: string;
+      driverFeedback?: string;
+    };
+    paymentMethod?: string;
+    transactionId?: string;
   } | null;
 }
 
 export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   // For refetching active ride data after cancellation
+  const navigate = useNavigate();
   const { refetch: refetchActiveRide } = useGetActiveRideQuery();
   // const [acceptRideMutation] = useAcceptRideMutation();
   const [cancelRideMutation] = useRejectRideMutation();
@@ -50,17 +62,45 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   const [verifyPin, { isLoading: isVerifying }] = useVerifyPinMutation();
   const [showPinInput, setShowPinInput] = useState(false);
   const [enteredPin, setEnteredPin] = useState('');
-  const { data: activeRides, isLoading: isLoadingRides, error } = useGetAvailableRidesQuery();
-  console.log("activeRides:", activeRides);
-if (isLoadingRides) return <div>Loading...</div>;
-if (error) return <div>Error loading rides</div>;
-if (!activeRides) return <div>No rides found</div>;
-  
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(10);
+  const [confirmPaymentReceived, { isLoading: isConfirming }] = useConfirmPaymentReceivedMutation();
+  // Rating modal is now shown only when manually triggered from the completed section
 
-  if (!activeRides) {
-  return <div>Loading...</div>;
-}
-// Now you can safely use activeRides
+  // Log ride status changes without triggering extra re-renders
+  useEffect(() => {
+    if (ride) {
+      console.log(`Ride status: ${ride.status}`);
+    }
+  }, [ride?.status]);
+
+  // Instead of continuous polling, we'll fetch when needed and use a countdown for completed rides
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    
+    // Start countdown only for completed rides
+    if (ride && ride.status === 'completed') {
+      toast.success('Ride completed successfully!');
+      
+      // Start countdown for redirection
+      timer = setInterval(() => {
+        setRedirectCountdown(prev => {
+          const newCount = prev - 1;
+          if (newCount <= 0) {
+            clearInterval(timer!);
+            // Navigate to dashboard after countdown
+            navigate('/driver/dashboard');
+            return 0;
+          }
+          return newCount;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [ride?.status, navigate]);
 
   if (!ride) {
     return (
@@ -127,6 +167,13 @@ if (!activeRides) return <div>No rides found</div>;
       case 'picked_up':
         return 'in_transit';
       case 'in_transit':
+        return 'payment_pending';
+      case 'payment_pending':
+        // Allow driver to confirm payment directly from payment_pending
+        return 'completed'; 
+      case 'payment_completed':
+        return 'completed'; // This will be handled separately
+      case 'completed':
         return 'completed';
       default:
         return current;
@@ -136,11 +183,15 @@ if (!activeRides) return <div>No rides found</div>;
   const getButtonText = (current: string) => {
     switch (current) {
       case 'accepted':
-        return 'Mark as Picked Up';
+        return 'Picked Up';
       case 'picked_up':
-        return 'Enter PIN to Start Ride';
+        return 'Enter PIN';
       case 'in_transit':
         return 'Complete Ride';
+      case 'payment_pending':
+        return 'Confirm Payment & Complete Ride';
+      case 'payment_completed':
+        return 'Confirm Payment & Complete Ride';
       case 'completed':
         return 'Completed';
       default:
@@ -149,8 +200,35 @@ if (!activeRides) return <div>No rides found</div>;
   };
 
   const handleStatusUpdate = async () => {
+    console.log("Current ride status:", ride.status);
+    
     if (ride.status === 'picked_up') {
       setShowPinInput(true);
+      return;
+    }
+
+    if (ride.status === 'payment_completed') {
+      // Only confirm payment when status is already payment_completed
+      console.log("Processing payment confirmation for ride:", ride._id);
+      await handleConfirmPayment();
+      return;
+    }
+    
+    if (ride.status === 'payment_pending') {
+      // For payment_pending, we need to first update to payment_completed before confirming
+      console.log("Updating ride from payment_pending to payment_completed");
+      try {
+        await updateRideStatus({
+          id: ride._id,
+          status: 'payment_completed'
+        }).unwrap();
+        
+        toast.success("Payment status updated. You can now confirm the payment.");
+        await refetchActiveRide();
+      } catch (error) {
+        console.error('Error updating payment status:', error);
+        toast.error("Failed to update payment status. Please try again.");
+      }
       return;
     }
 
@@ -170,6 +248,35 @@ if (!activeRides) return <div>No rides found</div>;
       toast.error("Failed to update status. Could not update the ride status. Please try again.");
     }
   };
+
+  const handleConfirmPayment = async (showRating = false) => {
+    try {
+      const paymentMethod = ride.paymentMethod || 'cash'; // Default to cash if not specified
+      console.log(`Confirming ${paymentMethod} payment for ride:`, ride._id);
+      
+      await confirmPaymentReceived({
+        id: ride._id
+      }).unwrap();
+      
+      // Different success messages based on payment method
+      const successMessage = paymentMethod === 'cash' 
+        ? 'Cash payment received! Ride completed successfully.' 
+        : 'Payment confirmed! Ride completed successfully.';
+      
+      toast.success(successMessage);
+      await refetchActiveRide();
+
+      // Optionally show rating modal
+      if (showRating) {
+        setShowRatingModal(true);
+      }
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      toast.error("Failed to confirm payment. Please try again.");
+    }
+  };
+
+  // Rating completion is now handled inline in the RatingModal component
 
   const handleVerifyPin = async () => {
     if (!enteredPin) return;
@@ -217,8 +324,11 @@ if (!activeRides) return <div>No rides found</div>;
   //   }
   // };
 
+  // Allow completing the ride when status is payment_pending or payment_completed
   const isCompleteDisabled = ride.status === 'completed' || ride.status === 'cancelled';
-  const isCancelDisabled = ride.status === 'in_transit' || ride.status === 'completed' || ride.status === 'cancelled';
+  
+  // Prevent cancelling once payment is in process or complete
+  const isCancelDisabled = ride.status === 'in_transit' || ride.status === 'payment_pending' || ride.status === 'payment_completed' || ride.status === 'completed' || ride.status === 'cancelled';
 
   return (
     <Card className="border-0 shadow-md mb-8">
@@ -316,12 +426,22 @@ if (!activeRides) return <div>No rides found</div>;
                   </li>
                 )}
                 
-                {(ride.status === 'in_transit' || ride.status === 'completed') && (
+                {(ride.status === 'in_transit' || ride.status === 'payment_pending' || ride.status === 'payment_completed' || ride.status === 'completed') && (
                   <li className="mb-6 ml-6">
                     <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white">
                       <Navigation className="w-3 h-3 text-blue-600" />
                     </span>
                     <p className="flex items-center font-semibold text-gray-900">In Transit</p>
+                    <p className="text-sm text-gray-500">{new Date().toLocaleString()}</p>
+                  </li>
+                )}
+
+                {(ride.status === 'payment_pending' || ride.status === 'payment_completed' || ride.status === 'completed') && (
+                  <li className="mb-6 ml-6">
+                    <span className="absolute flex items-center justify-center w-6 h-6 bg-yellow-100 rounded-full -left-3 ring-8 ring-white">
+                      <CheckCircle2 className="w-3 h-3 text-yellow-600" />
+                    </span>
+                    <p className="flex items-center font-semibold text-gray-900">Payment Pending</p>
                     <p className="text-sm text-gray-500">{new Date().toLocaleString()}</p>
                   </li>
                 )}
@@ -356,6 +476,12 @@ if (!activeRides) return <div>No rides found</div>;
               </ol>
               
               <div className="pt-2 space-y-3">
+                {/* Debug info */}
+                {/* <div className="text-xs text-gray-400 mb-2">
+                  Current status: {ride.status}
+                </div> */}
+
+                {/* PIN input section */}
                 {showPinInput ? (
                   <div className="space-y-3">
                     <input
@@ -370,9 +496,23 @@ if (!activeRides) return <div>No rides found</div>;
                       <Button
                         onClick={handleVerifyPin}
                         disabled={isVerifying || enteredPin.length !== 4}
-                        className="flex-1"
+                        className={`flex-1 w-auto h-auto max-w-full text-base font-semibold py-3 rounded-xl shadow-lg transition-all duration-200
+                          ${isVerifying ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0D22DF] text-white hover:bg-blue-900'}
+                          ${!(isVerifying || enteredPin.length !== 4) ? 'ring-2 ring-blue-200' : ''}
+                        `}
+                        style={{ letterSpacing: 1 }}
                       >
-                        {isVerifying ? 'Verifying...' : 'Verify PIN'}
+                        {isVerifying ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Verifying...
+                          </span>
+                        ) : (
+                          <span>Start Ride</span>
+                        )}
                       </Button>
                       <Button
                         onClick={() => setShowPinInput(false)}
@@ -383,23 +523,145 @@ if (!activeRides) return <div>No rides found</div>;
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <Button
-                    onClick={handleStatusUpdate}
-                    disabled={isLoading || isCompleteDisabled}
-                    className="w-full"
-                  >
-                    {isLoading ? 'Updating...' : getButtonText(ride.status)}
-                  </Button>
-                )}
                 
+                // Payment completed section - special handling (also handle payment_pending status)
+                ) : ride.status === 'payment_completed' || ride.status === 'payment_pending' ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-md text-green-800 mb-2 flex flex-col items-center text-center">
+                      {ride.status === 'payment_pending' ? (
+                        <span className="font-medium leading-tight break-words">
+                          Payment is pending! Wait for the rider to complete payment before confirming.
+                        </span>
+                      ) : (
+                        <span className="font-medium leading-tight break-words">
+                          Payment completed! Now confirm receipt to complete the ride.
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-auto h-auto flex justify-center items-center">
+                      <Button
+                        onClick={handleStatusUpdate}
+                        disabled={isLoading || isConfirming || ride.status === 'payment_pending'}
+                        className={`w-auto h-auto max-w-full text-base font-semibold py-3 rounded-xl shadow-lg transition-all duration-200
+                          ${isLoading || isConfirming ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0D22DF] text-white hover:bg-blue-900'}
+                          ${!(isLoading || isConfirming || ride.status === 'payment_pending') ? 'ring-2 ring-blue-200' : ''}
+                        `}
+                        style={{ letterSpacing: 1 }}
+                      >
+                        {isLoading || isConfirming ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </span>
+                        ) : (
+                          <span>Confirm Payment &amp; Complete Ride</span>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                
+                // Completed ride section
+                ) : ride.status === 'completed' ? (
+                  <div className="space-y-3">
+                    <div className="p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200 text-center">
+                      <div className="flex justify-center mb-3">
+                        <div className="p-3 bg-green-100 rounded-full">
+                          <CheckCircle2 className="h-10 w-10 text-green-600" />
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold text-green-700 mb-2">Ride Completed Successfully!</h3>
+                      <p className="text-sm text-gray-600 mb-4">Thank you for driving with us.</p>
+                      
+                      {/* Fare amount */}
+                      <div className="bg-white p-4 rounded-md shadow-sm mb-4">
+                        <p className="text-sm text-gray-500">Fare Amount</p>
+                        <p className="text-2xl font-bold text-primary">৳{Math.round(ride.fare.totalFare)}</p>
+                      </div>
+                      
+                      {/* Payment details */}
+                      {ride.transactionId && (
+                        <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-4">
+                          <p className="font-medium text-blue-800">Payment Transaction ID:</p>
+                          <p className="font-mono text-sm break-all text-blue-700">{ride.transactionId}</p>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-3 mt-5">
+                        {ride.rating?.driverRating ? (
+                          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 mb-3">
+                            <div className="flex justify-center mb-2">
+                              <div className="flex">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <span key={star} className={`text-2xl ${
+                                    star <= (ride.rating?.driverRating || 0) ? 'text-yellow-400' : 'text-gray-300'
+                                  }`}>★</span>
+                                ))}
+                              </div>
+                            </div>
+                            <p className="font-medium text-yellow-800">You rated this rider: {ride.rating.driverRating}/5</p>
+                            {ride.rating.driverFeedback && (
+                              <p className="text-sm text-gray-700 mt-2 italic">"{ride.rating.driverFeedback}"</p>
+                            )}
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              console.log('Opening rating modal for rider');
+                              setShowRatingModal(true);
+                            }}
+                            className="w-full bg-[#0D22DF] text-white hover:bg-blue-700 py-3 text-base"
+                          >
+                            ⭐ Rate Rider ({ride.rider.name})
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => navigate('/driver/dashboard')}
+                          variant="outline"
+                          className="w-full mt-2 py-3 text-base"
+                        >
+                          Return to Dashboard
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                
+                // Default action button for other statuses
+                ) : (
+                  <div className="w-auto h-auto flex justify-center items-center">
+                    <Button
+                      onClick={handleStatusUpdate}
+                      disabled={isLoading || isConfirming || isCompleteDisabled}
+                      className={`w-auto h-auto max-w-full text-base font-semibold py-3 rounded-xl shadow-lg transition-all duration-200
+                        ${isLoading || isConfirming ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0D22DF] text-white hover:bg-blue-900'}
+                        ${!(isLoading || isConfirming || isCompleteDisabled) ? 'ring-2 ring-blue-200' : ''}
+                      `}
+                      style={{ letterSpacing: 1 }}
+                    >
+                      {isLoading || isConfirming ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        <span>{getButtonText(ride.status)}</span>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
                 {/* Allow cancel unless completed or cancelled */}
                 {!(ride.status === 'completed' || ride.status === 'cancelled') && (
-                  <Button 
-                    onClick={handleCancelRide} 
+                  <Button
+                    onClick={handleCancelRide}
                     disabled={isLoading || isCancelDisabled}
-                    variant="outline" 
-                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    variant="outline"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50 py-3 h-[48px] text-base font-semibold rounded-xl"
                   >
                     Cancel Ride
                   </Button>
@@ -409,6 +671,22 @@ if (!activeRides) return <div>No rides found</div>;
           </div>
         </div>
       </CardContent>
+
+      {/* Rating Modal */}
+      <RatingModal
+        isOpen={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        rideId={ride._id}
+        rideStatus={ride.status}
+        userRole="driver"
+        targetName={ride.rider.name}
+        onRatingComplete={() => {
+          setShowRatingModal(false);
+          toast.success("Thank you for your feedback!");
+          // Refetch to update UI with new rating info
+          refetchActiveRide();
+        }}
+      />
     </Card>
   );
 }

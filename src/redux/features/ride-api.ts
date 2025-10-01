@@ -108,6 +108,7 @@ export interface IRide {
     driverFeedback?: string;
   };
   pin?: string;
+  transactionId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -316,10 +317,27 @@ export const rideApi = baseApi.injectEndpoints({
             return null;
           }
           
-          // Find active ride (not completed or cancelled)
-          const activeStatuses = ['requested', 'accepted', 'picked_up', 'in_transit'];
-          const activeRide = response.data.rides.find(ride => activeStatuses.includes(ride.status));
-          console.log('Found active ride:', activeRide);
+          // Check for active rides first
+          const activeStatuses = ['requested', 'accepted', 'picked_up', 'in_transit', 'payment_pending', 'payment_completed'];
+          let activeRide = response.data.rides.find(ride => activeStatuses.includes(ride.status));
+
+          // If no active ride, check for recently completed rides that haven't been rated by the current user
+          if (!activeRide) {
+            const thirtyMinutesAgo = new Date();
+            thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30);
+
+            const unratedCompletedRide = response.data.rides.find(ride =>
+              ride.status === 'completed' &&
+              new Date(ride.updatedAt) > thirtyMinutesAgo &&
+              !ride.rating?.driverRating // Only show if driver hasn't rated yet
+            );
+
+            if (unratedCompletedRide) {
+              activeRide = unratedCompletedRide;
+            }
+          }
+          
+          console.log('Found ride to display:', activeRide);
           return activeRide || null;
         } catch (err) {
           console.error('Error parsing active ride:', err);
@@ -347,6 +365,20 @@ export const rideApi = baseApi.injectEndpoints({
         data: { rating, feedback },
       }),
       invalidatesTags: ["RIDES"],
+      // Transform response to handle success/error consistently
+      transformResponse: (response: IResponse<IRide>) => {
+        console.log('Rating ride response:', response);
+        return response.data;
+      },
+      // Add onQueryStarted to log the request
+      async onQueryStarted(arg, { queryFulfilled }) {
+        console.log('Starting rating submission:', arg);
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          console.error('Rating mutation failed:', error);
+        }
+      },
     }),
 
     // Get estimated price
@@ -451,6 +483,25 @@ export const rideApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["RIDES"],
     }),
+    
+    // Complete payment for a ride
+    completePayment: builder.mutation<IRide, { id: string; method: string }>({
+      query: ({ id, method }) => ({
+        url: `/rides/${id}/complete-payment`,
+        method: "PATCH",
+        data: { method },
+      }),
+      invalidatesTags: ["RIDES"],
+    }),
+    
+    // Init payment for online payment
+    initPayment: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/payment/init-payment/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["RIDES"],
+    }),
 
     // getAllRide
     getAllRide: builder.query<{ total: number; rides: IRide[] }, { page?: number; limit?: number }>({
@@ -496,6 +547,8 @@ export const {
   useGetAllRideQuery,     // getAllRide   Admin
   useGetRideHistoryQuery,
   useCompleteRideMutation,
+  useCompletePaymentMutation,
+  useInitPaymentMutation,
 } = rideApi;
 
 

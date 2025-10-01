@@ -14,15 +14,17 @@ import {
   User, X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 
 export default function DriverDashboard() {
+  const location = useLocation();
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: availableRides, isLoading: isLoadingRides, refetch: refetchAvailableRides } = useGetAvailableRidesQuery();
   const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
-  const { data: driverEarnings, refetch: refetchDriverEarnings } = useGetDriverEarningsQuery();
+  // console.log("driver Details✅", driverDetails)
+  const { data: driverEarnings } = useGetDriverEarningsQuery();
 
   // Auto-refetch available rides on mount and every 15 seconds
   const refetchInterval = useRef<NodeJS.Timeout | null>(null);
@@ -36,15 +38,17 @@ export default function DriverDashboard() {
       if (refetchInterval.current) clearInterval(refetchInterval.current);
     };
   }, [refetchAvailableRides]);
-  console.log("Driver Earnings:", driverEarnings);
+  // console.log("Driver Earnings:", driverEarnings);
   // console.log("User Info:", userInfo ?? "Loading...");
   // console.log("Available Rides:", availableRides ?? "Loading...");
-  console.log("Driver Details:", driverDetails ?? "Loading...");
+  // console.log("Driver Details:", driverDetails ?? "Loading...");
   // console.log("Driver Availability:", driverDetails?.availability ?? "undefined");
   // console.log("Driver isOnline:", driverDetails?.isOnline ?? "undefined");
   // console.log("Full driverDetails object:", JSON.stringify(driverDetails, null, 2));
   const { data: activeRide } = useGetActiveRideQuery();
-  // console.log("Active Ride:", activeRide ?? "Loading...");
+  console.log("Active Ride:", activeRide ?? "Loading...");
+  console.log("Active Ride status:", activeRide?.status);
+  console.log("Payment status:", activeRide?.status === 'payment_completed' ? "PAYMENT IS COMPLETED!" : "Not in payment_completed state");
   const [toggleDriverStatus, { isLoading: isTogglingStatus }] = useSetOnlineOfflineMutation();
 
   // Local state for availability status since server might not return it initially
@@ -52,7 +56,7 @@ export default function DriverDashboard() {
   // console.log("Toggling Status:", isTogglingStatus);
   const [acceptRide, { isLoading: isAccepting }] = useAcceptRideMutation();
 
-  // console.log("Driver Details:", driverDetails ?? "Loading...");
+  console.log("Driver Details:", driverDetails ?? "Loading...");
 
   const handleAcceptRide = async (rideId: string) => {
     try {
@@ -112,17 +116,42 @@ const availability = (driverDetails as any)?.data?.availability;
 const isOnline = (driverDetails as any)?.data?.isOnline;
 
 useEffect(() => {
+  // If the driver has an active ride, especially a completed one, keep their status as online
+  // to prevent showing "offline" right after completing a ride
+  if (activeRide) {
+    if (activeRide.status === 'completed') {
+      console.log("Driver has a completed active ride - keeping status as online");
+      setLocalAvailability("online");
+      return;
+    } else if (activeRide.status !== 'cancelled') {
+      // For any active ride that's not cancelled, stay online
+      setLocalAvailability("online");
+      return;
+    }
+  }
+  
+  // Fall back to server-provided availability
   if (availability) {
     setLocalAvailability(availability);
   } else if (isOnline !== undefined) {
     // Fall back to isOnline if availability is not provided
     setLocalAvailability(isOnline ? "online" : "offline");
   }
-}, [availability, isOnline]);
+}, [availability, isOnline, activeRide?.status]);
 
+// Handle scrolling to available rides section when navigated with anchor
+useEffect(() => {
+  if (location.hash === '#available-rides') {
+    setTimeout(() => {
+      const element = document.getElementById('available-rides');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 500); // Small delay to ensure the component is fully rendered
+  }
+}, [location.hash]);
 
-
-  // ✅ Safe defaults
+// ✅ Safe defaults
   const driverStats = {
     totalRides: driverDetails?.stats?.totalRides ?? 0,
     completedToday: driverDetails?.stats?.completedToday ?? 0,
@@ -185,7 +214,7 @@ useEffect(() => {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {activeRide ? (
+              {(activeRide && activeRide.status !== 'completed') || driverDetails?.data?.activeRide ? (
                 <Button
                   disabled
                   className="flex items-center gap-2 bg-[#f56803] hover:bg-blue-700"

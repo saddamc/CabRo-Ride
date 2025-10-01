@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import DriverRedirect from '@/components/RideBooking/DriverRedirect';
 import { useToast } from '@/components/ui/use-toast';
 import { role } from '@/constants/role';
 import { useUserInfoQuery } from '@/redux/features/auth/auth.api';
@@ -64,7 +66,7 @@ export default function BookingRide() {
   const { toast } = useToast();
   const { data: userInfo } = useUserInfoQuery(undefined);
   // Poll for all active ride phases (not just 'finding_driver')
-  const activePhases: BookingPhase[] = ['finding_driver', 'driver_assigned', 'picked_up', 'in_progress'];
+  const activePhases: BookingPhase[] = ['finding_driver', 'driver_assigned', 'picked_up', 'in_progress', 'completed'];
   const { data: activeRide, isLoading: isLoadingActiveRide } = useGetActiveRideQuery(undefined, {
     pollingInterval: activePhases.includes(bookingPhase) ? 3000 : undefined, // Poll every 3 seconds for all active ride phases
   });
@@ -281,6 +283,8 @@ export default function BookingRide() {
           'accepted': 'driver_assigned',
           'picked_up': 'picked_up',
           'in_transit': 'in_progress',
+          'payment_pending': 'completed',
+          'payment_completed': 'completed',
           'completed': 'completed',
           'cancelled': 'search'
         };
@@ -726,6 +730,9 @@ export default function BookingRide() {
                 onToggleMap={handleToggleMap}
                 onCompleteRide={handleCompleteRide}
                 pin={activeRide?.pin}
+                fare={activeRide?.fare?.totalFare}
+                rideId={activeRide?._id}
+                rideStatus={activeRide?.status}
               />
               {bookingPhase === 'finding_driver' && currentRideId && (
                 <div className="p-4 bg-white border-t border-gray-200">
@@ -785,11 +792,13 @@ export default function BookingRide() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar />
-      <div className="h-[calc(100vh-64px)] max-h-screen max-w-[1536px] mx-auto px-4 lg:px-6">
-        {renderContent()}
+    <DriverRedirect>
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <div className="h-[calc(100vh-64px)] max-h-screen max-w-[1536px] mx-auto px-4 lg:px-6">
+          {renderContent()}
+        </div>
       </div>
-    </div>
+    </DriverRedirect>
   );
 }

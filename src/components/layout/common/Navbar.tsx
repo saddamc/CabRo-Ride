@@ -5,12 +5,71 @@ import {
   useUserInfoQuery,
 } from "@/redux/features/auth/auth.api";
 import { logout as logoutAction } from "@/redux/features/authSlice";
-import { useGetAvailableRidesQuery } from "@/redux/features/ride-api";
 import { Car, ChevronDown, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import NavbarDropdown from "./NavbarDropdown";
+
+const navigationLinks = [
+  {
+    href: "/",
+    label: "Home",
+    role: "PUBLIC",
+    icon: (
+      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    )
+  },
+  {
+    href: "/about",
+    label: "About",
+    role: "PUBLIC",
+    icon: (
+      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  },
+  {
+    href: "/features",
+    label: "Features",
+    role: "PUBLIC",
+    icon: (
+      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  },
+  {
+    href: "/contact",
+    label: "Contact",
+    role: "PUBLIC",
+    icon: (
+      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    )
+  },
+  {
+    href: "/faq",
+    label: "FAQ",
+    role: "PUBLIC",
+    icon: (
+      <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    )
+  },
+  {
+    href: "/ride",
+    label: "Book Ride",
+    role: "rider",
+    icon: <Car className="w-4 h-4 mr-1" />
+  },
+];
+
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -18,8 +77,6 @@ export default function Navbar() {
   // Map API roles to our application roles
   const role = userInfo?.data?.role;
   const userRole = role === 'user' ? 'rider' : role || 'rider';
-  // For driver: get available ride requests
-  const { data: availableRides } = useGetAvailableRidesQuery(undefined, { skip: userRole !== 'driver' });
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -70,7 +127,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`border-b sticky top-0 z-[10000] relative ${isDashboard ? 'bg-white border-gray-100' : 'bg-white border-gray-100 dark:bg-black dark:border-gray-800'}`}>
+      <nav className={`border-b top-0 z-[10000] relative ${isDashboard ? 'bg-white border-gray-100' : 'bg-white border-gray-100 dark:bg-black dark:border-gray-800'}`}>
         {/* Mobile menu button - positioned absolutely within nav */}
         {!isDashboard && (
           <button
@@ -93,7 +150,8 @@ export default function Navbar() {
             <div className="fixed inset-0 z-[99998]" onClick={handleIconClose}></div>
 
             {/* Mobile navigation drawer */}
-            <div className="absolute top-14 left-2 w-56 bg-white/60 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 shadow-xl p-4 animate-slide-in-left max-h-96 rounded-xl z-[99999]">
+            <div className="absolute top-14 left-2 w-56 bg-white/60 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/50 shadow-xl p-4 animate-slide-in-left rounded-xl z-[99999]">
+              {/* menu header & close button */}
               {/* <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
                 <button
@@ -108,76 +166,37 @@ export default function Navbar() {
 
               {/* Navigation Links */}
               <nav className="space-y-2">
-                <Link
-                  to="/"
-                  onClick={handleIconClose}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActiveLink('/')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                  Home
-                </Link>
-                <Link
-                  to="/about"
-                  onClick={handleIconClose}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActiveLink('/about')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  About
-                </Link>
-                <Link
-                  to="/features"
-                  onClick={handleIconClose}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActiveLink('/features')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Features
-                </Link>
-                <Link
-                  to="/contact"
-                  onClick={handleIconClose}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActiveLink('/contact')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Contact
-                </Link>
-                <Link
-                  to="/faq"
-                  onClick={handleIconClose}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActiveLink('/faq')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  FAQ
-                </Link>
+                {navigationLinks
+                  .filter(link => {
+                    // Hide /ride link for driver, admin, and super_admin roles
+                    if (link.href === "/ride" && role === 'driver') return false;
+                    if (link.href === "/ride" && role === 'admin') return false;
+                    if (link.href === "/ride" && role === 'super_admin') return false;
+                    return link.role === "PUBLIC" || (link.role === "rider" && userRole === "rider");
+                  })
+                  .map((link) => (
+                    <Link
+                      key={link.href}
+                      to={link.href === "/ride" && !userInfo?.data ? "/login" : link.href}
+                      state={link.href === "/ride" && userInfo?.data ? undefined : link.href === "/ride" ? { from: "/ride" } : undefined}
+                      onClick={(e) => {
+                        handleIconClose();
+                        if (link.href === "/ride" && !userInfo?.data) {
+                          e.preventDefault();
+                          localStorage.setItem('redirectAfterLogin', '/ride');
+                          navigate('/login');
+                        }
+                      }}
+                      className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        isActiveLink(link.href)
+                          ? 'bg-primary text-white'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      {link.icon}
+                      {link.label}
+                    </Link>
+                  ))}
               </nav>
 
               {/* Auth buttons */}
@@ -202,24 +221,7 @@ export default function Navbar() {
                 ) : (
                   <div className="text-center">
                     {/* Book a Ride button */}
-                    {(!userInfo?.data || (userInfo?.data?.role !== role.driver && userInfo?.data?.role !== role.admin && userInfo?.data?.role !== role.super_admin)) && (
-                      <Link
-                        to={userInfo?.data ? "/ride" : "/login"}
-                        state={userInfo?.data ? undefined : { from: "/ride" }}
-                        onClick={(e) => {
-                          handleIconClose();
-                          if (!userInfo?.data) {
-                            e.preventDefault();
-                            localStorage.setItem('redirectAfterLogin', '/ride');
-                            navigate('/login');
-                          }
-                        }}
-                        className="block w-full mt-4 px-4 py-3 bg-primary text-white text-sm font-medium rounded-lg text-center hover:bg-primary/90 transition-colors"
-                      >
-                        <Car className="w-4 h-4 inline mr-2" />
-                        Book a Ride
-                      </Link>
-                    )}
+                    
                     <button
                       onClick={() => {
                         handleLogout();
@@ -250,75 +252,49 @@ export default function Navbar() {
             {/* Center: Navigation links - hidden on dashboard */}
             {!isDashboard && (
               <div className="hidden md:flex items-center space-x-4">
-                <Link
-                  to="/"
-                  className={`text-sm font-medium transition-colors p-2 rounded-full ${
-                    isActiveLink('/')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
-                  }`}
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/about"
-                  className={`text-sm font-medium transition-colors p-2 rounded-full ${
-                    isActiveLink('/about')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
-                  }`}
-                >
-                  About
-                </Link>
-                <Link
-                  to="/features"
-                  className={`text-sm font-medium transition-colors p-2 rounded-full ${
-                    isActiveLink('/features')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
-                  }`}
-                >
-                  Features
-                </Link>
-                <Link
-                  to="/contact"
-                  className={`text-sm font-medium transition-colors p-2 rounded-full ${
-                    isActiveLink('/contact')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
-                  }`}
-                >
-                  Contact
-                </Link>
-                <Link
-                  to="/faq"
-                  className={`text-sm font-medium transition-colors p-2 rounded-full ${
-                    isActiveLink('/faq')
-                      ? 'bg-primary text-white'
-                      : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
-                  }`}
-                >
-                  FAQ
-                </Link>
-                {/* Book a Ride button - hidden for driver, admin, and super_admin roles */}
-                {(!userInfo?.data || (userInfo?.data?.role !== role.driver && userInfo?.data?.role !== role.admin && userInfo?.data?.role !== role.super_admin)) && (
-                  <Link
-                    to={userInfo?.data ? "/ride" : "/login"}
-                    state={userInfo?.data ? undefined : { from: "/ride" }}
-                    className="text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors py-2 px-4 rounded-full flex items-center"
-                    onClick={(e) => {
-                      if (!userInfo?.data) {
-                        e.preventDefault();
-                        // Store the intended destination
-                        localStorage.setItem('redirectAfterLogin', '/ride');
-                        navigate('/login');
-                      }
-                    }}
-                  >
-                    <Car className="w-4 h-4 mr-1" />
-                    Book a Ride
-                  </Link>
-                )}
+                {navigationLinks
+                  .filter(link => {
+                    // Hide /ride link for driver, admin, and super_admin roles
+                    if (link.href === "/ride" && role === 'driver') return false;
+                    if (link.href === "/ride" && role === 'admin') return false;
+                    if (link.href === "/ride" && role === 'super_admin') return false;
+                    return link.role === "PUBLIC" || (link.role === "rider" && userRole === "rider");
+                  })
+                  .map((link) => (
+                    link.href === "/ride" ? (
+                      // Special handling for Book Ride button - hidden for driver, admin, and super_admin roles
+                      (!userInfo?.data || (userInfo?.data?.role !== role.driver && userInfo?.data?.role !== role.admin && userInfo?.data?.role !== role.super_admin)) && (
+                        <Link
+                          key={link.href}
+                          to={userInfo?.data ? "/ride" : "/login"}
+                          state={userInfo?.data ? undefined : { from: "/ride" }}
+                          className="text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors py-2 px-4 rounded-full flex items-center"
+                          onClick={(e) => {
+                            if (!userInfo?.data) {
+                              e.preventDefault();
+                              localStorage.setItem('redirectAfterLogin', '/ride');
+                              navigate('/login');
+                            }
+                          }}
+                        >
+                          {link.icon}
+                          {link.label}
+                        </Link>
+                      )
+                    ) : (
+                      <Link
+                        key={link.href}
+                        to={link.href}
+                        className={`text-sm font-medium transition-colors p-2 rounded-full ${
+                          isActiveLink(link.href)
+                            ? 'bg-primary text-white'
+                            : 'text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary'
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    )
+                  ))}
               </div>
             )}
 

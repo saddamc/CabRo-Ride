@@ -142,7 +142,7 @@ const RacingGame = () => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [gameOver]);
+  }, [gameOver, roadWidth, time]);
 
   // Timer
   useEffect(() => {
@@ -189,7 +189,7 @@ const RacingGame = () => {
     };
     window.addEventListener("mousemove", handleMouse);
     return () => window.removeEventListener("mousemove", handleMouse);
-  }, []);
+  }, [roadWidth]);
 
   const resetGame = () => {
     setScore(0);

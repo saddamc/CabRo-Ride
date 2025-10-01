@@ -1,6 +1,6 @@
 import { useLogoutMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { logout as logoutAction } from "@/redux/features/authSlice";
-import { Clock, Home, LogOut, Map, Settings, Wallet } from "lucide-react";
+import { Car, Clock, Home, LogOut, Map, Settings, Wallet } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -96,6 +96,20 @@ export default function RoleDashboard() {
               Dashboard
             </Link>
 
+            {userRole === 'rider' && (
+              <Link
+                to="/ride"
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                  isActive('/ride')
+                    ? 'text-white bg-black'
+                    : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <Car className={`mr-2 h-5 w-5 ${isActive('/ride') ? 'text-white' : 'text-primary'}`} />
+                Book Ride
+              </Link>
+            )}
+
             <Link
               to={`${routePrefix}/history`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
@@ -186,6 +200,20 @@ export default function RoleDashboard() {
             <span className="text-xs mt-1">Dashboard</span>
           </Link>
 
+          {userRole === 'rider' && (
+            <Link
+              to="/ride"
+              className={`flex flex-col items-center p-1 ${isActive('/ride') ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
+            >
+              <div className={`p-2 rounded-full ${isActive('/ride') ?
+                (userRole === 'rider' ? 'bg-green-500' : userRole === 'driver' ? 'bg-blue-500' : 'bg-primary') :
+                'bg-gray-200 dark:bg-gray-700'
+              }`}>
+                <Car className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Book Ride</span>
+            </Link>
+          )}
 
           <Link
             to={`${routePrefix}/history`}
@@ -214,10 +242,13 @@ export default function RoleDashboard() {
           </Link>
 
           <Link
-            to="/profile"
-            className="flex flex-col items-center p-1 text-gray-700 dark:text-gray-300"
+            to={`${routePrefix}/profile`}
+            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/profile`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
           >
-            <div className="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/profile`) ?
+              (userRole === 'rider' ? 'bg-green-500' : userRole === 'driver' ? 'bg-blue-500' : 'bg-primary') :
+              'bg-gray-200 dark:bg-gray-700'
+            }`}>
               <Settings className="h-4 w-4" />
             </div>
             <span className="text-xs mt-1">Profile</span>
