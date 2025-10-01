@@ -1,54 +1,64 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, DollarSign, MapPin } from "lucide-react";
-
-const rideHistory = [
-  {
-    id: "RID-12345",
-    date: "September 22, 2025",
-    time: "14:30 PM",
-    pickup: "123 Main Street",
-    destination: "456 Park Avenue",
-    driver: "John Doe",
-    vehicle: "Toyota Camry (ABC-1234)",
-    fare: 18.50,
-    status: "completed"
-  },
-  {
-    id: "RID-12346",
-    date: "September 20, 2025",
-    time: "09:15 AM",
-    pickup: "Central Park",
-    destination: "Grand Central Station",
-    driver: "Jane Smith",
-    vehicle: "Honda Civic (XYZ-5678)",
-    fare: 12.75,
-    status: "completed"
-  },
-  {
-    id: "RID-12347",
-    date: "September 18, 2025",
-    time: "19:45 PM",
-    pickup: "Brooklyn Bridge",
-    destination: "Times Square",
-    driver: "Mike Johnson",
-    vehicle: "Hyundai Sonata (DEF-9012)",
-    fare: 22.30,
-    status: "completed"
-  },
-  {
-    id: "RID-12348",
-    date: "September 15, 2025",
-    time: "11:20 AM",
-    pickup: "Empire State Building",
-    destination: "Statue of Liberty Ferry",
-    driver: "Sarah Williams",
-    vehicle: "Ford Fusion (GHI-3456)",
-    fare: 15.90,
-    status: "completed"
-  }
-];
+import RatingModal from "@/components/ui/RatingModal";
+import { useGetMyRidesQuery } from "@/redux/features/rides/ride.api";
+import { AlertCircle, Calendar, Clock, DollarSign, Eye, MapPin, Star } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function RideHistory() {
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ridesPerPage = 5;
+
+  const [ratingModal, setRatingModal] = useState<{
+    open: boolean;
+    rideId: string | null;
+    driverName: string;
+    currentRating: number;
+    rideStatus: string;
+  }>({ open: false, rideId: null, driverName: '', currentRating: 0, rideStatus: '' });
+
+  // Get all rides for display and stats calculation
+  const { data: allRidesData, refetch } = useGetMyRidesQuery({});
+
+  // Reset to page 1 when component mounts
+  useEffect(() => {
+    setCurrentPage(1);
+  }, []);
+
+  // Auto-refetch every 30 seconds for real-time updates
+  const refetchInterval = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    refetch(); // Initial fetch
+    if (refetchInterval.current) clearInterval(refetchInterval.current);
+    refetchInterval.current = setInterval(() => {
+      refetch();
+    }, 30000); // 30 seconds
+    return () => {
+      if (refetchInterval.current) clearInterval(refetchInterval.current);
+    };
+  }, [refetch]);
+
+  const allRides = allRidesData?.rides || [];
+
+  // Calculate stats from all rides data
+  const totalRides = allRides.length;
+  const totalSpent = allRides.reduce((sum, ride) => sum + (ride.fare?.totalFare || 0), 0);
+  const totalDistance = allRides.reduce((sum, ride) => sum + (ride.distance?.estimated || 0), 0);
+
+  // Sort rides by creation date (newest first) - create a copy to avoid mutating read-only array
+  const sortedRides = [...allRides].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Pagination info
+  const totalPages = Math.ceil(sortedRides.length / ridesPerPage);
+
+  // Get rides for current page
+  const startIndex = (currentPage - 1) * ridesPerPage;
+  const endIndex = startIndex + ridesPerPage;
+  const rides = sortedRides.slice(startIndex, endIndex);
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
@@ -57,104 +67,292 @@ export default function RideHistory() {
           View your past rides and receipts
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card>
+        {/* Total Rides - Blue */}
+        <Card className="bg-blue-50 border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-blue-800">Total Rides</CardTitle>
+            <Clock className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{rideHistory.length}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            <div className="text-2xl font-bold text-blue-900">{totalRides}</div>
+            <p className="text-xs text-blue-600">All time</p>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        {/* Total Distance - Green */}
+        <Card className="bg-green-50 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Distance</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-green-800">Total Distance</CardTitle>
+            <MapPin className="h-4 w-4 text-green-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">52.7 mi</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            <div className="text-2xl font-bold text-green-900">{totalDistance.toFixed(1)} km</div>
+            <p className="text-xs text-green-600">All time</p>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        {/* Total Spent - Yellow */}
+        <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-yellow-800">Total Spent</CardTitle>
+            <DollarSign className="h-4 w-4 text-yellow-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${rideHistory.reduce((sum, ride) => sum + ride.fare, 0).toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+            <div className="text-2xl font-bold text-yellow-900">৳{totalSpent.toFixed(2)}</div>
+            <p className="text-xs text-yellow-600">All time</p>
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Recent Rides</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {rideHistory.map((ride) => (
-              <div key={ride.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex flex-wrap items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Calendar className="h-5 w-5 text-primary" />
+          <div className="space-y-4">
+            {rides.length > 0 ? rides.map((ride) => {
+              const isCompletedRecently = ride.status === 'completed' &&
+                new Date(ride.updatedAt) > new Date(Date.now() - 24 * 60 * 60 * 1000); // Last 24 hours
+              const needsRating = ride.status === 'completed' && !ride.rating?.riderRating;
+              const hasRating = ride.rating?.riderRating;
+
+              return (
+                <Card key={ride._id} className={`relative overflow-hidden transition-all duration-200 hover:shadow-md ${
+                  needsRating ? 'ring-2 ring-orange-200 bg-orange-50/50' : ''
+                }`}>
+                  {/* Rating Priority Indicator */}
+                  {needsRating && (
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Needs Rating
+                      </Badge>
                     </div>
-                    <div>
-                      <div className="font-medium">{ride.date}</div>
-                      <div className="text-sm text-gray-500">{ride.time}</div>
+                  )}
+
+                  <CardContent className="p-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      {/* Left Section - Ride Info */}
+                      <div className="flex-1 space-y-3">
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-primary/10">
+                              <Calendar className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm">
+                                {new Date(ride.createdAt).toLocaleDateString('en-US', {
+                                  weekday: 'short',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(ride.createdAt).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <Badge className={`${
+                            ride.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            ride.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {ride.status.replace('_', ' ')}
+                          </Badge>
+                        </div>
+
+                        {/* Route */}
+                        <div className="flex items-start gap-3">
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full p-1.5 bg-green-100">
+                              <MapPin className="h-3 w-3 text-green-600" />
+                            </div>
+                            <div className="w-0.5 h-6 bg-gray-300 my-1"></div>
+                            <div className="rounded-full p-1.5 bg-red-100">
+                              <MapPin className="h-3 w-3 text-red-500" />
+                            </div>
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div>
+                              <span className="text-xs text-gray-500 block">From</span>
+                              <span className="text-sm font-medium truncate block">
+                                {ride.pickupLocation?.address || 'N/A'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-xs text-gray-500 block">To</span>
+                              <span className="text-sm font-medium truncate block">
+                                {ride.destinationLocation?.address || 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Driver & Vehicle Info */}
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500 block">Driver</span>
+                            <span className="font-medium">{ride.driver?.user?.name || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 block">Vehicle</span>
+                            <span className="font-medium text-xs">
+                              {ride.driver?.vehicle?.make} {ride.driver?.vehicle?.model}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Section - Actions & Fare */}
+                      <div className="flex flex-col items-end gap-3 lg:min-w-[200px]">
+                        {/* Fare */}
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary">
+                            ৳{ride.fare?.totalFare?.toFixed(2) || '0.00'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {ride.distance?.estimated?.toFixed(1)} km
+                          </div>
+                        </div>
+
+                        {/* Rating Display */}
+                        {hasRating && (
+                          <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-medium">{ride.rating?.riderRating}/5</span>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/rider/details-history/${ride._id}`)}
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Details
+                          </Button>
+
+                          {ride.status === 'completed' && (
+                            <Button
+                              size="sm"
+                              onClick={() => setRatingModal({
+                                open: true,
+                                rideId: ride._id,
+                                driverName: ride.driver?.user?.name || 'Driver',
+                                currentRating: ride.rating?.riderRating || 0,
+                                rideStatus: ride.status
+                              })}
+                              className={`flex items-center gap-1 ${
+                                needsRating
+                                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                              }`}
+                            >
+                              <Star className="h-3 w-3" />
+                              {hasRating ? 'Edit Rating' : 'Rate Driver'}
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Priority Message for Recent Unrated Rides */}
+                        {needsRating && isCompletedRecently && (
+                          <div className="text-xs text-orange-700 bg-orange-100 px-2 py-1 rounded-md text-center">
+                            ⭐ Please rate your driver to help improve service!
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="bg-green-100 dark:bg-green-900/20 px-3 py-1 rounded-full text-sm font-medium text-green-800 dark:text-green-300 capitalize">
-                    {ride.status}
-                  </div>
+                  </CardContent>
+                </Card>
+              );
+            }) : (
+              <div className="text-center py-12">
+                <div className="p-4 bg-gray-100 inline-block rounded-full mb-4">
+                  <MapPin className="h-8 w-8 text-gray-400" />
                 </div>
-                
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="flex flex-col items-center">
-                    <div className="rounded-full p-2 bg-primary/10">
-                      <MapPin className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="w-0.5 h-12 bg-gray-200 dark:bg-gray-700 my-1"></div>
-                    <div className="rounded-full p-2 bg-red-100 dark:bg-red-900/20">
-                      <MapPin className="h-4 w-4 text-red-500 dark:text-red-400" />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="mb-4">
-                      <div className="text-sm text-gray-500">Pickup</div>
-                      <div className="font-medium">{ride.pickup}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Destination</div>
-                      <div className="font-medium">{ride.destination}</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <div>
-                    <div className="text-sm text-gray-500">Driver</div>
-                    <div className="font-medium">{ride.driver}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Vehicle</div>
-                    <div className="font-medium">{ride.vehicle}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Fare</div>
-                    <div className="font-medium text-primary">${ride.fare.toFixed(2)}</div>
-                  </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No rides yet</h3>
+                <p className="text-gray-500">Your ride history will appear here once you complete your first ride.</p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and pages around current
+                    const showPage =
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1);
+
+                    if (!showPage && page === currentPage - 2) {
+                      return <span key={page} className="px-2">...</span>;
+                    }
+
+                    if (!showPage && page === currentPage + 2) {
+                      return <span key={page} className="px-2">...</span>;
+                    }
+
+                    if (!showPage) return null;
+
+                    return (
+                      <Button
+                        key={page}
+                        variant={page === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-10"
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
                 </div>
               </div>
-            ))}
+            )}
           </div>
+          {/* Rating Modal (global, outside map loop) */}
+          <RatingModal
+            isOpen={ratingModal.open}
+            onClose={() => setRatingModal({ ...ratingModal, open: false })}
+            rideId={ratingModal.rideId || ''}
+            rideStatus={ratingModal.rideStatus}
+            userRole="rider"
+            targetName={ratingModal.driverName}
+            onRatingComplete={() => {
+              setRatingModal({ ...ratingModal, open: false });
+              refetch();
+            }}
+          />
         </CardContent>
       </Card>
     </div>

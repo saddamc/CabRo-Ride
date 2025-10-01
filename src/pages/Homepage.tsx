@@ -1,4 +1,4 @@
-import HeroSection from "@/components/modules/home/HeroSection";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, DollarSign, MapPin, Shield, Smartphone, Star } from "lucide-react";
 
@@ -38,7 +38,6 @@ const features = [
 export default function Homepage() {
     return (
         <div className="bg-white">
-            <HeroSection />
             
             {/* Features Section */}
             <section className="py-20 bg-gray-50">

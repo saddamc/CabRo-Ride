@@ -104,22 +104,23 @@ export default function RatingModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700 z-[999]">
+      <DialogContent className="sm:max-w-xs bg-gradient-to-br from-blue-900 to-blue-700 border-0 shadow-xl z-[999] text-white p-4">
         <DialogHeader>
-          <DialogTitle>{getTitle()}</DialogTitle>
-          <DialogDescription>{getDescription()}</DialogDescription>
+          <DialogTitle className="text-white text-lg font-bold mb-1">{getTitle()}</DialogTitle>
+          <DialogDescription className="text-white/80 mb-2 text-xs">{getDescription()}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {/* Star Rating */}
-          <div className="flex justify-center space-x-2">
+          <div className="flex justify-center space-x-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 onClick={() => setRating(star)}
-                className={`text-3xl transition-colors ${
-                  star <= rating ? 'text-yellow-400' : 'text-gray-300'
+                className={`text-xl transition-colors focus:outline-none ${
+                  star <= rating ? 'text-yellow-400' : 'text-white/30'
                 }`}
+                aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
               >
                 ★
               </button>
@@ -131,8 +132,8 @@ export default function RatingModal({
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="Leave feedback (optional)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            rows={3}
+            className="w-full px-2 py-1 border border-blue-400 bg-blue-800/60 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-white/60 text-xs"
+            rows={2}
           />
 
           {/* Submit Button */}
@@ -140,11 +141,11 @@ export default function RatingModal({
             <Button
               onClick={() => handleSubmit(false)}
               disabled={rating === 0 || isSubmitting}
-              className="flex-1 bg-[#0D22DF]"
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-1 rounded shadow text-xs"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-1">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -163,11 +164,11 @@ export default function RatingModal({
                 }
               }}
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 bg-white/10 border border-white/20 text-white font-semibold py-1 rounded shadow text-xs hover:bg-white/20"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-1">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>

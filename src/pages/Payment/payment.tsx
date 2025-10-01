@@ -26,8 +26,8 @@ const PaymentPage: React.FC = () => {
     </div>
   );
 
-  // Show rating modal after payment completion
-  if (showRatingModal) {
+  // Show payment complete page (with transaction ID and rating button)
+  if (ride.status === "payment_completed" || ride.status === "completed") {
     return (
       <>
         <div className="max-w-md mx-auto mt-16 p-8 bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl shadow-lg text-center">
@@ -39,20 +39,65 @@ const PaymentPage: React.FC = () => {
           </div>
           <p className="mb-4 text-lg text-gray-700">Thank you for using our ride service!</p>
           <p className="mb-2 text-sm text-gray-600">Your payment has been processed successfully.</p>
+
+          {/* Transaction ID prominently displayed */}
+          {ride.transactionId && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="font-medium text-blue-800">Transaction ID:</p>
+              <p className="font-mono text-sm break-all text-blue-700">{ride.transactionId}</p>
+            </div>
+          )}
+
+          {/* Amount Paid */}
+          {ride.fare?.totalFare && (
+            <p className="mb-4 text-gray-700">Amount Paid: ৳{ride.fare.totalFare}</p>
+          )}
+
+          <div className="space-y-3">
+            {/* Show rating button if not rated yet */}
+            {!ride.rating?.riderRating && (
+              <button
+                onClick={() => setShowRatingModal(true)}
+                className="w-full bg-gradient-to-r from-blue-500 to-green-500 text-white text-lg font-semibold py-3 rounded-xl shadow hover:from-blue-600 hover:to-green-600 transition-all duration-200"
+              >
+                ⭐ Rate Your Driver ({ride.driver?.user?.name || 'Driver'})
+              </button>
+            )}
+            {/* Show rating summary if already rated */}
+            {ride.rating?.riderRating && (
+              <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 mb-3">
+                <div className="flex justify-center mb-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span key={star} className={`text-2xl ${star <= (ride.rating?.riderRating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="font-medium text-yellow-800">You rated this driver: {ride.rating.riderRating}/5</p>
+                {ride.rating.riderFeedback && (
+                  <p className="text-sm text-gray-700 mt-2 italic">"{ride.rating.riderFeedback}"</p>
+                )}
+              </div>
+            )}
+            <button
+              onClick={() => navigate('/rider/dashboard')}
+              className="w-full bg-gray-500 text-white text-lg font-semibold py-3 rounded-xl shadow hover:bg-gray-600 transition-all duration-200"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
+        {/* Rating Modal */}
         <RatingModal
           isOpen={showRatingModal}
-          onClose={() => {
-            setShowRatingModal(false);
-            navigate('/rider/dashboard');
-          }}
+          onClose={() => setShowRatingModal(false)}
           rideId={ride._id}
           rideStatus="completed"
           userRole="rider"
           targetName={ride.driver?.user?.name || 'Driver'}
           onRatingComplete={() => {
             setShowRatingModal(false);
-            navigate('/rider/dashboard');
+            refetch(); // Refresh to show rating summary
           }}
         />
       </>

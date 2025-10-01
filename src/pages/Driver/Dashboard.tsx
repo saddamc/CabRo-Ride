@@ -23,11 +23,13 @@ export default function DriverDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: availableRides, isLoading: isLoadingRides, refetch: refetchAvailableRides } = useGetAvailableRidesQuery();
   const { data: driverDetails, refetch: refetchDriverDetails } = useGetDriverDetailsQuery();
+  const { data: activeRide, refetch: refetchActiveRide } = useGetActiveRideQuery();
   // console.log("driver Details✅", driverDetails)
   const { data: driverEarnings } = useGetDriverEarningsQuery();
 
   // Auto-refetch available rides on mount and every 15 seconds
   const refetchInterval = useRef<NodeJS.Timeout | null>(null);
+  const activeRideInterval = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     refetchAvailableRides(); // Initial fetch
     if (refetchInterval.current) clearInterval(refetchInterval.current);
@@ -38,6 +40,18 @@ export default function DriverDashboard() {
       if (refetchInterval.current) clearInterval(refetchInterval.current);
     };
   }, [refetchAvailableRides]);
+
+  // Auto-refetch active ride on mount and every 10 seconds
+  useEffect(() => {
+    refetchActiveRide(); // Initial fetch
+    if (activeRideInterval.current) clearInterval(activeRideInterval.current);
+    activeRideInterval.current = setInterval(() => {
+      refetchActiveRide();
+    }, 10000); // 10 seconds
+    return () => {
+      if (activeRideInterval.current) clearInterval(activeRideInterval.current);
+    };
+  }, [refetchActiveRide]);
   // console.log("Driver Earnings:", driverEarnings);
   // console.log("User Info:", userInfo ?? "Loading...");
   // console.log("Available Rides:", availableRides ?? "Loading...");
@@ -45,7 +59,6 @@ export default function DriverDashboard() {
   // console.log("Driver Availability:", driverDetails?.availability ?? "undefined");
   // console.log("Driver isOnline:", driverDetails?.isOnline ?? "undefined");
   // console.log("Full driverDetails object:", JSON.stringify(driverDetails, null, 2));
-  const { data: activeRide } = useGetActiveRideQuery();
   console.log("Active Ride:", activeRide ?? "Loading...");
   console.log("Active Ride status:", activeRide?.status);
   console.log("Payment status:", activeRide?.status === 'payment_completed' ? "PAYMENT IS COMPLETED!" : "Not in payment_completed state");
@@ -129,7 +142,7 @@ useEffect(() => {
       return;
     }
   }
-  
+
   // Fall back to server-provided availability
   if (availability) {
     setLocalAvailability(availability);
@@ -137,7 +150,7 @@ useEffect(() => {
     // Fall back to isOnline if availability is not provided
     setLocalAvailability(isOnline ? "online" : "offline");
   }
-}, [availability, isOnline, activeRide?.status]);
+}, [availability, isOnline, activeRide]);
 
 // Handle scrolling to available rides section when navigated with anchor
 useEffect(() => {

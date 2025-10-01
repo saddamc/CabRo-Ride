@@ -109,6 +109,15 @@ export interface IRide {
   };
   pin?: string;
   transactionId?: string;
+  payment?: {
+    _id: string;
+    transactionId?: string;
+    status: string;
+    method?: string;
+    amount: number;
+  };
+  paymentMethod?: string;
+  paymentStatus?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -503,6 +512,17 @@ export const rideApi = baseApi.injectEndpoints({
       invalidatesTags: ["RIDES"],
     }),
 
+    // getMyRides
+    getMyRides: builder.query<{ total: number; rides: IRide[] }, { page?: number; limit?: number }>({
+      query: (params = {}) => ({
+        url: "/rides/me",
+        method: "GET",
+        params,
+      }),
+      transformResponse: (response: IResponse<{ total: number; rides: IRide[] }>) => response.data,
+      providesTags: ["RIDES"],
+    }),
+
     // getAllRide
     getAllRide: builder.query<{ total: number; rides: IRide[] }, { page?: number; limit?: number }>({
       query: (params = {}) => ({
@@ -544,6 +564,7 @@ export const {
   useVerifyPinMutation,
   useGetRideByIdQuery,
   useGetAvailableRidesQuery,  //getAvailableRides  Driver
+  useGetMyRidesQuery,       // getMyRides Rider
   useGetAllRideQuery,     // getAllRide   Admin
   useGetRideHistoryQuery,
   useCompleteRideMutation,

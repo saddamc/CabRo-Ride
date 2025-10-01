@@ -39,11 +39,12 @@ export interface IDriverProfile {
     licensePlate: string;
   };
   vehicleType?: {
+    category: 'CAR' | 'BIKE';
     make: string;
     model: string;
-    year: string;
+    year: number;
     plateNumber: string;
-    status: string;
+    color?: string;
   };
   isOnline: boolean;
   isApproved: boolean;

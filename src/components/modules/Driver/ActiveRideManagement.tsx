@@ -63,7 +63,6 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
   const [showPinInput, setShowPinInput] = useState(false);
   const [enteredPin, setEnteredPin] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [redirectCountdown, setRedirectCountdown] = useState(10);
   const [confirmPaymentReceived, { isLoading: isConfirming }] = useConfirmPaymentReceivedMutation();
   // Rating modal is now shown only when manually triggered from the completed section
 
@@ -72,35 +71,14 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
     if (ride) {
       console.log(`Ride status: ${ride.status}`);
     }
-  }, [ride?.status]);
+  }, [ride]);
 
-  // Instead of continuous polling, we'll fetch when needed and use a countdown for completed rides
+  // Show success toast for completed rides
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    
-    // Start countdown only for completed rides
     if (ride && ride.status === 'completed') {
       toast.success('Ride completed successfully!');
-      
-      // Start countdown for redirection
-      timer = setInterval(() => {
-        setRedirectCountdown(prev => {
-          const newCount = prev - 1;
-          if (newCount <= 0) {
-            clearInterval(timer!);
-            // Navigate to dashboard after countdown
-            navigate('/driver/dashboard');
-            return 0;
-          }
-          return newCount;
-        });
-      }, 1000);
     }
-    
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [ride?.status, navigate]);
+  }, [ride?.status]);
 
   if (!ride) {
     return (
@@ -590,33 +568,60 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
                       )}
                       
                       <div className="space-y-3 mt-5">
-                        {ride.rating?.driverRating ? (
-                          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 mb-3">
-                            <div className="flex justify-center mb-2">
-                              <div className="flex">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <span key={star} className={`text-2xl ${
-                                    star <= (ride.rating?.driverRating || 0) ? 'text-yellow-400' : 'text-gray-300'
-                                  }`}>★</span>
-                                ))}
+                        {/* Ratings and vehicle/payment info */}
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 text-xs text-left mb-2">
+                          <div className="bg-blue-50 rounded p-2">
+                            <div className="font-semibold text-blue-800 mb-1">My Rating</div>
+                            {ride.rating?.driverRating ? (
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  {[1,2,3,4,5].map(star => (
+                                    <span key={star} className={`text-base ${star <= (ride.rating?.driverRating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
+                                  ))}
+                                  <span className="ml-1">{ride.rating.driverRating}/5</span>
+                                </div>
+                                {ride.rating.driverFeedback && (
+                                  <div className="text-xs text-gray-700 mt-1 italic">"{ride.rating.driverFeedback}"</div>
+                                )}
                               </div>
-                            </div>
-                            <p className="font-medium text-yellow-800">You rated this rider: {ride.rating.driverRating}/5</p>
-                            {ride.rating.driverFeedback && (
-                              <p className="text-sm text-gray-700 mt-2 italic">"{ride.rating.driverFeedback}"</p>
+                            ) : (
+                              <span className="text-gray-400">Not rated</span>
                             )}
                           </div>
-                        ) : (
-                          <Button
-                            onClick={() => {
-                              console.log('Opening rating modal for rider');
-                              setShowRatingModal(true);
-                            }}
-                            className="w-full bg-[#0D22DF] text-white hover:bg-blue-700 py-3 text-base"
-                          >
-                            ⭐ Rate Rider ({ride.rider.name})
-                          </Button>
-                        )}
+                          <div className="bg-green-50 rounded p-2">
+                            <div className="font-semibold text-green-800 mb-1">Rider Rating</div>
+                            {ride.rating?.riderRating ? (
+                              <div>
+                                <div className="flex items-center gap-1">
+                                  {[1,2,3,4,5].map(star => (
+                                    <span key={star} className={`text-base ${star <= (ride.rating?.riderRating || 0) ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
+                                  ))}
+                                  <span className="ml-1">{ride.rating.riderRating}/5</span>
+                                </div>
+                                {ride.rating.riderFeedback && (
+                                  <div className="text-xs text-gray-700 mt-1 italic">"{ride.rating.riderFeedback}"</div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">Not rated</span>
+                            )}
+                          </div>
+                          <div className="bg-gray-50 rounded p-2">
+                            <div className="font-semibold text-gray-800 mb-1">Vehicle / Payment</div>
+                            <div className="text-gray-700">
+                              {ride.paymentMethod ? ride.paymentMethod.charAt(0).toUpperCase() + ride.paymentMethod.slice(1) : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Rating button or summary */}
+                        <Button
+                          onClick={() => {
+                            setShowRatingModal(true);
+                          }}
+                          className="w-full bg-[#0D22DF] text-white hover:bg-blue-700 py-3 text-base"
+                        >
+                          ⭐ {ride.rating?.driverRating ? 'Edit Rating' : 'Rate Rider'} ({ride.rider.name})
+                        </Button>
                         <Button
                           onClick={() => navigate('/driver/dashboard')}
                           variant="outline"
