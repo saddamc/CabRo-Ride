@@ -596,7 +596,7 @@ export default function DriverWallet() {
             </Card>
           </div>
           
-          <Alert className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <Alert className="bg-white dark:bg-white border-gray-200 dark:border-gray-700">
             <AlertTitle>Fleet Service Benefits</AlertTitle>
             <AlertDescription>
               Joining our fleet service provides you with better earning opportunities, priority customer matching, and exclusive promotions.

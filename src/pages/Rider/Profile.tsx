@@ -1,19 +1,33 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
 import { useUpdateProfileMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
-import { Bell, Car, Clock, CreditCard, Edit, Home, MapPin, Save, Star, User, X } from "lucide-react";
+import { useApplyDriverMutation } from "@/redux/features/driver/driver.api";
+import { useGetRideHistoryQuery } from "@/redux/features/ride-api";
+import { Bell, Clock, CreditCard, Edit, Home, MapPin, Save, Star, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function RiderProfile() {
   const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfoQuery(undefined);
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
-  const { toast } = useToast();
-  const [editMode, setEditMode] = useState(false);
+  const [applyDriver, { isLoading: isApplying }] = useApplyDriverMutation();
+  const { data: rideHistory } = useGetRideHistoryQuery({ limit: 100 });
+  const navigate = useNavigate();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -22,6 +36,21 @@ export default function RiderProfile() {
     phone: '',
     address: '',
     emergencyContact: '',
+    isOnline: false,
+  });
+  // Driver application form state
+  const [driverApplicationData, setDriverApplicationData] = useState({
+    vehicleType: 'CAR' as 'CAR' | 'BIKE',
+    vehicleModel: '',
+    vehicleYear: '',
+    vehicleColor: '',
+    licensePlate: '',
+    licenseNumber: '',
+    driverLicense: '',
+    vehicleRegistration: '',
+    insurance: '',
+    experience: '',
+    references: '',
   });
   
   useEffect(() => {
@@ -32,49 +61,20 @@ export default function RiderProfile() {
         phone: userInfo.data.phone || '',
         address: userInfo.data.address || '',
         emergencyContact: userInfo.data.emergencyContact || '',
+        isOnline: userInfo.data.isOnline || false,
       });
     }
   }, [userInfo]);
+
+  // Calculate real stats from ride history
+  const completedRides = rideHistory?.grouped?.completed || [];
+  const totalRides = rideHistory?.total || 0;
+
+  // Calculate average rating from completed rides
+  const averageRating = completedRides.length > 0
+    ? completedRides.reduce((sum: number, ride: any) => sum + (ride.rating?.riderRating || 0), 0) / completedRides.length
+    : 0;
   
-  // Mock data for ride history
-  const mockRideHistory = [
-    {
-      id: 'ride-001',
-      date: '2023-09-24',
-      time: '14:35',
-      from: 'Downtown Office',
-      to: 'Home Address',
-      driver: 'John Smith',
-      vehicleInfo: 'Toyota Camry (ABC-1234)',
-      fare: 24.50,
-      status: 'completed',
-      rating: 5
-    },
-    {
-      id: 'ride-002',
-      date: '2023-09-22',
-      time: '09:15',
-      from: 'Home Address',
-      to: 'Downtown Office',
-      driver: 'Sarah Johnson',
-      vehicleInfo: 'Honda Civic (XYZ-5678)',
-      fare: 22.75,
-      status: 'completed',
-      rating: 4
-    },
-    {
-      id: 'ride-003',
-      date: '2023-09-20',
-      time: '18:45',
-      from: 'Shopping Mall',
-      to: 'Home Address',
-      driver: 'Michael Chen',
-      vehicleInfo: 'Nissan Altima (DEF-9012)',
-      fare: 32.25,
-      status: 'completed',
-      rating: 5
-    },
-  ];
   
   // Mock saved places
   const mockSavedPlaces = [
@@ -94,6 +94,56 @@ export default function RiderProfile() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+  const handleDriverApplicationInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setDriverApplicationData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDriverApplicationSubmit = async () => {
+    try {
+      const applicationData = {
+        licenseNumber: driverApplicationData.licenseNumber,
+        vehicleType: {
+          category: driverApplicationData.vehicleType,
+          make: driverApplicationData.vehicleType, // Using category as make for now - can be improved later
+          model: driverApplicationData.vehicleModel,
+          year: parseInt(driverApplicationData.vehicleYear),
+          plateNumber: driverApplicationData.licensePlate,
+          color: driverApplicationData.vehicleColor,
+        },
+        location: {
+          coordinates: [90.4125, 23.7928] as [number, number], // Default to Gulshan, Dhaka
+          address: "Dhaka, Bangladesh",
+          lastUpdated: new Date(),
+        },
+      };
+
+      await applyDriver(applicationData).unwrap();
+
+      toast.success("Application Submitted!", {
+        description: "Your driver application has been submitted successfully. We'll review it and get back to you soon.",
+      });
+
+      // Reset form
+      setDriverApplicationData({
+        vehicleType: 'CAR',
+        vehicleModel: '',
+        vehicleYear: '',
+        vehicleColor: '',
+        licensePlate: '',
+        licenseNumber: '',
+        driverLicense: '',
+        vehicleRegistration: '',
+        insurance: '',
+        experience: '',
+        references: '',
+      });
+    } catch (error: any) {
+      toast.error("Application Failed", {
+        description: error?.data?.message || "There was an error submitting your application. Please try again.",
+      });
+    }
+  };
   
   const handleSaveProfile = async () => {
     try {
@@ -102,16 +152,13 @@ export default function RiderProfile() {
         _id: userInfo?.data?._id || '',
       };
       await updateProfile(profileData).unwrap();
-      toast({
-        title: "Profile Updated",
+      toast.success("Profile Updated", {
         description: "Your profile has been updated successfully.",
       });
-      setEditMode(false);
+      setIsEditModalOpen(false);
     } catch {
-      toast({
-        title: "Update Failed",
+      toast.error("Update Failed", {
         description: "There was a problem updating your profile.",
-        variant: "destructive",
       });
     }
   };
@@ -125,22 +172,12 @@ export default function RiderProfile() {
       address: userInfo?.data?.address || '',
       emergencyContact: userInfo?.data?.emergencyContact || '',
     });
-    setEditMode(false);
+    setIsEditModalOpen(false);
   };
   
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs">Completed</span>;
-      case 'cancelled':
-        return <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs">Cancelled</span>;
-      default:
-        return <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs">{status}</span>;
-    }
-  };
   
   return (
-    <div className="container mx-auto py-6 bg-white">
+    <div className="container mx-auto py-6 rounded-2xl bg-white">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">My Profile</h1>
         <p className="text-gray-500">Manage your account details and preferences</p>
@@ -168,10 +205,16 @@ export default function RiderProfile() {
                     <h2 className="text-xl font-bold">{userInfo?.data?.name || 'User Name'}</h2>
                     <p className="text-gray-500">{userInfo?.data?.email || 'user@example.com'}</p>
                     
-                    <div className="mt-2 mb-4">
+                    <div className="mt-2 mb-4 space-y-2">
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
                         Rider
                       </span>
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full mr-2 ${userInfo?.data?.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                        <span className="text-xs text-gray-600">
+                          {userInfo?.data?.isOnline ? 'Online' : 'Offline'}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}
@@ -190,12 +233,12 @@ export default function RiderProfile() {
                 <div className="grid grid-cols-2 gap-4 w-full">
                   <div className="bg-gray-50 p-3 rounded-lg text-center">
                     <div className="text-sm text-gray-500 mb-1">Total Rides</div>
-                    <div className="font-medium">42</div>
+                    <div className="font-medium">{totalRides}</div>
                   </div>
                   <div className="bg-primary/10 p-3 rounded-lg text-center">
                     <div className="text-sm text-gray-500 mb-1">Rating</div>
                     <div className="font-medium flex items-center justify-center">
-                      4.9
+                      {averageRating.toFixed(1)}
                       <Star className="h-4 w-4 text-yellow-500 ml-1 fill-current" />
                     </div>
                   </div>
@@ -209,9 +252,9 @@ export default function RiderProfile() {
         <div className="md:col-span-2">
           <Tabs defaultValue="account">
             <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="account">Account</TabsTrigger>
-              <TabsTrigger value="rides">Ride History</TabsTrigger>
-              <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              <TabsTrigger value="account" className="text-blue-600 bg-blue-50 hover:bg-blue-100 data-[state=active]:bg-blue-200 data-[state=active]:text-blue-700">Account</TabsTrigger>
+              <TabsTrigger value="history" className="text-green-600 bg-green-50 hover:bg-green-100 data-[state=active]:bg-green-200 data-[state=active]:text-green-700">Ride History</TabsTrigger>
+              <TabsTrigger value="rides" className="text-purple-600 bg-purple-50 hover:bg-purple-100 data-[state=active]:bg-purple-200 data-[state=active]:text-purple-700">Apply Driver</TabsTrigger>
             </TabsList>
             
             <TabsContent value="account">
@@ -222,49 +265,169 @@ export default function RiderProfile() {
                     <CardDescription>Manage your personal details</CardDescription>
                   </div>
                   {!isUserInfoLoading && (
-                    !editMode ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setEditMode(true)}
-                        className="flex items-center"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit Profile
-                      </Button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={handleCancelEdit}
-                          className="flex items-center"
-                          disabled={isUpdating}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Cancel
+                    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center">
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit Profile
                         </Button>
-                        <Button 
-                          size="sm" 
-                          onClick={handleSaveProfile}
-                          className="flex items-center"
-                          disabled={isUpdating}
-                        >
-                          {isUpdating ? (
-                            <>
-                              <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4 mr-1" />
-                              Save
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )
+                      </DialogTrigger>
+                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700 text-white">
+                        <DialogHeader>
+                          <DialogTitle>Edit Profile</DialogTitle>
+                          <DialogDescription>Update your personal details</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="name">Full Name</Label>
+                              <Input
+                                id="name"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                className="mt-1"
+                                disabled={isUpdating}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="email">Email Address</Label>
+                              <Input
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                className="mt-1"
+                                disabled
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="phone">Phone Number</Label>
+                              <Input
+                                id="phone"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                                className="mt-1"
+                                disabled={isUpdating}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="address">Address</Label>
+                              <Input
+                                id="address"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleInputChange}
+                                className="mt-1"
+                                disabled={isUpdating}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                            <Input
+                              id="emergencyContact"
+                              name="emergencyContact"
+                              value={formData.emergencyContact}
+                              onChange={handleInputChange}
+                              className="mt-1"
+                              placeholder="Name: Contact Number"
+                              disabled={isUpdating}
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="isOnline"
+                              name="isOnline"
+                              checked={formData.isOnline}
+                              onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
+                              disabled={isUpdating}
+                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                            />
+                            <Label htmlFor="isOnline">Set Online Status</Label>
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={handleCancelEdit}
+                              disabled={isUpdating}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleSaveProfile}
+                              disabled={isUpdating}
+                            >
+                              {isUpdating ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Save
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   )}
+        
+                  <Dialog open={isChangePasswordModalOpen} onOpenChange={setIsChangePasswordModalOpen}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Change Password</DialogTitle>
+                        <DialogDescription>Enter your current password and set a new one</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="currentPassword">Current Password</Label>
+                          <Input
+                            id="currentPassword"
+                            name="currentPassword"
+                            type="password"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="newPassword">New Password</Label>
+                          <Input
+                            id="newPassword"
+                            name="newPassword"
+                            type="password"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsChangePasswordModalOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button>
+                            Change Password
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardHeader>
                 <CardContent>
                   {isUserInfoLoading ? (
@@ -295,87 +458,31 @@ export default function RiderProfile() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="name">Full Name</Label>
-                          {editMode ? (
-                            <Input 
-                              id="name" 
-                              name="name"
-                              value={formData.name} 
-                              onChange={handleInputChange} 
-                              className="mt-1"
-                              disabled={isUpdating}
-                            />
-                          ) : (
-                            <div className="p-2 mt-1 bg-gray-50 rounded">{formData.name}</div>
-                          )}
+                          <div className="p-2 mt-1 bg-gray-50 rounded">{formData.name}</div>
                         </div>
                         <div>
                           <Label htmlFor="email">Email Address</Label>
-                          {editMode ? (
-                            <Input 
-                              id="email" 
-                              name="email"
-                              value={formData.email} 
-                              onChange={handleInputChange} 
-                              className="mt-1"
-                              disabled={isUpdating}
-                            />
-                          ) : (
-                            <div className="p-2 mt-1 bg-gray-50 rounded">{formData.email}</div>
-                          )}
+                          <div className="p-2 mt-1 bg-gray-50 rounded">{formData.email}</div>
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="phone">Phone Number</Label>
-                          {editMode ? (
-                            <Input 
-                              id="phone" 
-                              name="phone"
-                              value={formData.phone} 
-                              onChange={handleInputChange} 
-                              className="mt-1"
-                              disabled={isUpdating}
-                            />
-                          ) : (
-                            <div className="p-2 mt-1 bg-gray-50 rounded">{formData.phone || 'Not provided'}</div>
-                          )}
+                          <div className="p-2 mt-1 bg-gray-50 rounded">{formData.phone || 'Not provided'}</div>
                         </div>
                         <div>
                           <Label htmlFor="address">Address</Label>
-                          {editMode ? (
-                            <Input 
-                              id="address" 
-                              name="address"
-                              value={formData.address} 
-                              onChange={handleInputChange} 
-                              className="mt-1"
-                              disabled={isUpdating}
-                            />
-                          ) : (
-                            <div className="p-2 mt-1 bg-gray-50 rounded">{formData.address || 'Not provided'}</div>
-                          )}
+                          <div className="p-2 mt-1 bg-gray-50 rounded">{formData.address || 'Not provided'}</div>
                         </div>
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                        {editMode ? (
-                          <Input 
-                            id="emergencyContact" 
-                            name="emergencyContact"
-                            value={formData.emergencyContact} 
-                            onChange={handleInputChange} 
-                            className="mt-1"
-                            placeholder="Name: Contact Number"
-                            disabled={isUpdating}
-                          />
-                        ) : (
-                          <div className="p-2 mt-1 bg-gray-50 rounded">
-                            {formData.emergencyContact || 'Not provided'}
-                          </div>
-                        )}
-                        {!editMode && !formData.emergencyContact && (
+                        <div className="p-2 mt-1 bg-gray-50 rounded">
+                          {formData.emergencyContact || 'Not provided'}
+                        </div>
+                        {!formData.emergencyContact && (
                           <p className="text-xs text-amber-600 mt-1">
                             Adding an emergency contact is recommended for your safety
                           </p>
@@ -392,7 +499,7 @@ export default function RiderProfile() {
                               <h4 className="font-medium">Password</h4>
                               <p className="text-sm text-gray-500">Last changed 30 days ago</p>
                             </div>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => setIsChangePasswordModalOpen(true)}>
                               Change Password
                             </Button>
                           </div>
@@ -413,68 +520,230 @@ export default function RiderProfile() {
                 </CardContent>
               </Card>
             </TabsContent>
-            
-            <TabsContent value="rides">
+
+            <TabsContent value="history">
               <Card className="border-0 shadow-sm">
                 <CardHeader>
                   <CardTitle>Ride History</CardTitle>
-                  <CardDescription>Your recent rides and trips</CardDescription>
+                  <CardDescription>View your past rides and ratings</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {mockRideHistory.map((ride) => (
-                      <div key={ride.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
+                  {completedRides.length > 0 ? (
+                    <div className="space-y-4">
+                      {completedRides.slice(0, 3).map((ride: any) => (
+                        <div key={ride._id} className="flex items-center justify-between p-4 border rounded-lg">
                           <div>
-                            <div className="font-medium">{ride.date} • {ride.time}</div>
-                            <div className="flex items-center gap-1 text-sm">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star key={i} 
-                                  className={`h-3 w-3 ${i < ride.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
-                                />
-                              ))}
-                              <span className="text-gray-500 ml-1">({ride.rating}/5)</span>
-                            </div>
+                            <div className="font-medium">{new Date(ride.createdAt).toLocaleDateString()}</div>
+                            <div className="text-sm text-gray-500">{ride.distance?.estimated?.toFixed(1)} km • ৳{ride.fare?.totalFare?.toFixed(2)}</div>
                           </div>
-                          <div>
-                            {getStatusBadge(ride.status)}
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/rider/details-history/${ride._id}`)}
+                          >
+                            View Details
+                          </Button>
                         </div>
-                        
-                        <div className="flex gap-4 mb-4">
-                          <div className="flex flex-col items-center">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            <div className="w-0.5 h-12 bg-gray-200"></div>
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                          </div>
-                          <div className="flex-1 space-y-3">
-                            <div>
-                              <div className="text-sm text-gray-500">From</div>
-                              <div>{ride.from}</div>
-                            </div>
-                            <div>
-                              <div className="text-sm text-gray-500">To</div>
-                              <div>{ride.to}</div>
-                            </div>
-                          </div>
+                      ))}
+                      <div className="text-center pt-4">
+                        <Button variant="outline" onClick={() => navigate('/rider/history')}>
+                          View All Rides
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-600 mb-4">No rides completed yet.</p>
+                      <Button onClick={() => navigate('/rider/history')}>
+                        View Ride History
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="rides">
+              <Card className="border-0 shadow-sm bg-purple-50">
+                <CardHeader>
+                  <CardTitle>Apply to Become a Driver</CardTitle>
+                  <CardDescription>Fill out the form below to apply for a driver position</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={(e) => { e.preventDefault(); handleDriverApplicationSubmit(); }} className="space-y-6">
+                    {/* Vehicle Information Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold border-b pb-2">Vehicle Information</h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="driver-vehicleType">Vehicle Type *</Label>
+                          <select
+                            id="driver-vehicleType"
+                            name="vehicleType"
+                            value={driverApplicationData.vehicleType}
+                            onChange={handleDriverApplicationInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            required
+                          >
+                            <option value="CAR">Car</option>
+                            <option value="BIKE">Bike</option>
+                          </select>
                         </div>
-                        
-                        <div className="flex justify-between pt-3 border-t text-sm">
-                          <div className="flex items-center gap-2">
-                            <Car className="h-4 w-4 text-gray-500" />
-                            <span>{ride.vehicleInfo}</span>
-                          </div>
-                          <div className="font-medium">
-                            ${ride.fare.toFixed(2)}
-                          </div>
+
+                        <div>
+                          <Label htmlFor="driver-vehicleModel">Vehicle Model *</Label>
+                          <Input
+                            id="driver-vehicleModel"
+                            name="vehicleModel"
+                            value={driverApplicationData.vehicleModel}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="e.g., Camry"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="driver-vehicleYear">Vehicle Year *</Label>
+                          <Input
+                            id="driver-vehicleYear"
+                            name="vehicleYear"
+                            value={driverApplicationData.vehicleYear}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="e.g., 2020"
+                            type="number"
+                            min="1990"
+                            max={new Date().getFullYear() + 1}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="driver-vehicleColor">Vehicle Color *</Label>
+                          <Input
+                            id="driver-vehicleColor"
+                            name="vehicleColor"
+                            value={driverApplicationData.vehicleColor}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="e.g., White"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="driver-licenseNumber">License Number *</Label>
+                          <Input
+                            id="driver-licenseNumber"
+                            name="licenseNumber"
+                            value={driverApplicationData.licenseNumber}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="POI655555"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="driver-licensePlate">Number Plate *</Label>
+                          <Input
+                            id="driver-licensePlate"
+                            name="licensePlate"
+                            value={driverApplicationData.licensePlate}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="e.g., ABC-1234"
+                            required
+                          />
                         </div>
                       </div>
-                    ))}
-                    
-                    <div className="flex justify-center">
-                      <Button variant="outline">View All Rides</Button>
                     </div>
-                  </div>
+
+                    {/* Documents Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold border-b pb-2">Required Documents</h3>
+                      <p className="text-sm text-gray-600">Please provide links or upload your documents</p>
+
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="driver-driverLicense">Driver's License *</Label>
+                          <Input
+                            id="driver-driverLicense"
+                            name="driverLicense"
+                            value={driverApplicationData.driverLicense}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="Upload or enter document URL"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="driver-vehicleRegistration">Vehicle Registration *</Label>
+                          <Input
+                            id="driver-vehicleRegistration"
+                            name="vehicleRegistration"
+                            value={driverApplicationData.vehicleRegistration}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="Upload or enter document URL"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="driver-insurance">Insurance Document *</Label>
+                          <Input
+                            id="driver-insurance"
+                            name="insurance"
+                            value={driverApplicationData.insurance}
+                            onChange={handleDriverApplicationInputChange}
+                            placeholder="Upload or enter document URL"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Additional Information Section */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold border-b pb-2">Additional Information</h3>
+
+                      <div>
+                        <Label htmlFor="driver-experience">Driving Experience (Optional)</Label>
+                        <textarea
+                          id="driver-experience"
+                          name="experience"
+                          value={driverApplicationData.experience}
+                          onChange={handleDriverApplicationInputChange}
+                          placeholder="Describe your driving experience, years of service, etc."
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="driver-references">References (Optional)</Label>
+                        <textarea
+                          id="driver-references"
+                          name="references"
+                          value={driverApplicationData.references}
+                          onChange={handleDriverApplicationInputChange}
+                          placeholder="Contact information for professional references"
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button type="submit" className="bg-blue-500 hover:bg-blue-600 cursor-pointer" disabled={isApplying}>
+                        {isApplying ? (
+                          <>
+                            <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                            Submitting...
+                          </>
+                        ) : (
+                          "Submit Application"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
                 </CardContent>
               </Card>
             </TabsContent>

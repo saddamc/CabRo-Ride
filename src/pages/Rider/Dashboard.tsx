@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { useGetActiveRideQuery, useGetCurrentLocationQuery, useGetRideHistoryQuery } from "@/redux/features/rides/ride.api";
-import { Calendar, Car, Clock, DollarSign, Eye, Mail, MapPin, Phone, Shield, Star, User } from "lucide-react";
-import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Calendar, Car, Clock, DollarSign, Mail, MapPin, Phone, Shield, Star, User } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 export default function RiderDashboard() {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: activeRide, isLoading: isLoadingRide } = useGetActiveRideQuery();
   const { data: currentLocation, isLoading: isLoadingLocation } = useGetCurrentLocationQuery();
   const { data: rideHistory, refetch: refetchHistory } = useGetRideHistoryQuery({ limit: 100 });
+
+  // Driver application modal state
+  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
 
   // Auto-refetch ride history on mount and every 30 seconds
   const refetchInterval = useRef<NodeJS.Timeout | null>(null);
@@ -316,13 +318,20 @@ export default function RiderDashboard() {
       {/* Recent Rides */}
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Recent Rides</CardTitle>
-            <CardDescription>Your most recent journeys</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/rider/history">View All</Link>
-          </Button>
+          {/* <div>
+            <CardTitle>Driver Application</CardTitle>
+            <CardDescription>Apply to become a driver and start earning</CardDescription>
+          </div> */}
+          {/* apply Now Button */}
+          {/* <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDriverModalOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Apply Now
+          </Button> */}
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -404,16 +413,16 @@ export default function RiderDashboard() {
                         </div>
                       </div>
 
-                      {/* Action Button */}
-                      <Button 
+                      {/* Action Button - Apply for Driver */}
+                      {/* <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.location.href = `/rider/details-history/${ride._id}`}
+                        onClick={() => setIsDriverModalOpen(true)}
                         className="flex items-center gap-1"
                       >
-                        <Eye className="h-3 w-3" />
-                        Details
-                      </Button>
+                        <UserPlus className="h-3 w-3" />
+                        Apply Driver
+                      </Button> */}
                     </div>
                   </div>
                 </CardContent>
@@ -454,6 +463,12 @@ export default function RiderDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Driver Application Modal */}
+      {/* <DriverApplicationModal
+        isOpen={isDriverModalOpen}
+        onClose={() => setIsDriverModalOpen(false)}
+      /> */}
     </div>
   );
 }

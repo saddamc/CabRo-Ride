@@ -7,7 +7,21 @@ export interface IVerifyOtp {
 }
 
 export interface ILogin {
-    email: string, 
+    email: string,
     password: string
+}
+
+export interface IUser {
+    _id?: string;
+    id?: string;
+    name: string;
+    email: string;
+    phone?: string;
+    address?: string;
+    emergencyContact?: string;
+    status?: string;
+    isOnline?: boolean;
+    createdAt?: string;
+    role?: string;
 }
 

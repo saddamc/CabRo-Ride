@@ -5,15 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { useUpdateProfileMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
+import { useGetAllUsersQuery, useUpdateUserMutation } from "@/redux/features/auth/User/user.api";
 import { Edit, Save, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AdminProfile() {
-  const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfoQuery(undefined);
-  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const { data: users, isLoading: isUsersLoading } = useGetAllUsersQuery({ role: 'admin' });
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const { toast } = useToast();
   const [editMode, setEditMode] = useState(false);
+
+  // Assume only one admin user (the first in the list)
+  const adminUser = users && users.length > 0 ? users[0] : null;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -23,14 +26,14 @@ export default function AdminProfile() {
   });
 
   useEffect(() => {
-    if (userInfo?.data) {
+    if (adminUser) {
       setFormData({
-        name: userInfo.data.name || '',
-        email: userInfo.data.email || '',
-        phone: userInfo.data.phone || '',
+        name: adminUser.name || '',
+        email: adminUser.email || '',
+        phone: adminUser.phone || '',
       });
     }
-  }, [userInfo]);
+  }, [adminUser]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,11 +42,8 @@ export default function AdminProfile() {
 
   const handleSaveProfile = async () => {
     try {
-      const profileData = {
-        ...formData,
-        _id: userInfo?.data?._id || '',
-      };
-      await updateProfile(profileData).unwrap();
+      if (!adminUser) return;
+      await updateUser({ id: adminUser.id, data: formData }).unwrap();
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
@@ -60,11 +60,13 @@ export default function AdminProfile() {
 
   const handleCancelEdit = () => {
     // Reset form data
-    setFormData({
-      name: userInfo?.data?.name || '',
-      email: userInfo?.data?.email || '',
-      phone: userInfo?.data?.phone || '',
-    });
+    if (adminUser) {
+      setFormData({
+        name: adminUser.name || '',
+        email: adminUser.email || '',
+        phone: adminUser.phone || '',
+      });
+    }
     setEditMode(false);
   };
 
@@ -81,7 +83,7 @@ export default function AdminProfile() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6">
               <div className="flex flex-col items-center">
-                {isUserInfoLoading ? (
+                {isUsersLoading ? (
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                       <div className="h-10 w-10 animate-spin rounded-full border-4 border-t-transparent border-primary"></div>
@@ -94,8 +96,8 @@ export default function AdminProfile() {
                     <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                       <User className="h-12 w-12 text-primary" />
                     </div>
-                    <h2 className="text-xl font-bold">{userInfo?.data?.name || 'Admin Name'}</h2>
-                    <p className="text-gray-500">{userInfo?.data?.email || 'admin@example.com'}</p>
+                    <h2 className="text-xl font-bold">{adminUser?.name || 'Admin Name'}</h2>
+                    <p className="text-gray-500">{adminUser?.email || 'admin@example.com'}</p>
 
                     <div className="mt-2 mb-4">
                       <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs">
@@ -109,8 +111,8 @@ export default function AdminProfile() {
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <div className="text-sm text-gray-500 mb-1">Member Since</div>
                     <div className="font-medium">
-                      {userInfo?.data?.createdAt
-                        ? new Date(userInfo.data.createdAt).toLocaleDateString()
+                      {adminUser?.createdAt
+                        ? new Date(adminUser.createdAt).toLocaleDateString()
                         : 'August 2023'}
                     </div>
                   </div>
@@ -135,7 +137,7 @@ export default function AdminProfile() {
                     <CardTitle>Account Information</CardTitle>
                     <CardDescription>Manage your personal details</CardDescription>
                   </div>
-                  {!isUserInfoLoading && (
+                  {!isUsersLoading && (
                     !editMode ? (
                       <Button
                         variant="outline"
@@ -181,7 +183,7 @@ export default function AdminProfile() {
                   )}
                 </CardHeader>
                 <CardContent>
-                  {isUserInfoLoading ? (
+                  {isUsersLoading ? (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

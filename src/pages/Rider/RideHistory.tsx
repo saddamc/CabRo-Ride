@@ -60,10 +60,10 @@ export default function RideHistory() {
   const rides = sortedRides.slice(startIndex, endIndex);
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 bg-white text-black">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Ride History</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
+        <p className="text-black dark:text-black mt-2">
           View your past rides and receipts
         </p>
       </div>
@@ -72,36 +72,36 @@ export default function RideHistory() {
         {/* Total Rides - Blue */}
         <Card className="bg-blue-50 border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800">Total Rides</CardTitle>
-            <Clock className="h-4 w-4 text-blue-400" />
+            <CardTitle className="text-sm font-medium text-black">Total Rides</CardTitle>
+            <Clock className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{totalRides}</div>
-            <p className="text-xs text-blue-600">All time</p>
+            <div className="text-2xl font-bold text-black">{totalRides}</div>
+            <p className="text-xs text-black">All time</p>
           </CardContent>
         </Card>
 
         {/* Total Distance - Green */}
         <Card className="bg-green-50 border-green-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">Total Distance</CardTitle>
-            <MapPin className="h-4 w-4 text-green-400" />
+            <CardTitle className="text-sm font-medium text-black">Total Distance</CardTitle>
+            <MapPin className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{totalDistance.toFixed(1)} km</div>
-            <p className="text-xs text-green-600">All time</p>
+            <div className="text-2xl font-bold text-black">{totalDistance.toFixed(1)} km</div>
+            <p className="text-xs text-black">All time</p>
           </CardContent>
         </Card>
 
         {/* Total Spent - Yellow */}
         <Card className="bg-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-800">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-yellow-400" />
+            <CardTitle className="text-sm font-medium text-black">Total Spent</CardTitle>
+            <DollarSign className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">৳{totalSpent.toFixed(2)}</div>
-            <p className="text-xs text-yellow-600">All time</p>
+            <div className="text-2xl font-bold text-black">৳{totalSpent.toFixed(2)}</div>
+            <p className="text-xs text-black">All time</p>
           </CardContent>
         </Card>
       </div>
@@ -125,7 +125,7 @@ export default function RideHistory() {
                   {/* Rating Priority Indicator */}
                   {needsRating && (
                     <div className="absolute top-2 right-2">
-                      <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+                      <Badge variant="outline" className="bg-orange-100 text-black border-orange-300">
                         <AlertCircle className="h-3 w-3 mr-1" />
                         Needs Rating
                       </Badge>
@@ -140,7 +140,7 @@ export default function RideHistory() {
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-full bg-primary/10">
-                              <Calendar className="h-4 w-4 text-primary" />
+                              <Calendar className="h-4 w-4 text-black" />
                             </div>
                             <div>
                               <div className="font-semibold text-sm">
@@ -150,7 +150,7 @@ export default function RideHistory() {
                                   day: 'numeric'
                                 })}
                               </div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1">
+                              <div className="text-xs text-black flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {new Date(ride.createdAt).toLocaleTimeString([], {
                                   hour: '2-digit',
@@ -160,9 +160,9 @@ export default function RideHistory() {
                             </div>
                           </div>
                           <Badge className={`${
-                            ride.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            ride.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
+                            ride.status === 'completed' ? 'bg-green-100 text-black' :
+                            ride.status === 'cancelled' ? 'bg-red-100 text-black' :
+                            'bg-yellow-100 text-black'
                           }`}>
                             {ride.status.replace('_', ' ')}
                           </Badge>
@@ -172,22 +172,22 @@ export default function RideHistory() {
                         <div className="flex items-start gap-3">
                           <div className="flex flex-col items-center">
                             <div className="rounded-full p-1.5 bg-green-100">
-                              <MapPin className="h-3 w-3 text-green-600" />
+                              <MapPin className="h-3 w-3 text-black" />
                             </div>
                             <div className="w-0.5 h-6 bg-gray-300 my-1"></div>
                             <div className="rounded-full p-1.5 bg-red-100">
-                              <MapPin className="h-3 w-3 text-red-500" />
+                              <MapPin className="h-3 w-3 text-black" />
                             </div>
                           </div>
                           <div className="flex-1 space-y-1">
                             <div>
-                              <span className="text-xs text-gray-500 block">From</span>
+                              <span className="text-xs text-black block">From</span>
                               <span className="text-sm font-medium truncate block">
                                 {ride.pickupLocation?.address || 'N/A'}
                               </span>
                             </div>
                             <div>
-                              <span className="text-xs text-gray-500 block">To</span>
+                              <span className="text-xs text-black block">To</span>
                               <span className="text-sm font-medium truncate block">
                                 {ride.destinationLocation?.address || 'N/A'}
                               </span>
@@ -198,11 +198,11 @@ export default function RideHistory() {
                         {/* Driver & Vehicle Info */}
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-500 block">Driver</span>
+                            <span className="text-black block">Driver</span>
                             <span className="font-medium">{ride.driver?.user?.name || 'N/A'}</span>
                           </div>
                           <div>
-                            <span className="text-gray-500 block">Vehicle</span>
+                            <span className="text-black block">Vehicle</span>
                             <span className="font-medium text-xs">
                               {ride.driver?.vehicle?.make} {ride.driver?.vehicle?.model}
                             </span>
@@ -214,10 +214,10 @@ export default function RideHistory() {
                       <div className="flex flex-col items-end gap-3 lg:min-w-[200px]">
                         {/* Fare */}
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-primary">
+                          <div className="text-2xl font-bold text-black">
                             ৳{ride.fare?.totalFare?.toFixed(2) || '0.00'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-black">
                             {ride.distance?.estimated?.toFixed(1)} km
                           </div>
                         </div>
@@ -225,7 +225,7 @@ export default function RideHistory() {
                         {/* Rating Display */}
                         {hasRating && (
                           <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <Star className="h-3 w-3 fill-yellow-400 text-black" />
                             <span className="text-xs font-medium">{ride.rating?.riderRating}/5</span>
                           </div>
                         )}
@@ -254,8 +254,8 @@ export default function RideHistory() {
                               })}
                               className={`flex items-center gap-1 ${
                                 needsRating
-                                  ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                  ? 'bg-orange-600 hover:bg-orange-700 text-black'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-black'
                               }`}
                             >
                               <Star className="h-3 w-3" />
@@ -266,7 +266,7 @@ export default function RideHistory() {
 
                         {/* Priority Message for Recent Unrated Rides */}
                         {needsRating && isCompletedRecently && (
-                          <div className="text-xs text-orange-700 bg-orange-100 px-2 py-1 rounded-md text-center">
+                          <div className="text-xs text-black bg-orange-100 px-2 py-1 rounded-md text-center">
                             ⭐ Please rate your driver to help improve service!
                           </div>
                         )}
@@ -278,10 +278,10 @@ export default function RideHistory() {
             }) : (
               <div className="text-center py-12">
                 <div className="p-4 bg-gray-100 inline-block rounded-full mb-4">
-                  <MapPin className="h-8 w-8 text-gray-400" />
+                  <MapPin className="h-8 w-8 text-black" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No rides yet</h3>
-                <p className="text-gray-500">Your ride history will appear here once you complete your first ride.</p>
+                <h3 className="text-lg font-medium text-black mb-2">No rides yet</h3>
+                <p className="text-black">Your ride history will appear here once you complete your first ride.</p>
               </div>
             )}
 

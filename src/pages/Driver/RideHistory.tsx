@@ -2,91 +2,27 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import RatingModal from "@/components/ui/RatingModal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGetMyRidesQuery, type IRide } from "@/redux/features/ride-api";
 import { Calendar, Car, Clock, FileClock, MapPin, Route, User } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function DriverRideHistory() {
   const [filterStatus, setFilterStatus] = useState("all");
-  
-  // Mock ride history data
-  const rideHistory = [
-    {
-      id: "RID-12345",
-      date: "2023-09-15T14:30:00",
-      rider: "John Smith",
-      pickup: "123 Main Street",
-      destination: "Airport Terminal B",
-      distance: "18.5 miles",
-      duration: "45 mins",
-      fare: 42.75,
-      status: "completed",
-      rating: 5
-    },
-    {
-      id: "RID-12344",
-      date: "2023-09-14T09:15:00",
-      rider: "Emily Johnson",
-      pickup: "Central Station",
-      destination: "Business District",
-      distance: "7.2 miles",
-      duration: "22 mins",
-      fare: 18.50,
-      status: "completed",
-      rating: 4
-    },
-    {
-      id: "RID-12343",
-      date: "2023-09-13T16:45:00",
-      rider: "Michael Brown",
-      pickup: "Shopping Mall",
-      destination: "Westside Apartments",
-      distance: "10.4 miles",
-      duration: "30 mins",
-      fare: 24.30,
-      status: "completed",
-      rating: 5
-    },
-    {
-      id: "RID-12342",
-      date: "2023-09-12T20:10:00",
-      rider: "Jessica Williams",
-      pickup: "Restaurant Row",
-      destination: "Highland Residences",
-      distance: "5.8 miles",
-      duration: "18 mins",
-      fare: 15.75,
-      status: "cancelled",
-      cancellationReason: "Rider no-show"
-    },
-    {
-      id: "RID-12341",
-      date: "2023-09-11T11:30:00",
-      rider: "David Miller",
-      pickup: "Medical Center",
-      destination: "University Campus",
-      distance: "3.2 miles",
-      duration: "12 mins",
-      fare: 9.80,
-      status: "completed",
-      rating: 5
-    },
-    {
-      id: "RID-12340",
-      date: "2023-09-10T08:00:00",
-      rider: "Sarah Davis",
-      pickup: "Sunrise Apartments",
-      destination: "Downtown Office Tower",
-      distance: "8.9 miles",
-      duration: "25 mins",
-      fare: 21.45,
-      status: "cancelled",
-      cancellationReason: "Driver cancelled - vehicle issue"
-    }
-  ];
+  const [ratingModal, setRatingModal] = useState<{ open: boolean; rideId: string | null; targetName: string }>({ open: false, rideId: null, targetName: "" });
+  const [refreshKey, setRefreshKey] = useState(0);
+  const navigate = useNavigate();
+
+  // Use real API data
+  const { data: rideHistoryData, isLoading } = useGetMyRidesQuery({ limit: 100, refreshKey });
+
+  // Get all rides from the response
+  const rideHistory: IRide[] = rideHistoryData?.rides || [];
 
   // Filter rides based on status
-  const filteredRides = filterStatus === "all" 
+  const filteredRides: IRide[] = filterStatus === "all"
     ? rideHistory
     : rideHistory.filter(ride => ride.status === filterStatus);
 
@@ -107,71 +43,79 @@ export default function DriverRideHistory() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">{status}</Badge>;
+        return <Badge className="bg-green-100 text-black dark:bg-green-900/30 dark:text-black hover:bg-green-100">{status}</Badge>;
       case "cancelled":
-        return <Badge variant="outline" className="text-red-500 border-red-200 dark:border-red-800">{status}</Badge>;
+        return <Badge variant="outline" className="text-black border-red-200 dark:border-red-800">{status}</Badge>;
       case "in-progress":
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100">{status}</Badge>;
+        return <Badge className="bg-blue-100 text-black dark:bg-blue-900/30 dark:text-black hover:bg-blue-100">{status}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center">
+          <div className="h-12 w-12 border-b-2 border-primary mx-auto mb-4 animate-spin rounded-full"></div>
+          <p>Loading ride history...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 bg-white rounded-2xl text-black">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Ride History</h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
+        <p className="text-black dark:text-black mt-2">
           View details of all your past rides
         </p>
       </div>
-      
+
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Ride Statistics</CardTitle>
-          <CardDescription>Your riding activity summary</CardDescription>
+          <CardDescription>Your driving activity summary</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-primary/10 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Car className="h-5 w-5 text-primary" />
+                <Car className="h-5 w-5 text-black" />
                 <span className="text-sm font-medium">Total Rides</span>
               </div>
               <p className="text-2xl font-bold">{rideHistory.filter(ride => ride.status === "completed").length}</p>
             </div>
-            
+
             <div className="bg-green-100 dark:bg-green-900/20 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Route className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <Route className="h-5 w-5 text-black dark:text-black" />
                 <span className="text-sm font-medium">Total Distance</span>
               </div>
               <p className="text-2xl font-bold">
                 {rideHistory
                   .filter(ride => ride.status === "completed")
-                  .reduce((acc, ride) => acc + parseFloat(ride.distance), 0)
-                  .toFixed(1)} miles
+                  .reduce((acc, ride) => acc + (ride.distance?.actual || 0), 0)
+                  .toFixed(1)} km
               </p>
             </div>
-            
+
             <div className="bg-blue-100 dark:bg-blue-900/20 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <Clock className="h-5 w-5 text-black dark:text-black" />
                 <span className="text-sm font-medium">Driving Time</span>
               </div>
               <p className="text-2xl font-bold">
                 {Math.floor(rideHistory
                   .filter(ride => ride.status === "completed")
-                  .reduce((acc, ride) => {
-                    const [hours, mins] = ride.duration.split(' ')[0].split(':');
-                    return acc + (hours ? parseInt(hours) * 60 : 0) + parseInt(mins || '0');
-                  }, 0) / 60)} hrs
+                  .reduce((acc, ride) => acc + (ride.duration?.actual || 0), 0) / 60)} hrs
               </p>
             </div>
-            
+
             <div className="bg-yellow-100 dark:bg-yellow-900/20 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <FileClock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                <FileClock className="h-5 w-5 text-black dark:text-black" />
                 <span className="text-sm font-medium">Cancellations</span>
               </div>
               <p className="text-2xl font-bold">{rideHistory.filter(ride => ride.status === "cancelled").length}</p>
@@ -179,7 +123,7 @@ export default function DriverRideHistory() {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Your Rides</CardTitle>
@@ -200,92 +144,100 @@ export default function DriverRideHistory() {
           {filteredRides.length > 0 ? (
             <div className="space-y-6">
               {filteredRides.map((ride) => (
-                <div 
-                  key={ride.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                <div
+                  key={ride._id}
+                  className={`border border-gray-200 dark:border-gray-800 rounded-xl p-4 ${
+                    ride.status === 'completed' ? 'bg-green-50 dark:bg-green-900/10' :
+                    ride.status === 'cancelled' ? 'bg-red-50 dark:bg-red-900/10' :
+                    ride.status === 'in-progress' ? 'bg-blue-50 dark:bg-blue-900/10' :
+                    'bg-white dark:bg-neutral-900'
+                  }`}
                 >
                   <div className="flex flex-wrap md:flex-nowrap gap-4">
                     <div className="w-full md:w-1/4">
                       <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{formatDate(ride.date)}</span>
+                        <Calendar className="h-4 w-4 text-black" />
+                        <span className="font-medium">{formatDate(ride.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-2 mb-3">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span>{ride.rider}</span>
+                        <User className="h-4 w-4 text-black" />
+                        <span>{ride.rider.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(ride.status)}
-                        <span className="text-sm text-gray-500">{ride.id}</span>
+                        <span className="text-sm text-black">{ride._id.slice(-8)}</span>
                       </div>
                     </div>
-                    
+
                     <div className="w-full md:w-2/4">
                       <div className="flex items-start gap-3 mb-4">
                         <div className="flex flex-col items-center">
                           <div className="rounded-full p-1.5 bg-primary/10">
-                            <MapPin className="h-3 w-3 text-primary" />
+                            <MapPin className="h-3 w-3 text-black" />
                           </div>
                           <div className="w-0.5 h-8 bg-gray-200 dark:bg-gray-700 my-1"></div>
                           <div className="rounded-full p-1.5 bg-red-100 dark:bg-red-900/20">
-                            <MapPin className="h-3 w-3 text-red-500 dark:text-red-400" />
+                            <MapPin className="h-3 w-3 text-black dark:text-black" />
                           </div>
                         </div>
                         <div className="flex-1">
                           <div className="mb-2">
-                            <div className="text-sm text-gray-500">Pickup</div>
-                            <div className="font-medium">{ride.pickup}</div>
+                            <div className="text-sm text-black">Pickup</div>
+                            <div className="font-medium">{ride.pickupLocation.address}</div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-500">Destination</div>
-                            <div className="font-medium">{ride.destination}</div>
+                            <div className="text-sm text-black">Destination</div>
+                            <div className="font-medium">{ride.destinationLocation.address}</div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="w-full md:w-1/4">
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Distance</span>
-                          <span className="font-medium">{ride.distance}</span>
+                          <span className="text-black">Distance</span>
+                          <span className="font-medium">{ride.distance?.actual?.toFixed(1)} km</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Duration</span>
-                          <span className="font-medium">{ride.duration}</span>
+                          <span className="text-black">Duration</span>
+                          <span className="font-medium">{ride.duration?.actual ? `${Math.round(ride.duration.actual)} min` : 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-500">Fare</span>
-                          <span className="font-medium text-primary">${ride.fare.toFixed(2)}</span>
+                          <span className="text-black">Earnings</span>
+                          <span className="font-medium text-black">৳{ride.fare?.totalFare?.toFixed(2)}</span>
                         </div>
-                        {ride.status === "completed" && ride.rating && (
+                        {ride.status === "completed" && ride.rating?.riderRating && (
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Rating</span>
-                            <div className="flex items-center">
+                            <span className="text-black">Rider Rating</span>
+                            <button
+                              className="flex items-center group cursor-pointer"
+                              title="Click to rate again or leave a comment"
+                              onClick={() => setRatingModal({ open: true, rideId: ride._id, targetName: ride.rider.name })}
+                            >
                               {Array(5).fill(0).map((_, i) => (
-                                <svg 
+                                <svg
                                   key={i}
-                                  className={`w-4 h-4 ${i < ride.rating ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
-                                  xmlns="http://www.w3.org/2000/svg" 
+                                  className={`w-4 h-4 transition-colors ${i < (ride.rating?.riderRating || 0) ? 'text-black fill-current' : 'text-black dark:text-black group-hover:text-black'}`}
+                                  xmlns="http://www.w3.org/2000/svg"
                                   viewBox="0 0 24 24"
                                 >
                                   <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
                               ))}
-                            </div>
-                          </div>
-                        )}
-                        {ride.status === "cancelled" && ride.cancellationReason && (
-                          <div className="pt-1">
-                            <span className="text-sm text-red-500">{ride.cancellationReason}</span>
+                            </button>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/driver/ride-details/${ride._id}`)}
+                    >
                       View Details
                     </Button>
                   </div>
@@ -294,7 +246,7 @@ export default function DriverRideHistory() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">No rides found matching your filter</p>
+              <p className="text-black dark:text-black mb-4">No rides found matching your filter</p>
               <Button variant="outline" onClick={() => setFilterStatus("all")}>
                 Show All Rides
               </Button>
@@ -305,7 +257,7 @@ export default function DriverRideHistory() {
           <Button variant="outline" disabled>
             Previous
           </Button>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-black">
             Showing {filteredRides.length} of {rideHistory.length} rides
           </div>
           <Button variant="outline" disabled>
@@ -313,7 +265,7 @@ export default function DriverRideHistory() {
           </Button>
         </CardFooter>
       </Card>
-      
+
       {filterStatus === "all" && (
         <Alert className="mt-6">
           <FileClock className="h-4 w-4" />
@@ -326,6 +278,18 @@ export default function DriverRideHistory() {
           </AlertDescription>
         </Alert>
       )}
+      {/* Rating Modal for re-rating or leaving a comment */}
+      <RatingModal
+        isOpen={ratingModal.open}
+        onClose={() => setRatingModal({ open: false, rideId: null, targetName: "" })}
+        rideId={ratingModal.rideId || ""}
+        rideStatus="completed"
+        userRole="driver"
+        targetName={ratingModal.targetName}
+        onRatingComplete={() => {
+          setRefreshKey((k) => k + 1);
+        }}
+      />
     </div>
   );
 }

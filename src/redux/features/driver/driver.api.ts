@@ -4,20 +4,20 @@ import { baseApi } from "@/redux/baseApi";
 import type { IResponse } from "@/types";
 
 export interface IDriverApplication {
-  vehicleInfo: {
+  licenseNumber: string;
+  vehicleType: {
+    category: 'CAR' | 'BIKE';
     make: string;
     model: string;
-    year: string;
-    color: string;
-    licensePlate: string;
+    year: number;
+    plateNumber: string;
+    color?: string;
   };
-  documents: {
-    driverLicense: string;
-    vehicleRegistration: string;
-    insurance: string;
+  location: {
+    coordinates: [number, number];
+    address?: string;
+    lastUpdated?: Date;
   };
-  experience?: string;
-  references?: string[];
 }
 
 export interface IDriverProfile {
@@ -93,23 +93,17 @@ export interface IDriverDashboard {
 
 export interface IDriverEarnings {
   totalEarnings: number;
-  monthlyEarnings: number;
-  weeklyEarnings: number;
-  dailyEarnings: number;
-  ridesCount: number;
-  breakdown: {
-    baseFare: number;
-    distanceFare: number;
-    timeFare: number;
-    tips: number;
-    bonuses: number;
-  };
-  recentRides: {
-    _id: string;
-    date: string;
-    fare: number;
-    distance: number;
-    duration: number;
+  totalTrips: number;
+  todayEarnings: number;
+  completedToday: number;
+  averageRating: number | null;
+  totalCompletedRides: number;
+  ratedRides: number;
+  history: {
+    amount: number;
+    createdAt: string;
+    rideId: any;
+    transactionId: string;
   }[];
 }
 
@@ -164,12 +158,12 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Get driver earnings
-    getDriverEarnings: builder.query<IDriverDashboard, void>({
+    getDriverEarnings: builder.query<IDriverEarnings, void>({
       query: () => ({
         url: "/drivers/earnings",
         method: "GET",
       }),
-      transformResponse: (response: IResponse<IDriverDashboard>) => response.data,
+      transformResponse: (response: IResponse<IDriverEarnings>) => response.data,
       providesTags: ["DRIVER"],
     }),
 
@@ -197,6 +191,16 @@ export const driverApi = baseApi.injectEndpoints({
     getDriverDetails: builder.query<IDriverProfile, void>({
       query: () => ({
         url: "drivers/me",
+        method: "GET",
+      }),
+      providesTags: ["DRIVER"],
+    }),
+
+    // Get all drivers
+    getAllDrivers: builder.query<IDriverProfile[], Record<string, unknown> | void>({
+      query: (params) => ({
+        url: "/drivers",
+        params,
         method: "GET",
       }),
       providesTags: ["DRIVER"],
@@ -266,6 +270,7 @@ export const {
   useUpdateDriverDocMutation,   // updateDriverDoc
   useRatingRideMutation,        // ratingRide
   useGetDriverDetailsQuery,   // getDriverDetails
+  useGetAllDriversQuery,        // getAllDrivers
   useGetFindNearbyDriversQuery,   // findNearbyDrivers
   useApprovedDriverMutation,    // approvedDriver   admin
   useSuspendDriverMutation,         // suspendDrive   admin

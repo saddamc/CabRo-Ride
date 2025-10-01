@@ -1,368 +1,312 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CarIcon, DollarSignIcon, MapIcon, TrendingUp, UserIcon, Users } from "lucide-react";
+import { useGetAdminAnalyticsQuery, useGetBookingsDataQuery, useGetEarningsDataQuery } from "@/redux/features/auth/Admin/admin.api";
+import { CarIcon, DollarSignIcon, Loader2, Mail, Shield, TrendingUp, UserIcon, Users } from "lucide-react";
 
 export default function AdminDashboard() {
-  // Mock data for analytics
-  const analyticsData = {
-    totalUsers: 12847,
-    activeRiders: 8234,
-    activeDrivers: 1203,
-    totalRides: 254862,
-    completedRides: 248723,
-    cancelledRides: 6139,
-    totalRevenue: 3547628.50,
-    weeklyGrowth: 8.2,
-    monthlyGrowth: 22.4,
-    popularDestinations: [
-      { name: "Central Business District", count: 3287 },
-      { name: "International Airport", count: 2154 },
-      { name: "Downtown Shopping Mall", count: 1876 },
-      { name: "University Campus", count: 1654 },
-      { name: "Tech Park", count: 1432 }
-    ],
-    revenueByDay: [
-      { day: "Mon", amount: 42580 },
-      { day: "Tue", amount: 38760 },
-      { day: "Wed", amount: 45980 },
-      { day: "Thu", amount: 56740 },
-      { day: "Fri", amount: 78920 },
-      { day: "Sat", amount: 92340 },
-      { day: "Sun", amount: 67890 }
-    ]
-  };
+  // Define booking type to avoid any
+  interface Booking {
+    id: string;
+    date: string;
+    status: string;
+    amount: number;
+  }
+
+  // Fetch real data from API
+  const { data: analyticsData, isLoading: isLoadingAnalytics } = useGetAdminAnalyticsQuery({});
+  const { data: bookingsData, isLoading: isLoadingBookings } = useGetBookingsDataQuery({});
+  const { data: earningsData, isLoading: isLoadingEarnings } = useGetEarningsDataQuery({});
+  
+  // Calculate completion rate
+  const completionRate = analyticsData?.data?.rides 
+    ? ((analyticsData.data.rides.completedRides / analyticsData.data.rides.totalRides) * 100).toFixed(1)
+    : "0";
+
+  // Calculate total revenue from earnings data or use a mock value
+  const totalRevenue = earningsData?.data?.earnings
+    ? earningsData.data.earnings.reduce((total, item) => total + item.amount, 0)
+    : 3547628.50;
   
   return (
-    <div className="container mx-auto py-6 bg-white">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-          <p className="text-gray-500">Analytics and overview of your platform</p>
+    <div className="container mx-auto py-6 px-4 bg-white min-h-screen">
+      {isLoadingAnalytics || isLoadingBookings || isLoadingEarnings ? (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="ml-2">Loading dashboard data...</p>
         </div>
-        <div className="flex items-center gap-4">
-          <Select defaultValue="this-week">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="yesterday">Yesterday</SelectItem>
-              <SelectItem value="this-week">This Week</SelectItem>
-              <SelectItem value="this-month">This Month</SelectItem>
-              <SelectItem value="last-3-months">Last 3 Months</SelectItem>
-              <SelectItem value="this-year">This Year</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button>Export Report</Button>
-        </div>
-      </div>
-      
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="p-3 rounded-full bg-blue-100">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="flex items-center text-xs text-green-600">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>+12.5%</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Total Users</p>
-              <p className="text-2xl font-bold">{analyticsData.totalUsers.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                <span className="font-medium text-green-600">+124</span> new users this week
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="p-3 rounded-full bg-green-100">
-                <CarIcon className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="flex items-center text-xs text-green-600">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>+8.3%</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Total Rides</p>
-              <p className="text-2xl font-bold">{analyticsData.totalRides.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                <span className="font-medium text-green-600">+1,245</span> rides this week
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="p-3 rounded-full bg-yellow-100">
-                <DollarSignIcon className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="flex items-center text-xs text-green-600">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>+15.2%</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Total Revenue</p>
-              <p className="text-2xl font-bold">
-                ${(analyticsData.totalRevenue / 1000).toFixed(1)}K
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                <span className="font-medium text-green-600">+$45.2K</span> this week
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="p-3 rounded-full bg-red-100">
-                <MapIcon className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="flex items-center text-xs text-green-600">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                <span>+5.7%</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-gray-500 text-sm">Active Drivers</p>
-              <p className="text-2xl font-bold">{analyticsData.activeDrivers.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                <span className="font-medium text-green-600">+32</span> new drivers this week
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Revenue Chart */}
-      <Card className="border-0 shadow-md mb-6">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Revenue Overview</CardTitle>
-              <CardDescription>Weekly revenue breakdown</CardDescription>
-            </div>
-            <Tabs defaultValue="weekly" className="w-[250px]">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                <TabsTrigger value="yearly">Yearly</TabsTrigger>
-              </TabsList>
-            </Tabs>
+      ) : (
+        <>
+          {/* Admin Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-blue-800">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-blue-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-900">
+                  {analyticsData?.data?.users.totalUsers.toLocaleString() || '0'}
+                </div>
+                <p className="text-xs text-blue-600">All registered users</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-green-50 border-green-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-800">Active Drivers</CardTitle>
+                <CarIcon className="h-4 w-4 text-green-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">
+                  {analyticsData?.data?.drivers.approvedDrivers.toLocaleString() || '0'}
+                </div>
+                <p className="text-xs text-green-600">Approved drivers</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-yellow-800">Total Revenue</CardTitle>
+                <DollarSignIcon className="h-4 w-4 text-yellow-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-900">
+                  ৳{(totalRevenue / 1000).toFixed(1)}K
+                </div>
+                <p className="text-xs text-yellow-600">All time earnings</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-purple-50 border-purple-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-purple-800">Completion Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-purple-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-900">{completionRate}%</div>
+                <p className="text-xs text-purple-600">Ride success rate</p>
+              </CardContent>
+            </Card>
           </div>
+        </>
+      )}
+      {/* Admin Profile and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Platform Overview</CardTitle>
+            <CardDescription>Monitor your ride-sharing platform performance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-full bg-primary/10">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold">Platform Health: Excellent</div>
+                <div className="text-sm text-gray-500">All systems operational</div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button className="flex items-center gap-2" asChild>
+                <a href="/admin/users">
+                  <Users className="h-4 w-4" />
+                  Manage Users
+                </a>
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2" asChild>
+                <a href="/admin/driver-management">
+                  <CarIcon className="h-4 w-4" />
+                  Driver Approvals
+                </a>
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2" asChild>
+                <a href="/admin/reports">
+                  <DollarSignIcon className="h-4 w-4" />
+                  Financial Reports
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-4">
+              <img
+                src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff&size=96"
+                alt="Admin"
+                className="w-16 h-16 rounded-full object-cover ring-2 ring-primary/20"
+              />
+              <div>
+                <h3 className="font-semibold text-lg">System Administrator</h3>
+                <div className="flex items-center gap-1 text-yellow-500">
+                  <UserIcon className="h-4 w-4" />
+                  <span className="font-medium">Super Admin</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <UserIcon className="h-4 w-4 text-gray-500" />
+                <span>Administrator since 2024</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="h-4 w-4 text-gray-500" />
+                <span>admin@platform.com</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Shield className="h-4 w-4 text-green-500" />
+                <span className="text-green-600 font-medium">Full Access</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Platform Performance Overview */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Platform Performance</CardTitle>
+          <CardDescription>Key metrics and recent activity</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Revenue Chart - we'll simulate with a div */}
-          <div className="w-full h-80 bg-gray-50 rounded-lg border border-gray-100 mt-4 flex items-end justify-between p-6">
-            {analyticsData.revenueByDay.map((item, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div 
-                  className="w-16 bg-primary/80 rounded-t-sm hover:bg-primary transition-all"
-                  style={{ height: `${(item.amount / 100000) * 250}px` }}
-                ></div>
-                <span className="text-xs mt-2">{item.day}</span>
-                <span className="text-xs text-gray-500">${(item.amount/1000).toFixed(1)}K</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CarIcon className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium">Total Drivers</span>
               </div>
-            ))}
+              <p className="text-2xl font-bold text-blue-900">
+                {analyticsData?.data?.drivers.totalDrivers.toLocaleString() || '0'}
+              </p>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CarIcon className="h-5 w-5 text-green-600" />
+                <span className="text-sm font-medium">Completed Rides</span>
+              </div>
+              <p className="text-2xl font-bold text-green-900">
+                {analyticsData?.data?.rides.completedRides.toLocaleString() || '0'}
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CarIcon className="h-5 w-5 text-yellow-600" />
+                <span className="text-sm font-medium">Cancelled Rides</span>
+              </div>
+              <p className="text-2xl font-bold text-yellow-900">
+                {analyticsData?.data?.rides.cancelledRides.toLocaleString() || '0'}
+              </p>
+            </div>
+
+            <div className="bg-purple-50 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-5 w-5 text-purple-600" />
+                <span className="text-sm font-medium">Pending Drivers</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-900">
+                {analyticsData?.data?.drivers.pendingDrivers || '0'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" className="flex items-center gap-2" asChild>
+              <a href="/admin/rides">
+                <CarIcon className="h-4 w-4" />
+                View Ride Analytics
+              </a>
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2" asChild>
+              <a href="/admin/users">
+                <Users className="h-4 w-4" />
+                User Management
+              </a>
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2" asChild>
+              <a href="/admin/reports">
+                <DollarSignIcon className="h-4 w-4" />
+                Revenue Reports
+              </a>
+            </Button>
           </div>
         </CardContent>
       </Card>
       
-      {/* Platform Statistics and Popular Destinations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="border-0 shadow-md lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Platform Statistics</CardTitle>
-            <CardDescription>Key metrics about your platform</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-blue-100">
-                      <UserIcon className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <span className="text-sm font-medium">Active Riders</span>
-                  </div>
-                  <div className="text-lg font-semibold">{analyticsData.activeRiders.toLocaleString()}</div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-green-100">
-                      <CarIcon className="h-4 w-4 text-green-600" />
-                    </div>
-                    <span className="text-sm font-medium">Active Drivers</span>
-                  </div>
-                  <div className="text-lg font-semibold">{analyticsData.activeDrivers.toLocaleString()}</div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-purple-100">
-                      <CarIcon className="h-4 w-4 text-purple-600" />
-                    </div>
-                    <span className="text-sm font-medium">Completed Rides</span>
-                  </div>
-                  <div className="text-lg font-semibold">{analyticsData.completedRides.toLocaleString()}</div>
-                </div>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-red-100">
-                      <CarIcon className="h-4 w-4 text-red-600" />
-                    </div>
-                    <span className="text-sm font-medium">Cancelled Rides</span>
-                  </div>
-                  <div className="text-lg font-semibold">{analyticsData.cancelledRides.toLocaleString()}</div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-yellow-100">
-                      <TrendingUp className="h-4 w-4 text-yellow-600" />
-                    </div>
-                    <span className="text-sm font-medium">Weekly Growth</span>
-                  </div>
-                  <div className="text-lg font-semibold text-green-600">+{analyticsData.weeklyGrowth}%</div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-orange-100">
-                      <TrendingUp className="h-4 w-4 text-orange-600" />
-                    </div>
-                    <span className="text-sm font-medium">Monthly Growth</span>
-                  </div>
-                  <div className="text-lg font-semibold text-green-600">+{analyticsData.monthlyGrowth}%</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-6 border-t">
-              <h3 className="font-medium mb-4">Completion Rate</h3>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div 
-                  className="bg-green-600 h-2.5 rounded-full" 
-                  style={{ width: `${(analyticsData.completedRides / analyticsData.totalRides) * 100}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between mt-2 text-sm">
-                <span>Total: {analyticsData.totalRides.toLocaleString()}</span>
-                <span className="text-green-600 font-medium">
-                  {((analyticsData.completedRides / analyticsData.totalRides) * 100).toFixed(1)}% Completion
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle>Popular Destinations</CardTitle>
-            <CardDescription>Most requested drop-off points</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {analyticsData.popularDestinations.map((destination, index) => (
-                <div key={index} className="flex items-center justify-between pb-3 border-b last:border-0 last:pb-0">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-medium">
-                      {index + 1}
-                    </div>
-                    <span className="font-medium">{destination.name}</span>
-                  </div>
-                  <div className="text-sm text-gray-500">{destination.count} rides</div>
-                </div>
-              ))}
-            </div>
-            
-            <Button variant="outline" className="w-full mt-6">
-              View Detailed Reports
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Recent Activity */}
-      <Card className="border-0 shadow-md">
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest actions across your platform</CardDescription>
+      {/* Recent Bookings */}
+      <Card className="mb-8">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Recent Bookings</CardTitle>
+            <CardDescription>Latest ride bookings on the platform</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <a href="/admin/rides">View All</a>
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            <div className="relative pl-8 pb-6 border-l-2 border-gray-200">
-              <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary"></div>
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">New driver registered</h4>
-                <span className="text-sm text-gray-500">12 mins ago</span>
+          <div className="space-y-4">
+            {bookingsData?.data?.bookings && bookingsData.data.bookings.length > 0 ? (
+              bookingsData.data.bookings.slice(0, 5).map((booking: Booking) => (
+                <Card key={booking.id} className="overflow-hidden transition-all duration-200 hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      {/* Booking Info */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-primary/10">
+                              <UserIcon className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm">
+                                {new Date(booking.date).toLocaleDateString('en-US', {
+                                  weekday: 'short',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Booking ID: {booking.id.substring(0, 8)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                            booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {booking.status}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Fare */}
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-primary">
+                          ৳{booking.amount.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-6">
+                <div className="p-3 bg-gray-100 inline-block rounded-full mb-3">
+                  <CarIcon className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-500">No bookings found</p>
               </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Michael Brown registered as a new driver with a 2022 Toyota Camry
-              </p>
-            </div>
-            
-            <div className="relative pl-8 pb-6 border-l-2 border-gray-200">
-              <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-green-500"></div>
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Driver approved</h4>
-                <span className="text-sm text-gray-500">43 mins ago</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Admin approved Samantha Lee's driver application
-              </p>
-            </div>
-            
-            <div className="relative pl-8 pb-6 border-l-2 border-gray-200">
-              <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-yellow-500"></div>
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Payment system issue</h4>
-                <span className="text-sm text-gray-500">2 hours ago</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Payment gateway reported temporary issues processing credit cards. Resolved now.
-              </p>
-            </div>
-            
-            <div className="relative pl-8 pb-6 border-l-2 border-gray-200">
-              <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-blue-500"></div>
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">New promotion created</h4>
-                <span className="text-sm text-gray-500">5 hours ago</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                "Weekend Special" promotion was created with 15% off all rides
-              </p>
-            </div>
-            
-            <div className="relative pl-8">
-              <div className="absolute -left-2 top-0 w-4 h-4 rounded-full bg-red-500"></div>
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">User account suspended</h4>
-                <span className="text-sm text-gray-500">Yesterday</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Rider account was suspended due to multiple ride cancellations
-              </p>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>

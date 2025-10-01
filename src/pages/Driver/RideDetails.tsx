@@ -6,52 +6,19 @@ import { useGetRideByIdQuery } from "@/redux/features/rides/ride.api";
 import { ArrowLeft, Calendar, Car, CheckCircle, Clock, DollarSign, MapPin, Navigation, Phone, Star, Timer, User, XCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const DetailsHistory = () => {
+const DriverRideDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  console.log('DetailsHistory - Ride ID:', id);
-  
-  // Force refetch and skip cache to ensure we get fresh data
-  const { data: ride, isLoading, error, refetch } = useGetRideByIdQuery(id || "", {
-    refetchOnMountOrArgChange: true,
-    skip: !id || id.length < 5
-  });
-  
-  // Effect to verify token and refetch on mount
-  useEffect(() => {
-    // Check if token exists and is valid
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      console.log('DetailsHistory - Token verification:', token.substring(0, 10) + '...');
-      // Refetch after a small delay to ensure auth state is properly initialized
-      const timer = setTimeout(() => {
-        refetch();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [refetch]);
-  // More detailed logging to help debug
-  console.log('DetailsHistory - API Response:', { 
-    rideExists: !!ride,
-    isLoading, 
-    error: error ? JSON.stringify(error) : null,
-    authHeader: localStorage.getItem('accessToken') ? 'Token exists' : 'No token' 
-  });
+  console.log('DriverRideDetails - Ride ID:', id);
+  const { data: ride, isLoading, error } = useGetRideByIdQuery(id || "");
+  console.log('DriverRideDetails - API Response:', { ride, isLoading, error });
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 bg-white">
+      <div className="container mx-auto py-8 px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-black">Loading ride details...</p>
-          <p className="text-gray-600 mt-2">This may take a moment...</p>
-          <Button 
-            variant="outline" 
-            className="mt-4"
-            onClick={() => refetch()}
-          >
-            Retry Loading
-          </Button>
+          <div className="h-12 w-12 border-b-2 border-primary mx-auto mb-4 animate-spin rounded-full"></div>
+          <p>Loading ride details...</p>
         </div>
       </div>
     );
@@ -59,26 +26,13 @@ const DetailsHistory = () => {
 
   if (error || !ride) {
     return (
-      <div className="container mx-auto py-8 px-4 bg-white">
+      <div className="container mx-auto py-8 px-4">
         <div className="text-center">
-          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <p className="text-black mb-4 text-xl font-semibold">Failed to load ride details</p>
-          <p className="text-gray-700 mb-6">Please check if the ride exists or try again later.</p>
-          <div className="flex gap-4 justify-center">
-            <Button 
-              onClick={() => navigate('/rider/history')}
-              className="bg-primary hover:bg-primary-dark"
-            >
-              Back to Ride History
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="border-primary text-primary hover:bg-primary/10"
-            >
-              Try Again
-            </Button>
-          </div>
+          <p className="text-red-500 mb-4">Failed to load ride details</p>
+          <p className="text-gray-500 mb-4">Please check if the ride exists or try again later.</p>
+          <Button onClick={() => navigate('/driver/history')}>
+            Back to Ride History
+          </Button>
         </div>
       </div>
     );
@@ -103,13 +57,13 @@ const DetailsHistory = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl bg-white text-black">
+    <div className="container mx-auto py-8 px-4 max-w-4xl">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate('/rider/history')}
+          onClick={() => navigate('/driver/history')}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -117,7 +71,7 @@ const DetailsHistory = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Ride Details</h1>
-          <p className="text-gray-600">Ride ID: {ride._id.slice(-8)}</p>
+          <p className="text-gray-500">Ride ID: {ride._id.slice(-8)}</p>
         </div>
       </div>
 
@@ -140,7 +94,7 @@ const DetailsHistory = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600">Requested</p>
+                <p className="text-sm text-gray-500">Requested</p>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   <span className="font-medium">{formatDateTime(ride.createdAt).date}</span>
@@ -153,7 +107,7 @@ const DetailsHistory = () => {
 
               {ride.timestamps.completed && (
                 <div>
-                  <p className="text-sm text-gray-600">Completed</p>
+                  <p className="text-sm text-gray-500">Completed</p>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     <span className="font-medium">{formatDateTime(ride.timestamps.completed).date}</span>
@@ -169,28 +123,28 @@ const DetailsHistory = () => {
             <Separator />
 
             <div>
-              <p className="text-sm text-gray-600 mb-2">Distance & Duration</p>
+              <p className="text-sm text-gray-500 mb-2">Distance & Duration</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="font-medium">{ride.distance?.estimated?.toFixed(1)} km</span>
-                  <p className="text-xs text-gray-600">Estimated Distance</p>
+                  <p className="text-xs text-gray-500">Estimated Distance</p>
                 </div>
                 {ride.distance?.actual && (
                   <div>
                     <span className="font-medium">{ride.distance.actual.toFixed(1)} km</span>
-                    <p className="text-xs text-gray-600">Actual Distance</p>
+                    <p className="text-xs text-gray-500">Actual Distance</p>
                   </div>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4 mt-3">
                 <div>
                   <span className="font-medium">{ride.duration?.estimated ? `${Math.round(ride.duration.estimated)} min` : 'N/A'}</span>
-                  <p className="text-xs text-gray-600">Estimated Duration</p>
+                  <p className="text-xs text-gray-500">Estimated Duration</p>
                 </div>
                 {ride.duration?.actual && (
                   <div>
                     <span className="font-medium">{Math.round(ride.duration.actual)} min</span>
-                    <p className="text-xs text-gray-600">Actual Duration</p>
+                    <p className="text-xs text-gray-500">Actual Duration</p>
                   </div>
                 )}
               </div>
@@ -198,40 +152,37 @@ const DetailsHistory = () => {
           </CardContent>
         </Card>
 
-        {/* Driver Information */}
-        {ride.driver && (
+        {/* Rider Information */}
+        {ride.rider && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Driver Information
+                Rider Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="font-medium text-lg">{ride.driver.user.name}</p>
+                <p className="font-medium text-lg">{ride.rider.name}</p>
                 <div className="flex items-center gap-1 text-gray-600">
                   <Phone className="h-4 w-4" />
-                  <span>{ride.driver.user.phone}</span>
+                  <span>{ride.rider.phone}</span>
                 </div>
-                {ride.driver.rating && (
+                {ride.rating && ride.rating.riderRating && (
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-transparent" />
-                    <span className="font-medium">{ride.driver.rating}</span>
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium">{ride.rating.riderRating}</span>
                   </div>
                 )}
               </div>
 
-              {ride.driver.vehicle && (
+              {ride.rating?.riderFeedback && (
                 <>
                   <Separator />
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Vehicle Details</p>
-                    <p className="font-medium">
-                      {ride.driver.vehicle.make} {ride.driver.vehicle.model}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {ride.driver.vehicle.licensePlate} • {ride.driver.vehicle.color}
+                    <p className="text-sm text-gray-500 mb-2">Rider Feedback</p>
+                    <p className="text-sm text-gray-600 italic">
+                      "{ride.rating.riderFeedback}"
                     </p>
                   </div>
                 </>
@@ -256,16 +207,16 @@ const DetailsHistory = () => {
                 </div>
                 <div className="w-0.5 h-12 bg-gray-300 my-1"></div>
                 <div className="rounded-full p-2 bg-red-100">
-                  <MapPin className="h-4 w-4 text-red-600" />
+                  <MapPin className="h-4 w-4 text-red-500" />
                 </div>
               </div>
               <div className="flex-1 space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600">Pickup Location</p>
+                  <p className="text-sm text-gray-500">Pickup Location</p>
                   <p className="font-medium">{ride.pickupLocation.address}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Destination</p>
+                  <p className="text-sm text-gray-500">Destination</p>
                   <p className="font-medium">{ride.destinationLocation.address}</p>
                 </div>
               </div>
@@ -288,7 +239,7 @@ const DetailsHistory = () => {
                   <div className="flex-shrink-0 w-3 h-3 rounded-full bg-blue-500"></div>
                   <div className="flex-1">
                     <p className="font-medium text-sm">Ride Requested</p>
-                    <p className="text-xs text-gray-600">{formatDateTime(ride.timestamps.requested).date} at {formatDateTime(ride.timestamps.requested).time}</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(ride.timestamps.requested).date} at {formatDateTime(ride.timestamps.requested).time}</p>
                   </div>
                 </div>
               )}
@@ -297,10 +248,10 @@ const DetailsHistory = () => {
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 w-3 h-3 rounded-full bg-green-500"></div>
                   <div className="flex-1">
-                    <p className="font-medium text-sm">Driver Accepted</p>
-                    <p className="text-xs text-gray-600">{formatDateTime(ride.timestamps.accepted).date} at {formatDateTime(ride.timestamps.accepted).time}</p>
+                    <p className="font-medium text-sm">You Accepted</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(ride.timestamps.accepted).date} at {formatDateTime(ride.timestamps.accepted).time}</p>
                   </div>
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-green-500" />
                 </div>
               )}
 
@@ -308,10 +259,10 @@ const DetailsHistory = () => {
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 w-3 h-3 rounded-full bg-yellow-500"></div>
                   <div className="flex-1">
-                    <p className="font-medium text-sm">Driver Arrived</p>
-                    <p className="text-xs text-gray-600">{formatDateTime(ride.timestamps.driverArrived).date} at {formatDateTime(ride.timestamps.driverArrived).time}</p>
+                    <p className="font-medium text-sm">You Arrived</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(ride.timestamps.driverArrived).date} at {formatDateTime(ride.timestamps.driverArrived).time}</p>
                   </div>
-                  <Navigation className="h-4 w-4 text-blue-600" />
+                  <Navigation className="h-4 w-4 text-yellow-500" />
                 </div>
               )}
 
@@ -320,7 +271,7 @@ const DetailsHistory = () => {
                   <div className="flex-shrink-0 w-3 h-3 rounded-full bg-purple-500"></div>
                   <div className="flex-1">
                     <p className="font-medium text-sm">Ride Started</p>
-                    <p className="text-xs text-gray-600">{formatDateTime(ride.timestamps.pickedUp).date} at {formatDateTime(ride.timestamps.pickedUp).time}</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(ride.timestamps.pickedUp).date} at {formatDateTime(ride.timestamps.pickedUp).time}</p>
                   </div>
                   <Car className="h-4 w-4 text-purple-500" />
                 </div>
@@ -331,7 +282,7 @@ const DetailsHistory = () => {
                   <div className="flex-shrink-0 w-3 h-3 rounded-full bg-green-600"></div>
                   <div className="flex-1">
                     <p className="font-medium text-sm">Ride Completed</p>
-                    <p className="text-xs text-gray-600">{formatDateTime(ride.timestamps.completed).date} at {formatDateTime(ride.timestamps.completed).time}</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(ride.timestamps.completed).date} at {formatDateTime(ride.timestamps.completed).time}</p>
                   </div>
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </div>
@@ -342,40 +293,40 @@ const DetailsHistory = () => {
                   <div className="flex-shrink-0 w-3 h-3 rounded-full bg-red-500"></div>
                   <div className="flex-1">
                     <p className="font-medium text-sm">Ride Cancelled</p>
-                    <p className="text-xs text-gray-600">{formatDateTime(ride.timestamps.cancelled).date} at {formatDateTime(ride.timestamps.cancelled).time}</p>
+                    <p className="text-xs text-gray-500">{formatDateTime(ride.timestamps.cancelled).date} at {formatDateTime(ride.timestamps.cancelled).time}</p>
                   </div>
-                  <XCircle className="h-4 w-4 text-red-600" />
+                  <XCircle className="h-4 w-4 text-red-500" />
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Payment Information */}
+        {/* Earnings Information */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              Payment Details
+              Earnings Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-gray-600">Base Fare</p>
+                <p className="text-sm text-gray-500">Base Fare</p>
                 <p className="font-medium">৳{ride.fare?.baseFare?.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Distance Fare</p>
+                <p className="text-sm text-gray-500">Distance Fare</p>
                 <p className="font-medium">৳{ride.fare?.distanceFare?.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Time Fare</p>
+                <p className="text-sm text-gray-500">Time Fare</p>
                 <p className="font-medium">৳{ride.fare?.timeFare?.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Fare</p>
-                <p className="font-bold text-lg text-black">৳{ride.fare?.totalFare?.toFixed(2)}</p>
+                <p className="text-sm text-gray-500">Total Earnings</p>
+                <p className="font-bold text-lg text-primary">৳{ride.fare?.totalFare?.toFixed(2)}</p>
               </div>
             </div>
 
@@ -383,20 +334,10 @@ const DetailsHistory = () => {
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm text-gray-600">Transaction ID</p>
+                  <p className="text-sm text-gray-500">Transaction ID</p>
                   <p className="font-mono text-sm bg-gray-100 p-2 rounded">
                     {ride.transactionId || ride.payment?.transactionId || 'N/A'}
                   </p>
-                </div>
-              </>
-            )}
-
-            {ride.paymentMethod && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-sm text-gray-600">Payment Method</p>
-                  <p className="font-medium capitalize">{ride.paymentMethod || 'Cash'}</p>
                 </div>
               </>
             )}
@@ -405,7 +346,7 @@ const DetailsHistory = () => {
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm text-gray-600">Payment Status</p>
+                  <p className="text-sm text-gray-500">Payment Status</p>
                   <p className={`font-medium capitalize ${
                     ride.paymentStatus === 'completed' ? 'text-green-600' :
                     ride.paymentStatus === 'pending' ? 'text-yellow-600' :
@@ -430,35 +371,9 @@ const DetailsHistory = () => {
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
-                {ride.rating.driverRating && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Your Rating for Driver</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`h-5 w-5 ${
-                              star <= ride.rating!.driverRating!
-                                ? 'fill-yellow-400 text-yellow-600'
-                                : 'text-gray-400'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="font-medium">{ride.rating.driverRating}/5</span>
-                    </div>
-                    {ride.rating.driverFeedback && (
-                      <p className="text-sm text-gray-600 mt-2 italic">
-                        "{ride.rating.driverFeedback}"
-                      </p>
-                    )}
-                  </div>
-                )}
-
                 {ride.rating.riderRating && (
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Driver's Rating for You</p>
+                    <p className="text-sm text-gray-500 mb-2">Rider's Rating for You</p>
                     <div className="flex items-center gap-2">
                       <div className="flex">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -466,8 +381,8 @@ const DetailsHistory = () => {
                             key={star}
                             className={`h-5 w-5 ${
                               star <= ride.rating!.riderRating!
-                                ? 'fill-yellow-400 text-yellow-600'
-                                : 'text-gray-400'
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
                             }`}
                           />
                         ))}
@@ -477,6 +392,32 @@ const DetailsHistory = () => {
                     {ride.rating.riderFeedback && (
                       <p className="text-sm text-gray-600 mt-2 italic">
                         "{ride.rating.riderFeedback}"
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {ride.rating.driverRating && (
+                  <div>
+                    <p className="text-sm text-gray-500 mb-2">Your Rating for Rider</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-5 w-5 ${
+                              star <= ride.rating!.driverRating!
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="font-medium">{ride.rating.driverRating}/5</span>
+                    </div>
+                    {ride.rating.driverFeedback && (
+                      <p className="text-sm text-gray-600 mt-2 italic">
+                        "{ride.rating.driverFeedback}"
                       </p>
                     )}
                   </div>
@@ -499,15 +440,10 @@ const DetailsHistory = () => {
               <Button
                 variant="outline"
                 className="flex items-center gap-2 justify-center"
-                onClick={() => navigate('/ride', {
-                  state: {
-                    pickup: ride.pickupLocation,
-                    destination: ride.destinationLocation
-                  }
-                })}
+                onClick={() => navigate('/driver/history')}
               >
                 <ArrowLeft className="h-4 w-4" />
-                Rebook Similar Ride
+                Back to History
               </Button>
 
               <Button
@@ -519,21 +455,23 @@ const DetailsHistory = () => {
                 Call Support
               </Button>
 
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 justify-center"
-                onClick={() => navigate('/rider/history')}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to History
-              </Button>
+              {ride.status === 'completed' && (
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 justify-center"
+                  onClick={() => navigate('/driver/earnings')}
+                >
+                  <DollarSign className="h-4 w-4" />
+                  View Earnings
+                </Button>
+              )}
             </div>
 
             <div className="mt-4 pt-4 border-t">
-              <p className="text-sm text-gray-700 mb-2">Need more help?</p>
+              <p className="text-sm text-gray-500 mb-2">Need more help?</p>
               <p className="text-sm text-gray-600">
-                For billing issues, lost items, or other concerns, contact our support team.
-                Reference Ride ID: <span className="font-mono bg-gray-100 px-1 rounded text-black">{ride._id.slice(-8)}</span>
+                For payment issues, rider disputes, or other concerns, contact our support team.
+                Reference Ride ID: <span className="font-mono bg-gray-100 px-1 rounded">{ride._id.slice(-8)}</span>
               </p>
             </div>
           </CardContent>
@@ -543,4 +481,4 @@ const DetailsHistory = () => {
   );
 };
 
-export default DetailsHistory;
+export default DriverRideDetails;

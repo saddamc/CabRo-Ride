@@ -1,6 +1,6 @@
 import { useLogoutMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { logout as logoutAction } from "@/redux/features/authSlice";
-import { Car, Clock, Home, LogOut, Map, Settings, Wallet } from "lucide-react";
+import { Car, Clock, Home, LogOut, Map, Settings } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -27,7 +27,13 @@ export default function RoleDashboard() {
 
   // Function to check if a menu item is active
   const isActive = (path: string) => {
-    return location.pathname === path;
+    // Exact match
+    if (location.pathname === path) return true;
+    
+    // Special case for nested routes like details-history
+    if (path.includes('/history') && location.pathname.includes('/details-history')) return true;
+    
+    return false;
   };
 
   // Logout handler
@@ -121,18 +127,6 @@ export default function RoleDashboard() {
               <Clock className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/history`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
               Ride History
             </Link>
-
-            <Link
-              to={`${routePrefix}/wallet`}
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                isActive(`${routePrefix}/wallet`)
-                  ? 'text-white bg-black'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <Wallet className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/wallet`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
-              Wallet
-            </Link>
             
             <div className="px-3 py-2 mt-6 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
               Account
@@ -164,19 +158,19 @@ export default function RoleDashboard() {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {/* Dashboard Content */}
-          <div className="mb-8 bg-white dark:bg-white rounded-lg p-6 shadow-sm">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
-              Welcome back, <span className="text-primary">{userInfo?.data?.name || 'User'}</span>!
-            </h1>
-            <p className="text-gray-600 dark:text-gray-600 mt-1">
-              Ready for your next journey?
-            </p>
-          </div>
-
-          {/* Quick Actions Cards - REMOVED */}
+          {location.pathname.endsWith('/dashboard') || location.pathname === routePrefix || location.pathname === `${routePrefix}/` ? (
+            <div className="mb-8 bg-white dark:bg-white rounded-lg p-6 shadow-sm">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
+                Welcome back, <span className="text-primary">{userInfo?.data?.name || 'User'}</span>!
+              </h1>
+              <p className="text-gray-600 dark:text-gray-600 mt-1">
+                Ready for your next journey?
+              </p>
+            </div>
+          ) : null}
 
           {/* Dynamic Content */}
-          <div className="bg-white dark:bg-white rounded-lg shadow p-6">
+          <div style={{ position: 'relative', zIndex: 1 }} className={location.pathname.includes('history') || location.pathname.includes('details-history') ? '' : 'bg-white dark:bg-white rounded-lg shadow p-6'}>
             <Outlet />
           </div>
         </div>
@@ -226,19 +220,6 @@ export default function RoleDashboard() {
               <Clock className="h-4 w-4" />
             </div>
             <span className="text-xs mt-1">History</span>
-          </Link>
-
-          <Link
-            to={`${routePrefix}/wallet`}
-            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/wallet`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
-          >
-            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/wallet`) ?
-              (userRole === 'rider' ? 'bg-green-500' : userRole === 'driver' ? 'bg-blue-500' : 'bg-primary') :
-              'bg-gray-200 dark:bg-gray-700'
-            }`}>
-              <Wallet className="h-4 w-4" />
-            </div>
-            <span className="text-xs mt-1">Wallet</span>
           </Link>
 
           <Link

@@ -1,11 +1,14 @@
+import ConfirmationModal from "@/components/modal/ConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, CheckCircle2, FileText, Filter, Search, Shield, Star, User, X } from "lucide-react";
+import { useApprovedDriverMutation, useGetAllDriversQuery, useSuspendDriverMutation } from "@/redux/features/driver/driver.api";
+import { Check, CheckCircle2, FileText, Filter, Loader2, Search, Shield, Star, User, X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export interface IDriver {
   id: string;
@@ -35,122 +38,50 @@ export default function DriverManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedDriver, setSelectedDriver] = useState<IDriver | null>(null);
   
-  // Mock drivers data for the UI
-  const mockDrivers: IDriver[] = [
-    {
-      id: 'dr-001',
-      name: 'John Smith',
-      phone: '+1 (555) 123-4567',
-      email: 'john.smith@example.com',
-      licenseNumber: 'DL-123456789',
-      vehicle: {
-        make: 'Toyota',
-        model: 'Camry',
-        year: '2021',
-        plateNumber: 'ABC-1234'
-      },
-      status: 'approved',
-      rating: 4.8,
-      totalTrips: 256,
-      joinedDate: '2025-03-15',
-      documents: {
-        license: 'https://example.com/license/123',
-        registration: 'https://example.com/registration/123',
-        insurance: 'https://example.com/insurance/123'
-      }
+  // Confirmation Modal States
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    action: 'approve' | 'reject' | 'suspend' | 'reactivate';
+    driverId: string;
+    driverName: string;
+  }>({
+    isOpen: false,
+    action: 'approve',
+    driverId: '',
+    driverName: ''
+  });
+
+  // API Mutations and Queries
+  const { data: driversData, isLoading: isLoadingDrivers, refetch } = useGetAllDriversQuery();
+  const [approveDriver, { isLoading: isApprovingDriver }] = useApprovedDriverMutation();
+  const [suspendDriver, { isLoading: isSuspendingDriver }] = useSuspendDriverMutation();
+  
+  // Convert API driver data to UI format
+  const drivers: IDriver[] = driversData?.map(driver => ({
+    id: driver._id,
+    name: driver.user?.name || 'Unknown',
+    phone: driver.user?.phone || 'No phone',
+    email: driver.user?.email || 'No email',
+    licenseNumber: driver.vehicleType?.plateNumber || 'N/A',
+    vehicle: {
+      make: driver.vehicleInfo?.make || driver.vehicleType?.make || 'Unknown',
+      model: driver.vehicleInfo?.model || driver.vehicleType?.model || 'Unknown',
+      year: driver.vehicleInfo?.year || String(driver.vehicleType?.year) || 'Unknown',
+      plateNumber: driver.vehicleInfo?.licensePlate || driver.vehicleType?.plateNumber || 'Unknown'
     },
-    {
-      id: 'dr-002',
-      name: 'Sarah Johnson',
-      phone: '+1 (555) 987-6543',
-      email: 'sarah.johnson@example.com',
-      licenseNumber: 'DL-987654321',
-      vehicle: {
-        make: 'Honda',
-        model: 'Civic',
-        year: '2022',
-        plateNumber: 'XYZ-5678'
-      },
-      status: 'pending',
-      rating: 0,
-      totalTrips: 0,
-      joinedDate: '2025-09-10',
-      documents: {
-        license: 'https://example.com/license/456',
-        registration: 'https://example.com/registration/456',
-        insurance: 'https://example.com/insurance/456'
-      }
-    },
-    {
-      id: 'dr-003',
-      name: 'Michael Chen',
-      phone: '+1 (555) 456-7890',
-      email: 'michael.chen@example.com',
-      licenseNumber: 'DL-456789123',
-      vehicle: {
-        make: 'Nissan',
-        model: 'Altima',
-        year: '2020',
-        plateNumber: 'DEF-9012'
-      },
-      status: 'suspended',
-      rating: 3.2,
-      totalTrips: 178,
-      joinedDate: '2025-05-22',
-      documents: {
-        license: 'https://example.com/license/789',
-        registration: 'https://example.com/registration/789',
-        insurance: 'https://example.com/insurance/789'
-      }
-    },
-    {
-      id: 'dr-004',
-      name: 'David Wilson',
-      phone: '+1 (555) 321-6547',
-      email: 'david.wilson@example.com',
-      licenseNumber: 'DL-231654987',
-      vehicle: {
-        make: 'Ford',
-        model: 'Focus',
-        year: '2023',
-        plateNumber: 'GHI-3456'
-      },
-      status: 'pending',
-      rating: 0,
-      totalTrips: 0,
-      joinedDate: '2025-09-15',
-      documents: {
-        license: 'https://example.com/license/101',
-        registration: 'https://example.com/registration/101',
-        insurance: 'https://example.com/insurance/101'
-      }
-    },
-    {
-      id: 'dr-005',
-      name: 'Jennifer Lee',
-      phone: '+1 (555) 789-0123',
-      email: 'jennifer.lee@example.com',
-      licenseNumber: 'DL-789012345',
-      vehicle: {
-        make: 'Hyundai',
-        model: 'Sonata',
-        year: '2021',
-        plateNumber: 'JKL-7890'
-      },
-      status: 'rejected',
-      rating: 0,
-      totalTrips: 0,
-      joinedDate: '2025-08-30',
-      documents: {
-        license: 'https://example.com/license/202',
-        registration: 'https://example.com/registration/202',
-        insurance: 'https://example.com/insurance/202'
-      }
+    status: driver.isSuspended ? 'suspended' : driver.isApproved ? 'approved' : 'pending',
+    rating: typeof driver.rating === 'number' ? driver.rating : (driver.rating as {average?: number})?.average || 0,
+    totalTrips: driver.totalRides || driver.stats?.totalRides || 0,
+    joinedDate: driver.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+    documents: {
+      license: 'https://example.com/license/123',
+      registration: 'https://example.com/registration/123',
+      insurance: 'https://example.com/insurance/123'
     }
-  ];
+  })) || [];
   
   // Filter and sort drivers
-  const filteredDrivers = mockDrivers.filter(driver => {
+  const filteredDrivers = drivers.filter(driver => {
     // Filter by status
     if (statusFilter !== 'all' && driver.status !== statusFilter) return false;
     
@@ -169,19 +100,58 @@ export default function DriverManagement() {
     return true;
   });
   
-  const handleApproveDriver = (id: string) => {
-    console.log(`Approving driver with ID: ${id}`);
-    // API call to approve driver would go here
+  const openConfirmModal = (action: 'approve' | 'reject' | 'suspend' | 'reactivate', driver: IDriver) => {
+    setConfirmModal({
+      isOpen: true,
+      action,
+      driverId: driver.id,
+      driverName: driver.name
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    try {
+      const { action, driverId } = confirmModal;
+      
+      if (action === 'approve' || action === 'reactivate') {
+        await approveDriver({ id: driverId }).unwrap();
+        toast.success(`Driver ${action === 'approve' ? 'approved' : 'reactivated'} successfully`);
+      } else if (action === 'suspend') {
+        await suspendDriver({ id: driverId }).unwrap();
+        toast.success("Driver suspended successfully");
+      } else if (action === 'reject') {
+        // Implement reject API call if needed
+        toast.success("Driver rejected successfully");
+      }
+
+      // Close modal and refresh data
+      setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      // Refetch updated driver data
+      refetch();
+    } catch (error) {
+      console.error("Error performing driver action:", error);
+      toast.error(`Failed to ${confirmModal.action} driver. Please try again.`);
+    }
+  };
+
+  const handleApproveDriver = (id: string, name: string) => {
+    const driver = { id, name } as IDriver;
+    openConfirmModal('approve', driver);
   };
   
-  const handleRejectDriver = (id: string) => {
-    console.log(`Rejecting driver with ID: ${id}`);
-    // API call to reject driver would go here
+  const handleRejectDriver = (id: string, name: string) => {
+    const driver = { id, name } as IDriver;
+    openConfirmModal('reject', driver);
   };
   
-  const handleSuspendDriver = (id: string) => {
-    console.log(`Suspending driver with ID: ${id}`);
-    // API call to suspend driver would go here
+  const handleSuspendDriver = (id: string, name: string) => {
+    const driver = { id, name } as IDriver;
+    openConfirmModal('suspend', driver);
+  };
+  
+  const handleReactivateDriver = (id: string, name: string) => {
+    const driver = { id, name } as IDriver;
+    openConfirmModal('reactivate', driver);
   };
   
   const handleViewDetails = (driver: IDriver) => {
@@ -199,7 +169,13 @@ export default function DriverManagement() {
   };
   
   return (
-    <div className="container mx-auto py-6 bg-white">
+    <div className="container mx-auto py-6 bg-black text-white">
+      {isLoadingDrivers && (
+        <div className="flex justify-center items-center py-10">
+          <Loader2 className="h-10 w-10 animate-spin text-white" />
+          <p className="ml-2">Loading driver data...</p>
+        </div>
+      )}
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Driver Management</h1>
         <p className="text-gray-500">Review, approve, and manage driver accounts</p>
@@ -311,7 +287,7 @@ export default function DriverManagement() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleApproveDriver(driver.id)}
+                                  onClick={() => handleApproveDriver(driver.id, driver.name)}
                                   className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
                                 >
                                   <Check className="h-4 w-4" />
@@ -319,7 +295,7 @@ export default function DriverManagement() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleRejectDriver(driver.id)}
+                                  onClick={() => handleRejectDriver(driver.id, driver.name)}
                                   className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <X className="h-4 w-4" />
@@ -331,7 +307,7 @@ export default function DriverManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleSuspendDriver(driver.id)}
+                                onClick={() => handleSuspendDriver(driver.id, driver.name)}
                                 className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
                               >
                                 <Shield className="h-4 w-4" />
@@ -342,7 +318,7 @@ export default function DriverManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleApproveDriver(driver.id)}
+                                onClick={() => handleReactivateDriver(driver.id, driver.name)}
                                 className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
                               >
                                 <Check className="h-4 w-4" />
@@ -457,7 +433,7 @@ export default function DriverManagement() {
                     {selectedDriver.status === 'pending' && (
                       <div className="grid grid-cols-2 gap-3">
                         <Button 
-                          onClick={() => handleApproveDriver(selectedDriver.id)}
+                          onClick={() => handleApproveDriver(selectedDriver.id, selectedDriver.name)}
                           className="w-full"
                         >
                           <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -466,7 +442,7 @@ export default function DriverManagement() {
                         <Button 
                           variant="outline"
                           className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                          onClick={() => handleRejectDriver(selectedDriver.id)}
+                          onClick={() => handleRejectDriver(selectedDriver.id, selectedDriver.name)}
                         >
                           <X className="mr-2 h-4 w-4" />
                           Reject
@@ -478,7 +454,7 @@ export default function DriverManagement() {
                       <Button 
                         variant="outline"
                         className="w-full"
-                        onClick={() => handleSuspendDriver(selectedDriver.id)}
+                        onClick={() => handleSuspendDriver(selectedDriver.id, selectedDriver.name)}
                       >
                         <Shield className="mr-2 h-4 w-4" />
                         Suspend Driver
@@ -488,7 +464,7 @@ export default function DriverManagement() {
                     {selectedDriver.status === 'suspended' && (
                       <Button 
                         className="w-full"
-                        onClick={() => handleApproveDriver(selectedDriver.id)}
+                        onClick={() => handleReactivateDriver(selectedDriver.id, selectedDriver.name)}
                       >
                         <CheckCircle2 className="mr-2 h-4 w-4" />
                         Reactivate Driver
@@ -498,7 +474,7 @@ export default function DriverManagement() {
                     {selectedDriver.status === 'rejected' && (
                       <Button 
                         className="w-full"
-                        onClick={() => handleApproveDriver(selectedDriver.id)}
+                        onClick={() => handleApproveDriver(selectedDriver.id, selectedDriver.name)}
                       >
                         <CheckCircle2 className="mr-2 h-4 w-4" />
                         Approve Driver
@@ -518,6 +494,25 @@ export default function DriverManagement() {
           </Card>
         </div>
       </div>
+      
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmAction}
+        title={`${confirmModal.action === 'approve' ? 'Approve' : 
+                confirmModal.action === 'reject' ? 'Reject' :
+                confirmModal.action === 'suspend' ? 'Suspend' : 'Reactivate'} Driver`}
+        description={
+          confirmModal.action === 'approve' ? 'This will grant the driver access to accept rides on the platform.' :
+          confirmModal.action === 'reject' ? 'This will deny the driver application and they will not be able to drive on the platform.' :
+          confirmModal.action === 'suspend' ? 'This will temporarily disable the driver\'s ability to accept rides.' :
+          'This will reactivate the driver\'s account and allow them to accept rides again.'
+        }
+        actionType={confirmModal.action}
+        isLoading={confirmModal.action === 'suspend' ? isSuspendingDriver : isApprovingDriver}
+        targetName={confirmModal.driverName}
+      />
     </div>
   );
 }

@@ -1,10 +1,13 @@
+import ConfirmationModal from "@/components/modal/ConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Ban, Car, FileText, Filter, Search, User } from "lucide-react";
+import { useActivateUserMutation, useBlockUserMutation, useGetAllUsersQuery, useSuspendUserMutation } from "@/redux/features/auth/User/user.api";
+import { Ban, Car, FileText, Filter, Loader2, Search, User } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export interface IRider {
   id: string;
@@ -22,62 +25,39 @@ export default function RiderManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedRider, setSelectedRider] = useState<IRider | null>(null);
   
-  // Mock riders data for the UI
-  const mockRiders: IRider[] = [
-    {
-      id: 'ri-001',
-      name: 'Emily Johnson',
-      phone: '+1 (555) 123-4567',
-      email: 'emily.johnson@example.com',
-      status: 'active',
-      totalRides: 37,
-      joinedDate: '2025-01-15',
-      lastActive: '2025-09-25'
-    },
-    {
-      id: 'ri-002',
-      name: 'Robert Chen',
-      phone: '+1 (555) 987-6543',
-      email: 'robert.chen@example.com',
-      status: 'active',
-      totalRides: 105,
-      joinedDate: '2024-11-10',
-      lastActive: '2025-09-23'
-    },
-    {
-      id: 'ri-003',
-      name: 'Jessica Smith',
-      phone: '+1 (555) 456-7890',
-      email: 'jessica.smith@example.com',
-      status: 'suspended',
-      totalRides: 82,
-      joinedDate: '2025-02-22',
-      lastActive: '2025-08-15'
-    },
-    {
-      id: 'ri-004',
-      name: 'Michael Wilson',
-      phone: '+1 (555) 321-6547',
-      email: 'michael.wilson@example.com',
-      status: 'inactive',
-      totalRides: 8,
-      joinedDate: '2025-07-15',
-      lastActive: '2025-08-20'
-    },
-    {
-      id: 'ri-005',
-      name: 'Samantha Lee',
-      phone: '+1 (555) 789-0123',
-      email: 'samantha.lee@example.com',
-      status: 'active',
-      totalRides: 24,
-      joinedDate: '2025-05-30',
-      lastActive: '2025-09-24'
-    }
-  ];
+  // Confirmation Modal States
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    action: 'block' | 'reactivate';
+    riderId: string;
+    riderName: string;
+  }>({
+    isOpen: false,
+    action: 'block',
+    riderId: '',
+    riderName: ''
+  });
   
+  // API Mutations and Queries
+  const { data: usersData, isLoading: isLoadingUsers, refetch } = useGetAllUsersQuery({ role: 'rider' });
+  const [blockUser, { isLoading: isBlocking }] = useBlockUserMutation();
+  const [activateUser, { isLoading: isActivating }] = useActivateUserMutation();
+  const [suspendUser, { isLoading: isSuspending }] = useSuspendUserMutation();
+  
+  // Convert API user data to UI format
+  const riders: IRider[] = usersData?.filter(user => user.status !== 'driver').map(user => ({
+    id: user.id,
+    name: user.name || 'Unknown',
+    phone: user.phone || 'No phone',
+    email: user.email || 'No email',
+    status: user.status as 'active' | 'inactive' | 'suspended' || 'active',
+    totalRides: 0, // This would need to come from a different API endpoint
+    joinedDate: '2025-01-01', // Should come from API
+    lastActive: '2025-09-25' // Should come from API
+  })) || [];
+
   // Filter riders
-  const filteredRiders = mockRiders.filter(rider => {
+  const filteredRiders = riders.filter(rider => {
     // Filter by status
     if (statusFilter !== 'all' && rider.status !== statusFilter) return false;
     
@@ -94,14 +74,47 @@ export default function RiderManagement() {
     return true;
   });
   
-  const handleSuspendRider = (id: string) => {
-    console.log(`Suspending rider with ID: ${id}`);
-    // API call to suspend rider would go here
+  const openConfirmModal = (action: 'block' | 'reactivate', rider: IRider) => {
+    setConfirmModal({
+      isOpen: true,
+      action,
+      riderId: rider.id,
+      riderName: rider.name
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    try {
+      const { action, riderId } = confirmModal;
+      
+      if (action === 'block') {
+        await blockUser(riderId).unwrap();
+        toast.success("Rider blocked successfully");
+      } else if (action === 'reactivate') {
+        await activateUser(riderId).unwrap();
+        toast.success("Rider reactivated successfully");
+      }
+
+      // Close modal and refresh data
+      setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      // Refresh the data
+      refetch();
+    } catch (error) {
+      console.error("Error performing rider action:", error);
+      toast.error(`Failed to ${confirmModal.action} rider. Please try again.`);
+      setIsBlocking(false);
+      setIsReactivating(false);
+    }
+  };
+
+  const handleSuspendRider = (id: string, name: string) => {
+    const rider = { id, name } as IRider;
+    openConfirmModal('block', rider);
   };
   
-  const handleReactivateRider = (id: string) => {
-    console.log(`Reactivating rider with ID: ${id}`);
-    // API call to reactivate rider would go here
+  const handleReactivateRider = (id: string, name: string) => {
+    const rider = { id, name } as IRider;
+    openConfirmModal('reactivate', rider);
   };
   
   const handleViewDetails = (rider: IRider) => {
@@ -118,7 +131,7 @@ export default function RiderManagement() {
   };
   
   return (
-    <div className="container mx-auto py-6 bg-white">
+    <div className="container mx-auto py-6 bg-black text-white">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Rider Management</h1>
         <p className="text-gray-500">Manage and monitor rider accounts</p>
@@ -197,6 +210,12 @@ export default function RiderManagement() {
             <CardHeader className="pb-2">
               <CardTitle>Riders List</CardTitle>
               <CardDescription>Showing {filteredRiders.length} riders</CardDescription>
+              {isLoadingUsers && (
+                <div className="flex items-center mt-2">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>Loading rider data...</span>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -250,7 +269,7 @@ export default function RiderManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleSuspendRider(rider.id)}
+                                onClick={() => handleSuspendRider(rider.id, rider.name)}
                                 className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
                                 <Ban className="h-4 w-4" />
@@ -261,7 +280,7 @@ export default function RiderManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleReactivateRider(rider.id)}
+                                onClick={() => handleReactivateRider(rider.id, rider.name)}
                                 className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
                               >
                                 <User className="h-4 w-4" />
@@ -373,7 +392,7 @@ export default function RiderManagement() {
                       <Button 
                         variant="outline"
                         className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => handleSuspendRider(selectedRider.id)}
+                        onClick={() => handleSuspendRider(selectedRider.id, selectedRider.name)}
                       >
                         <Ban className="mr-2 h-4 w-4" />
                         Suspend Rider
@@ -383,7 +402,7 @@ export default function RiderManagement() {
                     {(selectedRider.status === 'suspended' || selectedRider.status === 'inactive') && (
                       <Button 
                         className="w-full"
-                        onClick={() => handleReactivateRider(selectedRider.id)}
+                        onClick={() => handleReactivateRider(selectedRider.id, selectedRider.name)}
                       >
                         <User className="mr-2 h-4 w-4" />
                         Reactivate Rider
@@ -403,6 +422,22 @@ export default function RiderManagement() {
           </Card>
         </div>
       </div>
+      
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.action === 'block' ? 'Block Rider' : 'Reactivate Rider'}
+        description={
+          confirmModal.action === 'block' 
+            ? 'This will prevent the rider from booking rides on the platform.' 
+            : 'This will restore the rider\'s ability to book rides on the platform.'
+        }
+        actionType={confirmModal.action}
+        isLoading={confirmModal.action === 'block' ? isBlocking : isReactivating}
+        targetName={confirmModal.riderName}
+      />
     </div>
   );
 }

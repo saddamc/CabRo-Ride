@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 // Lazy load components for better code splitting
 const App = lazy(() => import("@/App"));
+const AdminDashboardLayout = lazy(() => import("@/components/layout/AdminDashboard"));
 const DashboardLayout = lazy(() => import("@/components/layout/DashboardLayout"));
 const RoleDashboard = lazy(() => import("@/components/layout/RoleDashboard"));
 const GoogleCallback = lazy(() => import("@/components/modules/Authentication/GoogleCallback"));
@@ -14,14 +15,11 @@ const Contact = lazy(() => import("@/pages/Contact"));
 const DriverDashboard = lazy(() => import("@/pages/Driver/Dashboard"));
 const DriverEarnings = lazy(() => import("@/pages/Driver/Earnings"));
 const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
+const DriverRideDetails = lazy(() => import("@/pages/Driver/RideDetails"));
 const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
 const DriverProfile = lazy(() => import("@/pages/Driver/Profile"));
 
-// Admin pages
-const AdminDashboard = lazy(() => import("@/pages/Admin/Dashboard"));
-const AdminDriverManagement = lazy(() => import("@/pages/Admin/DriverManagement"));
-const AdminProfile = lazy(() => import("@/pages/Admin/Profile"));
-const AdminRiderManagement = lazy(() => import("@/pages/Admin/RiderManagement"));
+// Admin pages - now handled by generateRoutes(adminSidebarItems)
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const Features = lazy(() => import("@/pages/Features"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
@@ -82,7 +80,7 @@ export const router = createBrowserRouter([
     },
     {
         // Allow both super_admin and admin roles to access the admin dashboard
-        Component: withAuth(DashboardLayout, [role.super_admin, role.admin] as TRole[]),
+        Component: withAuth(AdminDashboardLayout, [role.super_admin, role.admin] as TRole[]),
         path: "/admin",
     children: [{index: true, element: <Navigate to="/admin/dashboard" />},...generateRoutes(adminSidebarItems)       ]
     },
@@ -166,6 +164,10 @@ export const router = createBrowserRouter([
                 element: <DriverRideHistory />
             },
             {
+                path: "ride-details/:id",
+                element: <DriverRideDetails />
+            },
+            {
                 path: "wallet",
                 element: <DriverWallet />
             },
@@ -207,33 +209,8 @@ export const router = createBrowserRouter([
         Component: GoogleCallback,
         path: "/auth/google/callback",
     },
-    // Admin Routes
-    {
-        Component: withAuth(RoleDashboard, role.admin as TRole),
-        path: "/admin",
-        children: [
-            {
-                index: true,
-                element: <AdminDashboard />
-            },
-            {
-                path: "dashboard",
-                element: <AdminDashboard />
-            },
-            {
-                path: "drivers",
-                element: <AdminDriverManagement />
-            },
-            {
-                path: "riders",
-                element: <AdminRiderManagement />
-            },
-            {
-                path: "profile",
-                element: <AdminProfile />
-            }
-        ]
-    },
+    // Admin Routes - Now using AdminDashboardLayout (no navbar, simple sidebar)
+    // The admin routes above already handle this, so this section is removed
     // 404 Not Found route - must be last
     {
         path: "*",
