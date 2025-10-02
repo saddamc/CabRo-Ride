@@ -60,47 +60,47 @@ export default function RiderDashboard() {
 
       {/* Rider Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-blue-50 border-blue-200">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800">Total Rides</CardTitle>
-            <Clock className="h-4 w-4 text-blue-400" />
+            <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
+            <Clock className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{totalRides}</div>
-            <p className="text-xs text-blue-600">All time</p>
+            <div className="text-2xl font-bold">{totalRides}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-green-50 border-green-200">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">Total Distance</CardTitle>
-            <MapPin className="h-4 w-4 text-green-400" />
+            <CardTitle className="text-sm font-medium">Total Distance</CardTitle>
+            <MapPin className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-900">{totalDistance.toFixed(1)} km</div>
-            <p className="text-xs text-green-600">All time</p>
+            <div className="text-2xl font-bold">{totalDistance.toFixed(1)} km</div>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-yellow-50 border-yellow-200">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-800">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-yellow-400" />
+            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
+            <DollarSign className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-900">৳{totalSpent.toFixed(2)}</div>
-            <p className="text-xs text-yellow-600">All time</p>
+            <div className="text-2xl font-bold">৳{totalSpent.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-50 border-purple-200">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-800">My Rating</CardTitle>
-            <Star className="h-4 w-4 text-purple-400" />
+            <CardTitle className="text-sm font-medium">My Rating</CardTitle>
+            <Star className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-900">{averageRating.toFixed(1)}/5</div>
-            <p className="text-xs text-purple-600">Based on {completedRides.length} reviews</p>
+            <div className="text-2xl font-bold">{averageRating.toFixed(1)}/5</div>
+            <p className="text-xs text-muted-foreground">Based on {completedRides.length} reviews</p>
           </CardContent>
         </Card>
       </div>
@@ -190,7 +190,7 @@ export default function RiderDashboard() {
         <Card className="mb-8">
           <CardContent className="py-8">
             <div className="text-center">
-              <p className="text-black">Loading ride information...</p>
+              <p>Loading ride information...</p>
             </div>
           </CardContent>
         </Card>
@@ -218,7 +218,7 @@ export default function RiderDashboard() {
                     <div className="font-medium">
                       {new Date(activeRide.timestamps.requested).toLocaleDateString()}
                     </div>
-                    <div className="text-sm text-black">
+                    <div className="text-sm text-muted-foreground">
                       {new Date(activeRide.timestamps.requested).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit'
@@ -239,11 +239,11 @@ export default function RiderDashboard() {
                   </div>
                   <div className="flex-1">
                     <div className="mb-4">
-                      <div className="text-sm text-black">Pickup</div>
+                      <div className="text-sm text-muted-foreground">Pickup</div>
                       <div className="font-medium">{activeRide.pickupLocation.address}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-black">Destination</div>
+                      <div className="text-sm text-muted-foreground">Destination</div>
                       <div className="font-medium">{activeRide.destinationLocation.address}</div>
                     </div>
                   </div>
@@ -255,30 +255,30 @@ export default function RiderDashboard() {
                 <div className="space-y-2">
                   {activeRide.driver && (
                     <div className="flex justify-between">
-                      <span className="text-black">Driver</span>
+                      <span>Driver</span>
                       <span className="font-medium">{activeRide.driver.user.name}</span>
                     </div>
                   )}
                   {activeRide.driver && (
                     <div className="flex justify-between">
-                      <span className="text-black">Vehicle</span>
+                      <span>Vehicle</span>
                       <span className="font-medium">
                         {activeRide.driver.vehicle?.make} {activeRide.driver.vehicle?.model}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-black">Distance</span>
+                    <span>Distance</span>
                     <span className="font-medium">
                       {(activeRide.distance?.estimated || 0).toFixed(1)} km
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-black">Fare</span>
+                    <span>Fare</span>
                     <span className="font-medium">৳{Math.round(activeRide.fare?.totalFare || 0)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-black">Status</span>
+                    <span>Status</span>
                     <span className={`font-medium capitalize ${
                       activeRide.status === 'requested' ? 'text-yellow-600' :
                       activeRide.status === 'accepted' ? 'text-blue-600' :
@@ -318,10 +318,10 @@ export default function RiderDashboard() {
       {/* Recent Rides */}
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
-          {/* <div>
-            <CardTitle>Driver Application</CardTitle>
-            <CardDescription>Apply to become a driver and start earning</CardDescription>
-          </div> */}
+          <div>
+            <CardTitle>Recent Rides</CardTitle>
+            <CardDescription>Your recent ride history</CardDescription>
+          </div>
           {/* apply Now Button */}
           {/* <Button
             variant="outline"
@@ -452,8 +452,8 @@ export default function RiderDashboard() {
                 key={destination.id}
                 className="border border-gray-200 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
               >
-                <h3 className="font-medium mb-2 text-black">{destination.name}</h3>
-                <div className="flex items-center justify-between text-sm text-black">
+                <h3 className="font-medium mb-2">{destination.name}</h3>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>{destination.distance}</span>
                   <span>{destination.eta}</span>
                 </div>

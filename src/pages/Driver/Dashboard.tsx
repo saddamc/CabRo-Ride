@@ -182,7 +182,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="container mx-auto py-6 bg-white min-h-screen">
+    <div className="container mx-auto py-6 bg-white min-h-screen text-black">
       {/* Driver Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <Card className="lg:col-span-2 border-0 shadow-md">

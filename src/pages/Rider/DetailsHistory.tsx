@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useGetRideByIdQuery } from "@/redux/features/rides/ride.api";
 import { ArrowLeft, Calendar, Car, CheckCircle, Clock, DollarSign, MapPin, Navigation, Phone, Star, Timer, User, XCircle } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const DetailsHistory = () => {
@@ -40,11 +41,11 @@ const DetailsHistory = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 bg-white">
+      <div className="container mx-auto py-8 px-4 bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-black">Loading ride details...</p>
-          <p className="text-gray-600 mt-2">This may take a moment...</p>
+          <p>Loading ride details...</p>
+          <p className="text-muted-foreground mt-2">This may take a moment...</p>
           <Button 
             variant="outline" 
             className="mt-4"
@@ -59,11 +60,11 @@ const DetailsHistory = () => {
 
   if (error || !ride) {
     return (
-      <div className="container mx-auto py-8 px-4 bg-white">
+      <div className="container mx-auto py-8 px-4 bg-background">
         <div className="text-center">
           <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <p className="text-black mb-4 text-xl font-semibold">Failed to load ride details</p>
-          <p className="text-gray-700 mb-6">Please check if the ride exists or try again later.</p>
+          <p className="mb-4 text-xl font-semibold">Failed to load ride details</p>
+          <p className="text-muted-foreground mb-6">Please check if the ride exists or try again later.</p>
           <div className="flex gap-4 justify-center">
             <Button 
               onClick={() => navigate('/rider/history')}
@@ -103,7 +104,7 @@ const DetailsHistory = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl bg-white text-black">
+    <div className="container mx-auto py-8 px-4 max-w-4xl bg-white">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button
@@ -117,7 +118,7 @@ const DetailsHistory = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Ride Details</h1>
-          <p className="text-gray-600">Ride ID: {ride._id.slice(-8)}</p>
+          <p className="text-muted-foreground">Ride ID: {ride._id.slice(-8)}</p>
         </div>
       </div>
 
@@ -374,8 +375,8 @@ const DetailsHistory = () => {
                 <p className="font-medium">৳{ride.fare?.timeFare?.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Fare</p>
-                <p className="font-bold text-lg text-black">৳{ride.fare?.totalFare?.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">Total Fare</p>
+                <p className="font-bold text-lg">৳{ride.fare?.totalFare?.toFixed(2)}</p>
               </div>
             </div>
 

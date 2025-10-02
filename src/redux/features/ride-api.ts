@@ -524,13 +524,13 @@ export const rideApi = baseApi.injectEndpoints({
     }),
 
     // getAllRide
-    getAllRide: builder.query<{ total: number; rides: IRide[] }, { page?: number; limit?: number }>({
+    getAllRide: builder.query<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }, { page?: number; limit?: number }>({
       query: (params = {}) => ({
         url: "/rides",
         method: "GET",
         params,
       }),
-      transformResponse: (response: IResponse<{ total: number; rides: IRide[] }>) => response.data,
+      transformResponse: (response: IResponse<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }>) => response.data,
       providesTags: ["RIDES"],
     }),
 

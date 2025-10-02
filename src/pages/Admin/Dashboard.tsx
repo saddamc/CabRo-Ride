@@ -28,7 +28,7 @@ export default function AdminDashboard() {
     : 3547628.50;
   
   return (
-    <div className="container mx-auto py-6 px-4 bg-white min-h-screen">
+    <div className="container mx-auto py-6 px-4 bg-white text-black min-h-screen">
       {isLoadingAnalytics || isLoadingBookings || isLoadingEarnings ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -38,53 +38,53 @@ export default function AdminDashboard() {
         <>
           {/* Admin Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-gray-100 border-gray-300">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-blue-800">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-blue-400" />
+                <CardTitle className="text-sm font-medium text-gray-800">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-blue-900">
+                <div className="text-2xl font-bold text-gray-900">
                   {analyticsData?.data?.users.totalUsers.toLocaleString() || '0'}
                 </div>
-                <p className="text-xs text-blue-600">All registered users</p>
+                <p className="text-xs text-gray-600">All registered users</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-green-50 border-green-200">
+            <Card className="bg-gray-100 border-gray-300">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-green-800">Active Drivers</CardTitle>
-                <CarIcon className="h-4 w-4 text-green-400" />
+                <CardTitle className="text-sm font-medium text-gray-800">Active Drivers</CardTitle>
+                <CarIcon className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-900">
+                <div className="text-2xl font-bold text-gray-900">
                   {analyticsData?.data?.drivers.approvedDrivers.toLocaleString() || '0'}
                 </div>
-                <p className="text-xs text-green-600">Approved drivers</p>
+                <p className="text-xs text-gray-600">Approved drivers</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-yellow-50 border-yellow-200">
+            <Card className="bg-gray-100 border-gray-300">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-yellow-800">Total Revenue</CardTitle>
-                <DollarSignIcon className="h-4 w-4 text-yellow-400" />
+                <CardTitle className="text-sm font-medium text-gray-800">Total Revenue</CardTitle>
+                <DollarSignIcon className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-yellow-900">
+                <div className="text-2xl font-bold text-gray-900">
                   ৳{(totalRevenue / 1000).toFixed(1)}K
                 </div>
-                <p className="text-xs text-yellow-600">All time earnings</p>
+                <p className="text-xs text-gray-600">All time earnings</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-purple-50 border-purple-200">
+            <Card className="bg-gray-100 border-gray-300">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-purple-800">Completion Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-purple-400" />
+                <CardTitle className="text-sm font-medium text-gray-800">Completion Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-900">{completionRate}%</div>
-                <p className="text-xs text-purple-600">Ride success rate</p>
+                <div className="text-2xl font-bold text-gray-900">{completionRate}%</div>
+                <p className="text-xs text-gray-600">Ride success rate</p>
               </CardContent>
             </Card>
           </div>
@@ -177,42 +177,42 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div className="bg-blue-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <CarIcon className="h-5 w-5 text-blue-600" />
+                <CarIcon className="h-5 w-5 text-gray-600" />
                 <span className="text-sm font-medium">Total Drivers</span>
               </div>
-              <p className="text-2xl font-bold text-blue-900">
+              <p className="text-2xl font-bold text-gray-900">
                 {analyticsData?.data?.drivers.totalDrivers.toLocaleString() || '0'}
               </p>
             </div>
 
-            <div className="bg-green-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <CarIcon className="h-5 w-5 text-green-600" />
+                <CarIcon className="h-5 w-5 text-gray-600" />
                 <span className="text-sm font-medium">Completed Rides</span>
               </div>
-              <p className="text-2xl font-bold text-green-900">
+              <p className="text-2xl font-bold text-gray-900">
                 {analyticsData?.data?.rides.completedRides.toLocaleString() || '0'}
               </p>
             </div>
 
-            <div className="bg-yellow-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <CarIcon className="h-5 w-5 text-yellow-600" />
+                <CarIcon className="h-5 w-5 text-gray-600" />
                 <span className="text-sm font-medium">Cancelled Rides</span>
               </div>
-              <p className="text-2xl font-bold text-yellow-900">
+              <p className="text-2xl font-bold text-gray-900">
                 {analyticsData?.data?.rides.cancelledRides.toLocaleString() || '0'}
               </p>
             </div>
 
-            <div className="bg-purple-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+                <TrendingUp className="h-5 w-5 text-gray-600" />
                 <span className="text-sm font-medium">Pending Drivers</span>
               </div>
-              <p className="text-2xl font-bold text-purple-900">
+              <p className="text-2xl font-bold text-gray-900">
                 {analyticsData?.data?.drivers.pendingDrivers || '0'}
               </p>
             </div>

@@ -1,4 +1,3 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -266,7 +265,7 @@ export default function DriverRideHistory() {
         </CardFooter>
       </Card>
 
-      {filterStatus === "all" && (
+      {/* {filterStatus === "all" && (
         <Alert className="mt-6">
           <FileClock className="h-4 w-4" />
           <AlertTitle>Ride History Export</AlertTitle>
@@ -277,7 +276,7 @@ export default function DriverRideHistory() {
             </Button>
           </AlertDescription>
         </Alert>
-      )}
+      )} */}
       {/* Rating Modal for re-rating or leaving a comment */}
       <RatingModal
         isOpen={ratingModal.open}

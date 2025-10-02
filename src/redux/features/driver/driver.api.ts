@@ -3,6 +3,65 @@
 import { baseApi } from "@/redux/baseApi";
 import type { IResponse } from "@/types";
 
+
+export interface IDriverEarnings {
+  totalEarnings: number;
+  totalTrips: number;
+  history: Array<{
+    amount: number;
+    createdAt: string;
+    rideId: string;
+    transactionId: string;
+  }>;
+  // Frontend calculated values
+  weeklyEarnings?: number;
+  monthlyEarnings?: number;
+  dailyEarnings?: number;
+}
+
+export interface IDriverDetails {
+  _id: string;
+  user: string;
+  licenseNumber: string;
+  vehicleType: IVehicleDetails;
+  status: 'pending' | 'approved' | 'suspended' | 'rejected';
+  availability: 'online' | 'offline' | 'busy';
+  location: {
+    coordinates: [number, number];
+    address?: string;
+    lastUpdated: string;
+  };
+  earnings: IDriverEarnings;
+  rating: {
+    average: number;
+    totalRatings: number;
+  };
+  activeRide?: string | null;
+  approvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
+//
+export interface IDriverStatus {
+  availability: 'online' | 'offline' | 'busy';
+  status: 'pending' | 'approved' | 'suspended' | 'rejected';
+}
+export interface IDriverUpdateResponse {
+  success: boolean;
+  message: string;
+  data: IDriverStatus;
+}
+
+export interface IVehicleDetails {
+  make: string;
+  model: string;
+  year: number;
+  plateNumber: string;
+  color?: string;
+}
+
 export interface IDriverApplication {
   licenseNumber: string;
   vehicleType: {
@@ -102,7 +161,7 @@ export interface IDriverEarnings {
   history: {
     amount: number;
     createdAt: string;
-    rideId: any;
+    rideId: string;
     transactionId: string;
   }[];
 }
@@ -168,7 +227,7 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Update driver profile
-    updateDriverDoc: builder.mutation<IDriverProfile, Partial<IDriverProfile>>({
+    updateDriverDoc: builder.mutation<IDriverUpdateResponse, Partial<IVehicleDetails>>({
       query: (data) => ({
         url: "/drivers/update-me",
         method: "PATCH",
@@ -188,13 +247,13 @@ export const driverApi = baseApi.injectEndpoints({
     }),
     
        // Get driver details
-    getDriverDetails: builder.query<IDriverProfile, void>({
-      query: () => ({
-        url: "drivers/me",
-        method: "GET",
-      }),
-      providesTags: ["DRIVER"],
-    }),
+       getDriverDetails: builder.query<IDriverProfile, void>({
+         query: () => ({
+           url: "/drivers/me",
+           method: "GET",
+         }),
+         providesTags: ["DRIVER"],
+       }),
 
     // Get all drivers
     getAllDrivers: builder.query<IDriverProfile[], Record<string, unknown> | void>({
@@ -239,7 +298,7 @@ export const driverApi = baseApi.injectEndpoints({
         url: `/drivers/confirm-payment/${id}`,
         method: "PATCH",
       }),
-      invalidatesTags: ["RIDES", "DRIVER"],
+      invalidatesTags: ["RIDES", "DRIVER", "WALLET"],
     }),
 
     // Get current driver status (for availability checking)

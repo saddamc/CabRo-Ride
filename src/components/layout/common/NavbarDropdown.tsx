@@ -1,5 +1,7 @@
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { useGetWalletQuery } from "@/redux/features/auth/Rider/rider.api";
+import { useGetDriverDetailsQuery, useGetDriverEarningsQuery } from "@/redux/features/driver/driver.api";
+import { useGetRideHistoryQuery } from "@/redux/features/ride-api";
 import { useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
 import { DollarSign, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,9 +17,33 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
   // Map API roles to our application roles
   const role = userInfo?.data?.role;
   const userRole = role === 'user' ? 'rider' : role || 'rider';
-  // For driver: get available ride requests
+  // For driver: get available ride requests and driver details
   const { data: availableRides } = useGetAvailableRidesQuery(undefined, { skip: userRole !== 'driver' });
+  const { data: driverDetails } = useGetDriverDetailsQuery(undefined, { skip: userRole !== 'driver' });
+  const { data: driverEarnings } = useGetDriverEarningsQuery(undefined, { skip: userRole !== 'driver' });
+  // For rider: get ride history for rating calculation
+  const { data: rideHistory } = useGetRideHistoryQuery({ limit: 100 }, { skip: userRole !== 'rider' });
   const { data: wallet } = useGetWalletQuery(undefined);
+
+  // Calculate real rating based on user role
+  const getRealRating = () => {
+    if (userRole === 'driver' && driverDetails) {
+      return typeof driverDetails.data?.rating === 'object'
+        ? driverDetails.data.rating.average ?? 0
+        : driverDetails.data?.rating ?? 0;
+    } else if (userRole === 'rider' && rideHistory) {
+      const completedRides = rideHistory.grouped?.completed || [];
+      if (completedRides.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const averageRating = completedRides.reduce((sum: number, ride: any) =>
+          sum + (ride.rating?.riderRating || 0), 0) / completedRides.length;
+        return averageRating;
+      }
+    }
+    return 0;
+  };
+
+  const realRating = getRealRating();
 
   if (!menuOpen) return null;
 
@@ -51,7 +77,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-yellow-500 font-medium">
                         {/* Dynamic */}
-                      {userInfo.data.rating || "4.91"}
+                      {realRating > 0 ? realRating.toFixed(1) : "4.91"}
                     </span>
                     <span className="text-xs text-gray-500">
                       ⭐ stars
@@ -132,7 +158,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                 {userRole !== 'super_admin' && (
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-yellow-500 font-medium">
-                      {userInfo.data.rating || "4.91"}
+                      {realRating > 0 ? realRating.toFixed(1) : "4.91"}
                     </span>
                     <span className="text-xs text-gray-500">
                       ⭐ stars
@@ -153,19 +179,18 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           )}
         </div>
 
-        {/* Wallet Cards for Drivers */}
+        {/* Earnings Cards for Drivers */}
         {userRole === 'driver' && (
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-2 gap-3">
-              {/* Wallet Balance Card */}
+              {/* Total Earnings Card */}
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
                 <div className="flex items-center gap-2 mb-1">
-                  <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Balance</span>
+                  <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Total</span>
                 </div>
                 <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                    {/* Dynamic Wallet Balance */}
-                  ${wallet?.balance?.toFixed(2) || '0.00'}
+                  ${driverEarnings?.totalEarnings?.toFixed(2) || '0.00'}
                 </div>
               </div>
 
@@ -176,8 +201,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                   <span className="text-xs font-medium text-green-700 dark:text-green-300">Today</span>
                 </div>
                 <div className="text-lg font-bold text-green-900 dark:text-green-100">
-                    {/* Dynamic  */}
-                  $0.00
+                  ${driverEarnings?.todayEarnings?.toFixed(2) || '0.00'}
                 </div>
               </div>
             </div>
@@ -186,8 +210,8 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
 
         {/* Menu Items */}
         <div className="py-2">
-          {/* Rider wallet */}
-          {userRole === 'rider' && (
+          {/* Rider wallet - Hidden for rider and admin roles */}
+          {userRole === 'rider' && userRole !== 'rider' && userRole !== 'admin' && userRole !== 'super_admin' && (
             <Link
               to="/rider/wallet"
               onClick={handleMenuClose}
@@ -219,7 +243,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           )}
           {/*  */}
           <Link
-            to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin/analytics' : `/${userRole}/dashboard`}`}
+            to={`${userRole === 'super_admin' || userRole === 'admin' ? '/admin/dashboard' : `/${userRole}/dashboard`}`}
             onClick={handleMenuClose}
             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
@@ -227,7 +251,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
           </Link>
           {/* Wallet Link for all users */}
           
-          {userRole !== 'driver' && (
+          {userRole !== 'driver' && userRole !== 'admin' && userRole !== 'super_admin' && (
             <>
               <Link
                 to="/ride"

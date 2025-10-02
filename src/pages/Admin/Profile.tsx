@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { useChangePasswordMutation } from "@/redux/features/auth/auth.api";
 import { useGetAllUsersQuery, useUpdateUserMutation } from "@/redux/features/auth/User/user.api";
 import { Edit, Save, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -12,6 +13,8 @@ import { useEffect, useState } from "react";
 export default function AdminProfile() {
   const { data: users, isLoading: isUsersLoading } = useGetAllUsersQuery({ role: 'admin' });
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { toast } = useToast();
   const [editMode, setEditMode] = useState(false);
 
@@ -24,6 +27,13 @@ export default function AdminProfile() {
     email: '',
     phone: '',
   });
+
+    // ChangePassword form state
+    const [passwordData, setPasswordData] = useState({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
 
   useEffect(() => {
     if (adminUser) {
@@ -70,8 +80,55 @@ export default function AdminProfile() {
     setEditMode(false);
   };
 
+  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setPasswordData(prev => ({ ...prev, [name]: value }));
+    };
+  
+    const handleChangePassword = async () => {
+      // Validate passwords match
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        toast.error("Passwords don't match", {
+          description: "Please make sure your new password and confirmation match.",
+        });
+        return;
+      }
+  
+      // Validate password length
+      if (passwordData.newPassword.length < 6) {
+        toast.error("Password too short", {
+          description: "Password must be at least 6 characters long.",
+        });
+        return;
+      }
+  
+      try {
+        await changePassword({
+          oldPassword: passwordData.oldPassword,
+          newPassword: passwordData.newPassword,
+        }).unwrap();
+  
+        toast.success("Password Changed", {
+          description: "Your password has been updated successfully.",
+        });
+  
+        // Reset form and close modal
+        setPasswordData({
+          oldPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+        setIsChangePasswordModalOpen(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        toast.error("Password Change Failed", {
+          description: error?.data?.message || "There was an error changing your password.",
+        });
+      }
+    };
+
   return (
-    <div className="container mx-auto py-6 bg-white">
+    <div className="container mx-auto py-6 bg-white text-black min-h-screen">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Admin Profile</h1>
         <p className="text-gray-500">Manage your account details and preferences</p>
@@ -257,9 +314,79 @@ export default function AdminProfile() {
                               <h4 className="font-medium">Password</h4>
                               <p className="text-sm text-gray-500">Last changed 30 days ago</p>
                             </div>
-                            <Button variant="outline" size="sm">
-                              Change Password
-                            </Button>
+                            {/* changePassword */}
+                            <Dialog open={isChangePasswordModalOpen} onOpenChange={setIsChangePasswordModalOpen}>
+                    <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
+                      <DialogHeader>
+                        <DialogTitle className="text-gray-900 dark:text-white">Change Password</DialogTitle>
+                        <DialogDescription className="text-gray-600 dark:text-gray-300">Enter your current password and set a new one</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="oldPassword" className="text-gray-900 dark:text-white">Current Password</Label>
+                          <Input
+                            id="oldPassword"
+                            name="oldPassword"
+                            type="password"
+                            value={passwordData.oldPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Enter your current password"
+                            disabled={isChangingPassword}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="newPassword" className="text-gray-900 dark:text-white">New Password</Label>
+                          <Input
+                            id="newPassword"
+                            name="newPassword"
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Enter your new password"
+                            disabled={isChangingPassword}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="confirmPassword" className="text-gray-900 dark:text-white">Confirm New Password</Label>
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Confirm your new password"
+                            disabled={isChangingPassword}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsChangePasswordModalOpen(false)}
+                            disabled={isChangingPassword}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleChangePassword}
+                            disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                            className="bg-white border-black  hover:bg-black hover:text-white"
+                          >
+                            {isChangingPassword ? (
+                              <>
+                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                                Changing...
+                              </>
+                            ) : (
+                              'Change Password'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                           </div>
 
                           <div className="flex justify-between items-center">

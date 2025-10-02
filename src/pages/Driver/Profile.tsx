@@ -1,131 +1,206 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { useUpdateProfileMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
+import { useChangePasswordMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
+import { useUpdateUserMutation } from "@/redux/features/auth/User/user.api";
 
-import { useGetDriverDetailsQuery, useGetDriverEarningsQuery, useUpdateDriverDocMutation } from "@/redux/features/driver/driver.api";
+import {
+  useGetDriverDetailsQuery,
+  useGetDriverEarningsQuery,
+  useUpdateDriverDocMutation,
+} from "@/redux/features/driver/driver.api";
 import { Edit, Save, Star, Truck, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast as sonnerToast, toast } from "sonner";
 
 export default function DriverProfile() {
-  const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfoQuery(undefined);
-  const { data: driverDetails, isLoading: isDriverLoading } = useGetDriverDetailsQuery();
+  const { data: userInfo, isLoading: isUserInfoLoading } =
+    useUserInfoQuery(undefined);
+  const { data: driverDetails, isLoading: isDriverLoading } =
+    useGetDriverDetailsQuery();
   // console.log("driver:", driverDetails)
   const { data: earningsData } = useGetDriverEarningsQuery();
-  const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
-  const [updateDriverDetails, { isLoading: isUpdatingDriver }] = useUpdateDriverDocMutation();
-  const { toast } = useToast();
+  const [updateDriverDetails, { isLoading: isUpdatingDriver }] =
+    useUpdateDriverDocMutation();
+  const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [vehicleModalKey, setVehicleModalKey] = useState(0);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
+    useState(false);
+
+
+  // ChangePassword form state
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+    const handlePasswordInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+  };
 
   // Form state for personal info
   const [personalFormData, setPersonalFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: "",
+    email: "",
+    phone: "",
   });
 
   // Form state for vehicle info
   const [vehicleFormData, setVehicleFormData] = useState({
-    make: '',
-    model: '',
-    year: '',
-    licensePlate: '',
-    vehicleType: '',
+    make: "",
+    model: "",
+    year: "",
+    licensePlate: "",
+    vehicleType: "",
   });
 
   useEffect(() => {
     if (userInfo?.data) {
       setPersonalFormData({
-        name: userInfo.data.name || '',
-        email: userInfo.data.email || '',
-        phone: userInfo.data.phone || '',
+        name: userInfo.data.name || "",
+        email: userInfo.data.email || "",
+        phone: userInfo.data.phone || "",
       });
     }
     if (driverDetails?.vehicleType) {
       setVehicleFormData({
-        make: driverDetails.vehicleType.make || '',
-        model: driverDetails.vehicleType.model || '',
-        year: driverDetails.vehicleType.year?.toString() || '',
-        licensePlate: driverDetails.vehicleType.plateNumber || '',
-        vehicleType: driverDetails.vehicleType.category || '',
+        make: driverDetails.vehicleType.make || "",
+        model: driverDetails.vehicleType.model || "",
+        year: driverDetails.vehicleType.year?.toString() || "",
+        licensePlate: driverDetails.vehicleType.plateNumber || "",
+        vehicleType: driverDetails.vehicleType.category || "",
       });
     }
   }, [userInfo, driverDetails]);
 
-  const handlePersonalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePersonalInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
-    setPersonalFormData(prev => ({ ...prev, [name]: value }));
+    setPersonalFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleVehicleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setVehicleFormData(prev => ({ ...prev, [name]: value }));
+    setVehicleFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const handleSaveProfile = async () => {
     try {
-      // Update personal info
-      const personalData = {
-        ...personalFormData,
-        _id: userInfo?.data?._id || '',
+      // Update user information using useUpdateUserMutation
+      const userUpdatePayload = {
+        id: userInfo?.data?._id || "",
+        data: {
+          name: personalFormData.name,
+          email: personalFormData.email,
+          phone: personalFormData.phone,
+        },
       };
-      await updateProfile(personalData).unwrap();
 
-      // Update vehicle info
-      const vehicleData = {
-        vehicleType: {
-          category: vehicleFormData.vehicleType as 'CAR' | 'BIKE',
-          make: vehicleFormData.make,
-          model: vehicleFormData.model,
-          year: parseInt(vehicleFormData.year),
-          plateNumber: vehicleFormData.licensePlate,
-        }
-      };
-      await updateDriverDetails(vehicleData).unwrap();
+      await updateUser(userUpdatePayload).unwrap();
 
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      });
+      sonnerToast.success("Profile updated successfully.");
       setIsEditModalOpen(false);
-    } catch {
-      toast({
-        title: "Update Failed",
-        description: "There was a problem updating your vehicle.",
-        variant: "destructive",
+    } catch (error) {
+      console.error("Profile update failed:", error);
+      sonnerToast.error("Failed to update profile information.");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset form data
+    setPersonalFormData({
+      name: userInfo?.data?.name || "",
+      email: userInfo?.data?.email || "",
+      phone: userInfo?.data?.phone || "",
+    });
+    setVehicleFormData({
+      make: driverDetails?.vehicleType?.make || "",
+      model: driverDetails?.vehicleType?.model || "",
+      year: driverDetails?.vehicleType?.year?.toString() || "",
+      licensePlate: driverDetails?.vehicleType?.plateNumber || "",
+      vehicleType: driverDetails?.vehicleType?.category || "",
+    });
+    setIsEditModalOpen(false);
+  };
+
+
+// step -2 changePassword
+   const handleChangePassword = async () => {
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords don't match", {
+        description: "Please make sure your new password and confirmation match.",
+      });
+      return;
+    }
+
+    // Validate password length
+    if (passwordData.newPassword.length < 6) {
+      toast.error("Password too short", {
+        description: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+
+    try {
+      await changePassword({
+        oldPassword: passwordData.oldPassword,
+        newPassword: passwordData.newPassword,
+      }).unwrap();
+
+      toast.success("Password Changed", {
+        description: "Your password has been updated successfully.",
+      });
+
+      // Reset form and close modal
+      setPasswordData({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setIsChangePasswordModalOpen(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error("Password Change Failed", {
+        description: error?.data?.message || "There was an error changing your password.",
       });
     }
   };
 
 
-  const handleCancelEdit = () => {
-    // Reset form data
-    setPersonalFormData({
-      name: userInfo?.data?.name || '',
-      email: userInfo?.data?.email || '',
-      phone: userInfo?.data?.phone || '',
-    });
-    setVehicleFormData({
-      make: driverDetails?.vehicleType?.make || '',
-      model: driverDetails?.vehicleType?.model || '',
-      year: driverDetails?.vehicleType?.year?.toString() || '',
-      licensePlate: driverDetails?.vehicleType?.plateNumber || '',
-      vehicleType: driverDetails?.vehicleType?.category || '',
-    });
-    setIsEditModalOpen(false);
-  };
 
   return (
-    <div className="container mx-auto py-6 bg-white">
+    <div className="container mx-auto py-6 bg-white text-black">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Driver Profile</h1>
-        <p className="text-gray-500">Manage your account details and vehicle information</p>
+        <p className="text-muted-foreground">
+          Manage your account details and vehicle information
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -147,8 +222,12 @@ export default function DriverProfile() {
                     <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                       <User className="h-12 w-12 text-primary" />
                     </div>
-                    <h2 className="text-xl font-bold">{userInfo?.data?.name || 'Driver Name'}</h2>
-                    <p className="text-gray-500">{userInfo?.data?.email || 'driver@example.com'}</p>
+                    <h2 className="text-xl font-bold">
+                      {userInfo?.data?.name || "Driver Name"}
+                    </h2>
+                    <p className="text-gray-500">
+                      {userInfo?.data?.email || "driver@example.com"}
+                    </p>
 
                     <div className="mt-2 mb-4">
                       <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
@@ -160,24 +239,31 @@ export default function DriverProfile() {
 
                 <div className="text-center mb-6 w-full">
                   <div className="bg-gray-50 p-3 rounded-lg">
-                     <div className="text-sm text-gray-500 mb-1">Member Since</div>
-                     <div className="font-medium">
-                       {driverDetails?.createdAt
-                         ? new Date(driverDetails.createdAt).toLocaleDateString()
-                         : 'Not available'}
-                     </div>
-                   </div>
+                    <div className="text-sm text-gray-500 mb-1">
+                      Member Since
+                    </div>
+                    <div className="font-medium">
+                      {driverDetails?.createdAt
+                        ? new Date(driverDetails.createdAt).toLocaleDateString()
+                        : "Not available"}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 w-full">
                   <div className="bg-gray-50 p-3 rounded-lg text-center">
-                    <div className="text-sm text-gray-500 mb-1">Total Rides</div>
-                    <div className="font-medium">{earningsData?.totalTrips || 0}</div>
+                    <div className="text-sm text-gray-500 mb-1">
+                      Total Rides
+                    </div>
+                    <div className="font-medium">
+                      {earningsData?.totalTrips || 0}
+                    </div>
                   </div>
                   <div className="bg-primary/10 p-3 rounded-lg text-center">
                     <div className="text-sm text-gray-500 mb-1">Rating</div>
                     <div className="font-medium flex items-center justify-center">
-                      {earningsData?.averageRating !== null && earningsData?.averageRating !== undefined ? (
+                      {earningsData?.averageRating !== null &&
+                      earningsData?.averageRating !== undefined ? (
                         <>
                           {earningsData.averageRating}
                           <Star className="h-4 w-4 text-yellow-500 ml-1 fill-current" />
@@ -193,9 +279,11 @@ export default function DriverProfile() {
                     </div>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg text-center">
-                    <div className="text-sm text-gray-500 mb-1">Availability</div>
+                    <div className="text-sm text-gray-500 mb-1">
+                      Availability
+                    </div>
                     <div className="font-medium text-green-600 capitalize">
-                      {driverDetails?.data?.availability || 'offline'}
+                      {driverDetails?.data?.availability || "offline"}
                     </div>
                   </div>
                 </div>
@@ -218,20 +306,34 @@ export default function DriverProfile() {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Manage your personal details</CardDescription>
+                    <CardDescription>
+                      Manage your personal details
+                    </CardDescription>
                   </div>
                   {!(isUserInfoLoading || isDriverLoading) && (
-                    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                    <Dialog
+                      open={isEditModalOpen}
+                      onOpenChange={setIsEditModalOpen}
+                    >
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex items-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center"
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit Profile
                         </Button>
                       </DialogTrigger>
-                      <DialogContent key={vehicleModalKey} className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700 text-white">
+                      <DialogContent
+                        key={vehicleModalKey}
+                        className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
+                      >
                         <DialogHeader>
                           <DialogTitle>Edit Profile</DialogTitle>
-                          <DialogDescription>Update your personal details</DialogDescription>
+                          <DialogDescription>
+                            Update your personal details
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,7 +345,7 @@ export default function DriverProfile() {
                                 value={personalFormData.name}
                                 onChange={handlePersonalInputChange}
                                 className="mt-1"
-                                disabled={isUpdating}
+                                disabled={isUpdatingDriver || isUpdatingUser}
                               />
                             </div>
                             <div>
@@ -267,7 +369,7 @@ export default function DriverProfile() {
                                 value={personalFormData.phone}
                                 onChange={handlePersonalInputChange}
                                 className="mt-1"
-                                disabled={isUpdating}
+                                disabled={isUpdatingDriver || isUpdatingUser}
                               />
                             </div>
                           </div>
@@ -275,15 +377,15 @@ export default function DriverProfile() {
                             <Button
                               variant="outline"
                               onClick={handleCancelEdit}
-                              disabled={isUpdating}
+                              disabled={isUpdatingDriver || isUpdatingUser}
                             >
                               Cancel
                             </Button>
                             <Button
                               onClick={handleSaveProfile}
-                              disabled={isUpdating}
+                              disabled={isUpdatingDriver || isUpdatingUser}
                             >
-                              {isUpdating ? (
+                              {isUpdatingDriver || isUpdatingUser ? (
                                 <>
                                   <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
                                   Saving...
@@ -320,17 +422,23 @@ export default function DriverProfile() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="name">Full Name</Label>
-                          <div className="p-2 mt-1 bg-gray-50 rounded">{personalFormData.name}</div>
+                          <div className="p-2 mt-1 bg-gray-50 rounded">
+                            {personalFormData.name}
+                          </div>
                         </div>
                         <div>
                           <Label htmlFor="email">Email Address</Label>
-                          <div className="p-2 mt-1 bg-gray-50 rounded">{personalFormData.email}</div>
+                          <div className="p-2 mt-1 bg-gray-50 rounded">
+                            {personalFormData.email}
+                          </div>
                         </div>
                       </div>
 
                       <div>
                         <Label htmlFor="phone">Phone Number</Label>
-                        <div className="p-2 mt-1 bg-gray-50 rounded">{personalFormData.phone || 'Not provided'}</div>
+                        <div className="p-2 mt-1 bg-gray-50 rounded">
+                          {personalFormData.phone || "Not provided"}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -343,33 +451,55 @@ export default function DriverProfile() {
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Vehicle Information</CardTitle>
-                    <CardDescription>Manage your vehicle details</CardDescription>
+                    <CardDescription>
+                      Manage your vehicle details
+                    </CardDescription>
                   </div>
                   {!(isUserInfoLoading || isDriverLoading) && (
-                    <Dialog open={isVehicleModalOpen} onOpenChange={(open) => {
-                      if (open) {
-                        // Reset form data to current driver details when opening
-                        setVehicleFormData({
-                          make: driverDetails?.vehicleType?.make || '',
-                          model: driverDetails?.vehicleType?.model || '',
-                          year: driverDetails?.vehicleType?.year?.toString() || '',
-                          licensePlate: driverDetails?.vehicleType?.plateNumber || '',
-                          vehicleType: driverDetails?.vehicleType?.category || '',
-                        });
-                        setVehicleModalKey(Date.now());
-                      }
-                      setIsVehicleModalOpen(open);
-                    }}>
+                    <Dialog
+                      open={isVehicleModalOpen}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setVehicleFormData({
+                            make: driverDetails?.data?.vehicleType?.make || "",
+                            model:
+                              driverDetails?.data?.vehicleType?.model || "",
+                            year:
+                              driverDetails?.data?.vehicleType?.year?.toString() ||
+                              "",
+                            licensePlate:
+                              driverDetails?.data?.vehicleType?.plateNumber ||
+                              "",
+                            vehicleType:
+                              driverDetails?.data?.vehicleType?.category || "",
+                          });
+                          setVehicleModalKey(Date.now());
+
+                          sonnerToast.success("Vehicle Edit Ready.");
+                          // toast({
+                          //   title: "Vehicle Edit Ready",
+                          //   description: "You can now edit your vehicle information.",
+                          // });
+                        }
+                        setIsVehicleModalOpen(open);
+                      }}
+                    >
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex items-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center"
+                        >
                           <Truck className="h-4 w-4 mr-2" />
-                          Update License Number
+                          Update Driver Doc
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700 text-white">
+                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
                           <DialogTitle>Update Vehicle</DialogTitle>
-                          <DialogDescription>Update your vehicle details</DialogDescription>
+                          <DialogDescription>
+                            Update your vehicle details
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -378,7 +508,7 @@ export default function DriverProfile() {
                               <Input
                                 id="make"
                                 name="make"
-                                defaultValue={vehicleFormData.make}
+                                value={vehicleFormData.make}
                                 onChange={handleVehicleInputChange}
                                 className="mt-1"
                                 disabled={isUpdatingDriver}
@@ -389,7 +519,7 @@ export default function DriverProfile() {
                               <Input
                                 id="model"
                                 name="model"
-                                defaultValue={vehicleFormData.model}
+                                value={vehicleFormData.model}
                                 onChange={handleVehicleInputChange}
                                 className="mt-1"
                                 disabled={isUpdatingDriver}
@@ -402,18 +532,20 @@ export default function DriverProfile() {
                               <Input
                                 id="year"
                                 name="year"
-                                defaultValue={vehicleFormData.year}
+                                value={vehicleFormData.year}
                                 onChange={handleVehicleInputChange}
                                 className="mt-1"
                                 disabled={isUpdatingDriver}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="licensePlate">License Plate</Label>
+                              <Label htmlFor="licensePlate">
+                                License Plate
+                              </Label>
                               <Input
                                 id="licensePlate"
                                 name="licensePlate"
-                                defaultValue={vehicleFormData.licensePlate}
+                                value={vehicleFormData.licensePlate}
                                 onChange={handleVehicleInputChange}
                                 className="mt-1"
                                 disabled={isUpdatingDriver}
@@ -425,7 +557,7 @@ export default function DriverProfile() {
                             <Input
                               id="vehicleType"
                               name="vehicleType"
-                              defaultValue={vehicleFormData.vehicleType}
+                              value={vehicleFormData.vehicleType}
                               onChange={handleVehicleInputChange}
                               className="mt-1"
                               disabled={isUpdatingDriver}
@@ -443,26 +575,35 @@ export default function DriverProfile() {
                               onClick={async () => {
                                 try {
                                   const vehicleData = {
-                                    vehicleType: {
-                                      category: vehicleFormData.vehicleType as 'CAR' | 'BIKE',
-                                      make: vehicleFormData.make,
-                                      model: vehicleFormData.model,
-                                      year: parseInt(vehicleFormData.year),
-                                      plateNumber: vehicleFormData.licensePlate,
-                                    }
+                                    category: vehicleFormData.vehicleType as "CAR" | "BIKE",
+                                    make: vehicleFormData.make,
+                                    model: vehicleFormData.model,
+                                    year: parseInt(vehicleFormData.year),
+                                    plateNumber: vehicleFormData.licensePlate,
+                                    // add color if you have it
                                   };
-                                  await updateDriverDetails(vehicleData).unwrap();
-                                  toast({
-                                    title: "Vehicle Updated",
-                                    description: "Your vehicle has been updated successfully.",
-                                  });
+                                  await updateDriverDetails(
+                                    vehicleData
+                                  ).unwrap();
+                                  sonnerToast.success(
+                                    "Vehicle updated successfully."
+                                  );
+                                  // toast({
+                                  //   title: "Vehicle Updated",
+                                  //   description: "Your vehicle has been updated successfully.",
+                                  // });
                                   setIsVehicleModalOpen(false);
-                                } catch {
-                                  toast({
-                                    title: "Update Failed",
-                                    description: "There was a problem updating your profile.",
-                                    variant: "destructive",
-                                  });
+                                } catch (error) {
+                                  console.error(
+                                    "Vehicle update failed:",
+                                    error
+                                  );
+                                  sonnerToast.error("Vehicle update failed.");
+                                  //   ({
+                                  //   title: "Update Failed",
+                                  //   description: "There was a problem updating your vehicle.",
+                                  //   variant: "destructive",
+                                  // });
                                 }
                               }}
                               disabled={isUpdatingDriver}
@@ -504,38 +645,52 @@ export default function DriverProfile() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="licenseNumber">License Number</Label>
-                          <div className="p-2 mt-1 bg-gray-50 rounded">{driverDetails?.data?.licenseNumber || 'N/A'}</div>
+                          <div className="p-2 mt-1 bg-gray-50 rounded">
+                            {driverDetails?.data?.licenseNumber || "N/A"}
+                          </div>
                         </div>
                         <div>
                           <Label htmlFor="model">Model</Label>
-                          <div className="p-2 mt-1 bg-gray-50 rounded">{driverDetails?.data?.vehicleType?.model || 'N/A'}</div>
+                          <div className="p-2 mt-1 bg-gray-50 rounded">
+                            {driverDetails?.data?.vehicleType?.model || "N/A"}
+                          </div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="year">Year</Label>
-                          <div className="p-2 mt-1 bg-gray-50 rounded">{driverDetails?.data?.vehicleType?.year || 'N/A'}</div>
+                          <div className="p-2 mt-1 bg-gray-50 rounded">
+                            {driverDetails?.data?.vehicleType?.year || "N/A"}
+                          </div>
                         </div>
                         <div>
                           <Label htmlFor="licensePlate">License Plate</Label>
-                          <div className="p-2 mt-1 bg-gray-50 rounded">{driverDetails?.data?.vehicleType?.plateNumber || 'N/A'}</div>
+                          <div className="p-2 mt-1 bg-gray-50 rounded">
+                            {driverDetails?.data?.vehicleType?.plateNumber ||
+                              "N/A"}
+                          </div>
                         </div>
                       </div>
 
                       <div>
                         <Label htmlFor="vehicleType">Vehicle Type</Label>
-                        <div className="p-2 mt-1 bg-gray-50 rounded">{driverDetails?.data?.vehicleType?.category || 'N/A'}</div>
+                        <div className="p-2 mt-1 bg-gray-50 rounded">
+                          {driverDetails?.data?.vehicleType?.category || "N/A"}
+                        </div>
                       </div>
 
                       <div>
                         <Label htmlFor="availability">Availability</Label>
                         <div className="p-2 mt-1 bg-gray-50 rounded">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            driverDetails?.data?.availability === 'online' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {driverDetails?.data?.availability || 'N/A'}
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              driverDetails?.data?.availability === "online"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {driverDetails?.data?.availability || "N/A"}
                           </span>
                         </div>
                       </div>
@@ -543,11 +698,14 @@ export default function DriverProfile() {
                       <div>
                         <Label htmlFor="status">Status</Label>
                         <div className="p-2 mt-1 bg-gray-50 rounded">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            driverDetails?.data?.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {driverDetails?.data?.status || 'N/A'}
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              driverDetails?.data?.status === "approved"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {driverDetails?.data?.status || "N/A"}
                           </span>
                         </div>
                       </div>
@@ -561,30 +719,120 @@ export default function DriverProfile() {
               <Card className="border-0 shadow-sm">
                 <CardHeader>
                   <CardTitle>Account Security</CardTitle>
-                  <CardDescription>Manage your password and security settings</CardDescription>
+                  <CardDescription>
+                    Manage your password and security settings
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <div>
                         <h4 className="font-medium">Password</h4>
-                        <p className="text-sm text-gray-500">Last changed 30 days ago</p>
+                        <p className="text-sm text-gray-500">
+                          Last changed 30 days ago
+                        </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsChangePasswordModalOpen(true)}
+                      >
                         Change Password
                       </Button>
                     </div>
 
                     <div className="flex justify-between items-center">
                       <div>
-                        <h4 className="font-medium">Two-Factor Authentication</h4>
-                        <p className="text-sm text-gray-500">Add an extra layer of security</p>
+                        <h4 className="font-medium">
+                          Two-Factor Authentication
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          Add an extra layer of security
+                        </p>
                       </div>
                       <Button variant="outline" size="sm">
                         Set Up
                       </Button>
                     </div>
                   </div>
+
+                  <Dialog
+                    open={isChangePasswordModalOpen}
+                    onOpenChange={setIsChangePasswordModalOpen}
+                  >
+                    <Dialog open={isChangePasswordModalOpen} onOpenChange={setIsChangePasswordModalOpen}>
+                    <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
+                      <DialogHeader>
+                        <DialogTitle className="text-gray-900 dark:text-white">Change Password</DialogTitle>
+                        <DialogDescription className="text-gray-600 dark:text-gray-300">Enter your current password and set a new one</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="oldPassword" className="text-gray-900 dark:text-white">Current Password</Label>
+                          <Input
+                            id="oldPassword"
+                            name="oldPassword"
+                            type="password"
+                            value={passwordData.oldPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Enter your current password"
+                            disabled={isChangingPassword}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="newPassword" className="text-gray-900 dark:text-white">New Password</Label>
+                          <Input
+                            id="newPassword"
+                            name="newPassword"
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Enter your new password"
+                            disabled={isChangingPassword}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="confirmPassword" className="text-gray-900 dark:text-white">Confirm New Password</Label>
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Confirm your new password"
+                            disabled={isChangingPassword}
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsChangePasswordModalOpen(false)}
+                            disabled={isChangingPassword}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleChangePassword}
+                            disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                            className="bg-white border-black  hover:bg-black hover:text-white"
+                          >
+                            {isChangingPassword ? (
+                              <>
+                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                                Changing...
+                              </>
+                            ) : (
+                              'Change Password'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  </Dialog>
                 </CardContent>
               </Card>
             </TabsContent>

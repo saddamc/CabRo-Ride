@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useConfirmPaymentReceivedMutation } from '@/redux/features/driver/driver.api';
-import { useRatingRideMutation } from '@/redux/features/rides/ride.api';
+import { useRatingRideMutation } from '@/redux/features/ride-api';
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -104,10 +105,10 @@ export default function RatingModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xs bg-gradient-to-br from-blue-900 to-blue-700 border-0 shadow-xl z-[999] text-white p-4">
+      <DialogContent className="sm:max-w-xs bg-white border shadow-xl z-[999] p-4">
         <DialogHeader>
-          <DialogTitle className="text-white text-lg font-bold mb-1">{getTitle()}</DialogTitle>
-          <DialogDescription className="text-white/80 mb-2 text-xs">{getDescription()}</DialogDescription>
+          <DialogTitle className="text-lg font-bold mb-1">{getTitle()}</DialogTitle>
+          <DialogDescription className="text-gray-600 mb-2 text-xs">{getDescription()}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
@@ -118,7 +119,7 @@ export default function RatingModal({
                 key={star}
                 onClick={() => setRating(star)}
                 className={`text-xl transition-colors focus:outline-none ${
-                  star <= rating ? 'text-yellow-400' : 'text-white/30'
+                  star <= rating ? 'text-yellow-400' : 'text-gray-400'
                 }`}
                 aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
               >
@@ -132,7 +133,7 @@ export default function RatingModal({
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="Leave feedback (optional)"
-            className="w-full px-2 py-1 border border-blue-400 bg-blue-800/60 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-white/60 text-xs"
+            className="w-full px-2 py-1 border border-gray-300 bg-white text-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-500 text-xs"
             rows={2}
           />
 
@@ -164,7 +165,7 @@ export default function RatingModal({
                 }
               }}
               disabled={isSubmitting}
-              className="flex-1 bg-white/10 border border-white/20 text-white font-semibold py-1 rounded shadow text-xs hover:bg-white/20"
+              className="flex-1 bg-gray-100 border border-gray-300 text-black font-semibold py-1 rounded shadow text-xs hover:bg-gray-200"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-1">

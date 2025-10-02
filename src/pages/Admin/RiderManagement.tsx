@@ -131,7 +131,7 @@ export default function RiderManagement() {
   };
   
   return (
-    <div className="container mx-auto py-6 bg-black text-white">
+    <div className="container mx-auto py-6 bg-white text-black min-h-screen">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Rider Management</h1>
         <p className="text-gray-500">Manage and monitor rider accounts</p>

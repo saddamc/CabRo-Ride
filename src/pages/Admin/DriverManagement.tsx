@@ -169,7 +169,7 @@ export default function DriverManagement() {
   };
   
   return (
-    <div className="container mx-auto py-6 bg-black text-white">
+    <div className="container mx-auto py-6 bg-white text-black min-h-screen">
       {isLoadingDrivers && (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-10 w-10 animate-spin text-white" />

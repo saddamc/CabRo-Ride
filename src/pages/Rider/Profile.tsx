@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUpdateProfileMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
+import { useChangePasswordMutation, useUpdateProfileMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { useApplyDriverMutation } from "@/redux/features/driver/driver.api";
 import { useGetRideHistoryQuery } from "@/redux/features/ride-api";
 import { Bell, Clock, CreditCard, Edit, Home, MapPin, Save, Star, User } from "lucide-react";
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 export default function RiderProfile() {
   const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfoQuery(undefined);
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
   const [applyDriver, { isLoading: isApplying }] = useApplyDriverMutation();
   const { data: rideHistory } = useGetRideHistoryQuery({ limit: 100 });
   const navigate = useNavigate();
@@ -52,6 +53,13 @@ export default function RiderProfile() {
     experience: '',
     references: '',
   });
+
+  // ChangePassword form state
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
   
   useEffect(() => {
     if (userInfo?.data) {
@@ -72,6 +80,7 @@ export default function RiderProfile() {
 
   // Calculate average rating from completed rides
   const averageRating = completedRides.length > 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? completedRides.reduce((sum: number, ride: any) => sum + (ride.rating?.riderRating || 0), 0) / completedRides.length
     : 0;
   
@@ -98,6 +107,57 @@ export default function RiderProfile() {
     const { name, value } = e.target;
     setDriverApplicationData(prev => ({ ...prev, [name]: value }));
   };
+
+  const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleChangePassword = async () => {
+    // Validate passwords match
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords don't match", {
+        description: "Please make sure your new password and confirmation match.",
+      });
+      return;
+    }
+
+    // Validate password length
+    if (passwordData.newPassword.length < 6) {
+      toast.error("Password too short", {
+        description: "Password must be at least 6 characters long.",
+      });
+      return;
+    }
+
+    try {
+      await changePassword({
+        oldPassword: passwordData.oldPassword,
+        newPassword: passwordData.newPassword,
+      }).unwrap();
+
+      toast.success("Password Changed", {
+        description: "Your password has been updated successfully.",
+      });
+
+      // Reset form and close modal
+      setPasswordData({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setIsChangePasswordModalOpen(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error("Password Change Failed", {
+        description: error?.data?.message || "There was an error changing your password.",
+      });
+    }
+  };
+
+
+
+
 
   const handleDriverApplicationSubmit = async () => {
     try {
@@ -272,7 +332,7 @@ export default function RiderProfile() {
                           Edit Profile
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700 text-white">
+                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
                           <DialogTitle>Edit Profile</DialogTitle>
                           <DialogDescription>Update your personal details</DialogDescription>
@@ -381,48 +441,72 @@ export default function RiderProfile() {
                   )}
         
                   <Dialog open={isChangePasswordModalOpen} onOpenChange={setIsChangePasswordModalOpen}>
-                    <DialogContent>
+                    <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                       <DialogHeader>
-                        <DialogTitle>Change Password</DialogTitle>
-                        <DialogDescription>Enter your current password and set a new one</DialogDescription>
+                        <DialogTitle className="text-gray-900 dark:text-white">Change Password</DialogTitle>
+                        <DialogDescription className="text-gray-600 dark:text-gray-300">Enter your current password and set a new one</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="currentPassword">Current Password</Label>
+                          <Label htmlFor="oldPassword" className="text-gray-900 dark:text-white">Current Password</Label>
                           <Input
-                            id="currentPassword"
-                            name="currentPassword"
+                            id="oldPassword"
+                            name="oldPassword"
                             type="password"
-                            className="mt-1"
+                            value={passwordData.oldPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Enter your current password"
+                            disabled={isChangingPassword}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="newPassword">New Password</Label>
+                          <Label htmlFor="newPassword" className="text-gray-900 dark:text-white">New Password</Label>
                           <Input
                             id="newPassword"
                             name="newPassword"
                             type="password"
-                            className="mt-1"
+                            value={passwordData.newPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Enter your new password"
+                            disabled={isChangingPassword}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                          <Label htmlFor="confirmPassword" className="text-gray-900 dark:text-white">Confirm New Password</Label>
                           <Input
                             id="confirmPassword"
                             name="confirmPassword"
                             type="password"
-                            className="mt-1"
+                            value={passwordData.confirmPassword}
+                            onChange={handlePasswordInputChange}
+                            className="mt-1 text-gray-900 dark:text-white"
+                            placeholder="Confirm your new password"
+                            disabled={isChangingPassword}
                           />
                         </div>
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
                             onClick={() => setIsChangePasswordModalOpen(false)}
+                            disabled={isChangingPassword}
                           >
                             Cancel
                           </Button>
-                          <Button>
-                            Change Password
+                          <Button
+                            onClick={handleChangePassword}
+                            disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                            className="bg-white border-black  hover:bg-black hover:text-white"
+                          >
+                            {isChangingPassword ? (
+                              <>
+                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                                Changing...
+                              </>
+                            ) : (
+                              'Change Password'
+                            )}
                           </Button>
                         </div>
                       </div>
