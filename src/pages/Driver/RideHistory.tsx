@@ -1,12 +1,34 @@
 import RatingModalDriver from "@/components/modal/ratingModalDriver";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useGetMyRidesQuery, type IRide } from "@/redux/features/ride-api";
-import { Calendar, Car, Clock, FileClock, MapPin, Route, Star, User } from "lucide-react";
+import {
+  Calendar,
+  Car,
+  Clock,
+  FileClock,
+  MapPin,
+  Route,
+  Star,
+  User,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function DriverRideHistory() {
@@ -16,13 +38,17 @@ export default function DriverRideHistory() {
   const [dateTo, setDateTo] = useState("");
   const [minFare, setMinFare] = useState("");
   const [maxFare, setMaxFare] = useState("");
-  const [ratingModal, setRatingModal] = useState({ open: false, rideId: "", riderName: "" });
+  const [ratingModal, setRatingModal] = useState({
+    open: false,
+    rideId: "",
+    riderName: "",
+  });
   const itemsPerPage = 10;
 
   // Use real API data with pagination
   const { data: rideHistoryData, isLoading } = useGetMyRidesQuery({
     page: currentPage,
-    limit: itemsPerPage
+    limit: itemsPerPage,
   });
 
   // Get all rides from the response
@@ -34,28 +60,30 @@ export default function DriverRideHistory() {
 
     // Status filter
     if (filterStatus !== "all") {
-      filtered = filtered.filter(ride => ride.status === filterStatus);
+      filtered = filtered.filter((ride) => ride.status === filterStatus);
     }
 
     // Date range filter
     if (dateFrom) {
       const fromDate = new Date(dateFrom);
-      filtered = filtered.filter(ride => new Date(ride.createdAt) >= fromDate);
+      filtered = filtered.filter(
+        (ride) => new Date(ride.createdAt) >= fromDate
+      );
     }
     if (dateTo) {
       const toDate = new Date(dateTo);
       toDate.setHours(23, 59, 59, 999); // End of day
-      filtered = filtered.filter(ride => new Date(ride.createdAt) <= toDate);
+      filtered = filtered.filter((ride) => new Date(ride.createdAt) <= toDate);
     }
 
     // Fare range filter
     if (minFare) {
       const min = parseFloat(minFare);
-      filtered = filtered.filter(ride => ride.fare?.totalFare >= min);
+      filtered = filtered.filter((ride) => ride.fare?.totalFare >= min);
     }
     if (maxFare) {
       const max = parseFloat(maxFare);
-      filtered = filtered.filter(ride => ride.fare?.totalFare <= max);
+      filtered = filtered.filter((ride) => ride.fare?.totalFare <= max);
     }
 
     return filtered;
@@ -64,13 +92,13 @@ export default function DriverRideHistory() {
   // Format date function
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
     }).format(date);
   };
 
@@ -78,11 +106,26 @@ export default function DriverRideHistory() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-100 text-black dark:bg-green-900/30 dark:text-black hover:bg-green-100">{status}</Badge>;
+        return (
+          <Badge className="bg-green-100 text-black dark:bg-green-900/30 dark:text-black hover:bg-green-100">
+            {status}
+          </Badge>
+        );
       case "cancelled":
-        return <Badge variant="outline" className="text-black border-red-200 dark:border-red-800">{status}</Badge>;
+        return (
+          <Badge
+            variant="outline"
+            className="text-black border-red-200 dark:border-red-800"
+          >
+            {status}
+          </Badge>
+        );
       case "in-progress":
-        return <Badge className="bg-blue-100 text-black dark:bg-blue-900/30 dark:text-black hover:bg-blue-100">{status}</Badge>;
+        return (
+          <Badge className="bg-blue-100 text-black dark:bg-blue-900/30 dark:text-black hover:bg-blue-100">
+            {status}
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -120,7 +163,12 @@ export default function DriverRideHistory() {
                 <Car className="h-5 w-5 text-black" />
                 <span className="text-sm font-medium">Total Rides</span>
               </div>
-              <p className="text-2xl font-bold">{rideHistory.filter(ride => ride.status === "completed").length}</p>
+              <p className="text-2xl font-bold">
+                {
+                  rideHistory.filter((ride) => ride.status === "completed")
+                    .length
+                }
+              </p>
             </div>
 
             <div className="bg-green-100 dark:bg-green-900/20 rounded-lg p-4">
@@ -130,9 +178,10 @@ export default function DriverRideHistory() {
               </div>
               <p className="text-2xl font-bold">
                 {rideHistory
-                  .filter(ride => ride.status === "completed")
+                  .filter((ride) => ride.status === "completed")
                   .reduce((acc, ride) => acc + (ride.distance?.actual || 0), 0)
-                  .toFixed(1)} km
+                  .toFixed(1)}{" "}
+                km
               </p>
             </div>
 
@@ -142,9 +191,15 @@ export default function DriverRideHistory() {
                 <span className="text-sm font-medium">Driving Time</span>
               </div>
               <p className="text-2xl font-bold">
-                {Math.floor(rideHistory
-                  .filter(ride => ride.status === "completed")
-                  .reduce((acc, ride) => acc + (ride.duration?.actual || 0), 0) / 60)} hrs
+                {Math.floor(
+                  rideHistory
+                    .filter((ride) => ride.status === "completed")
+                    .reduce(
+                      (acc, ride) => acc + (ride.duration?.actual || 0),
+                      0
+                    ) / 60
+                )}{" "}
+                hrs
               </p>
             </div>
 
@@ -153,7 +208,12 @@ export default function DriverRideHistory() {
                 <FileClock className="h-5 w-5 text-black dark:text-black" />
                 <span className="text-sm font-medium">Cancellations</span>
               </div>
-              <p className="text-2xl font-bold">{rideHistory.filter(ride => ride.status === "cancelled").length}</p>
+              <p className="text-2xl font-bold">
+                {
+                  rideHistory.filter((ride) => ride.status === "cancelled")
+                    .length
+                }
+              </p>
             </div>
           </div>
         </CardContent>
@@ -162,7 +222,9 @@ export default function DriverRideHistory() {
       <Card>
         <CardHeader>
           <CardTitle>Your Rides</CardTitle>
-          <CardDescription>Filter and view your past ride records</CardDescription>
+          <CardDescription>
+            Filter and view your past ride records
+          </CardDescription>
         </CardHeader>
 
         {/* Advanced Filters */}
@@ -248,15 +310,23 @@ export default function DriverRideHistory() {
           {filteredRides.length > 0 ? (
             <div className="space-y-6">
               {filteredRides.map((ride) => (
-                <Card key={ride._id} className={`${
-                  ride.status === 'completed' ? 'border-green-200 bg-green-50/50 dark:bg-green-900/10' :
-                  ride.status === 'cancelled' ? 'border-red-200 bg-red-50/50 dark:bg-red-900/10' :
-                  ride.status === 'in-progress' ? 'border-blue-200 bg-blue-50/50 dark:bg-blue-900/10' :
-                  'border-gray-200 dark:border-gray-800'
-                } shadow-sm hover:shadow-md transition-shadow`}>
+                <Card
+                  key={ride._id}
+                  className={`${
+                    ride.status === "completed"
+                      ? "border-green-200 bg-green-50/50 dark:bg-green-900/10"
+                      : ride.status === "cancelled"
+                      ? "border-red-200 bg-red-50/50 dark:bg-red-900/10"
+                      : ride.status === "in-progress"
+                      ? "border-blue-200 bg-blue-50/50 dark:bg-blue-900/10"
+                      : "border-gray-200 dark:border-gray-800"
+                  } shadow-sm hover:shadow-md transition-shadow`}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <div className="text-sm font-mono text-gray-500">#{ride._id.slice(-6)}</div>
+                      <div className="text-sm font-mono text-gray-500">
+                        #{ride._id.slice(-6)}
+                      </div>
                       {getStatusBadge(ride.status)}
                     </div>
                   </CardHeader>
@@ -266,11 +336,15 @@ export default function DriverRideHistory() {
                       <div className="lg:w-1/4">
                         <div className="flex items-center gap-2 mb-3">
                           <Calendar className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium text-gray-900">{formatDate(ride.createdAt)}</span>
+                          <span className="font-medium text-gray-900">
+                            {formatDate(ride.createdAt)}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 mb-3">
                           <User className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-700">{ride.rider.name}</span>
+                          <span className="text-gray-700">
+                            {ride.rider.name}
+                          </span>
                         </div>
                       </div>
 
@@ -288,12 +362,20 @@ export default function DriverRideHistory() {
                           </div>
                           <div className="flex-1">
                             <div className="mb-3">
-                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Pickup</div>
-                              <div className="font-medium text-gray-900">{ride.pickupLocation.address}</div>
+                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                                Pickup
+                              </div>
+                              <div className="font-medium text-gray-900">
+                                {ride.pickupLocation.address}
+                              </div>
                             </div>
                             <div>
-                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Destination</div>
-                              <div className="font-medium text-gray-900">{ride.destinationLocation.address}</div>
+                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                                Destination
+                              </div>
+                              <div className="font-medium text-gray-900">
+                                {ride.destinationLocation.address}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -301,53 +383,85 @@ export default function DriverRideHistory() {
 
                       {/* Right Section - Stats */}
                       <div className="lg:w-1/4">
-                        <div className="">
+                        <div>
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm text-gray-600">Distance</span>
-                            <span className="font-semibold text-gray-900">{ride.distance?.actual?.toFixed(1)} km</span>
+                            <span className="text-sm text-gray-600">
+                              Distance
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                              {ride.distance?.actual?.toFixed(1)} km
+                            </span>
                           </div>
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm text-gray-600">Duration</span>
-                            <span className="font-semibold text-gray-900">{ride.duration?.actual ? `${Math.round(ride.duration.actual)} min` : 'N/A'}</span>
+                            <span className="text-sm text-gray-600">
+                              Duration
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                              {ride.duration?.actual
+                                ? `${Math.round(ride.duration.actual)} min`
+                                : "N/A"}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center py-2">
-                            <span className="text-sm text-gray-600">Earnings</span>
-                            <span className="font-semibold text-green-600">৳{ride.fare?.totalFare?.toFixed(2)}</span>
+                            <span className="text-sm text-gray-600">
+                              Earnings
+                            </span>
+                            <span className="font-semibold text-green-600">
+                              ৳{ride.fare?.totalFare?.toFixed(2)}
+                            </span>
                           </div>
                           {/* Rating Display */}
                           {ride.rating?.riderRating && (
-                            <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md">
-                              <Star className="h-3 w-3 fill-yellow-400" />
-                              <span className="text-xs font-medium">{ride.rating.riderRating}/5</span>
-                            </div>
-                          )}
+                            <div className="flex justify-between gap-2 bg-yellow-50 px-4 py-2 rounded-md">
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`h-5 w-5 ${
+                                      star <= (ride.rating?.riderRating || 0)
+                                        ? "fill-yellow-400 text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
 
-                          {/* Rating Action */}
-                          {ride.status === 'completed' && (
-                            <Button
-                              size="sm"
-                              onClick={() => setRatingModal({
-                                open: true,
-                                rideId: ride._id,
-                                riderName: ride.rider.name
-                              })}
-                              className={`flex items-center gap-1 ${
-                                ride.rating?.riderRating
-                                  ? 'bg-blue-600 hover:bg-blue-700'
-                                  : 'bg-orange-600 hover:bg-orange-700'
-                              }`}
-                            >
-                              <Star className="h-3 w-3" />
-                              {ride.rating?.riderRating ? 'Edit Rating' : 'Rate Rider'}
-                            </Button>
+                              {/* Rating Action */}
+                              <div>
+                                {ride.status === "completed" && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() =>
+                                      setRatingModal({
+                                        open: true,
+                                        rideId: ride._id,
+                                        riderName: ride.rider.name,
+                                      })
+                                    }
+                                    className={`flex items-center gap-1 ${
+                                      ride.rating?.riderRating
+                                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                        : "bg-orange-600 hover:bg-orange-700"
+                                    }`}
+                                  >
+                                    <Star className="h-3 w-3" />
+                                    {ride.rating?.riderRating
+                                      ? "Edit"
+                                      : "Rate Rider"}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
                           )}
 
                           {/* Priority Message for Recent Unrated Rides */}
-                          {ride.status === 'completed' && !ride.rating?.riderRating && (
-                            <div className="text-xs bg-orange-100 px-2 py-1 rounded-md text-center">
-                              ⭐ Please rate your rider to help improve service!
-                            </div>
-                          )}
+                          {ride.status === "completed" &&
+                            !ride.rating?.riderRating && (
+                              <div className="text-xs bg-orange-100 px-2 py-1 rounded-md text-center">
+                                ⭐ Please rate your rider to help improve
+                                service!
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -357,7 +471,9 @@ export default function DriverRideHistory() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-black dark:text-black mb-4">No rides found matching your filter</p>
+              <p className="text-black dark:text-black mb-4">
+                No rides found matching your filter
+              </p>
               <Button variant="outline" onClick={() => setFilterStatus("all")}>
                 Show All Rides
               </Button>
@@ -367,18 +483,30 @@ export default function DriverRideHistory() {
         <CardFooter className="flex justify-between">
           <Button
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage <= 1}
           >
             Previous
           </Button>
           <div className="text-sm text-gray-600">
-            Page {currentPage} of {Math.ceil((rideHistoryData?.total || 0) / itemsPerPage)} ({rideHistoryData?.total || 0} total rides)
+            Page {currentPage} of{" "}
+            {Math.ceil((rideHistoryData?.total || 0) / itemsPerPage)} (
+            {rideHistoryData?.total || 0} total rides)
           </div>
           <Button
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(Math.ceil((rideHistoryData?.total || 0) / itemsPerPage), prev + 1))}
-            disabled={currentPage >= Math.ceil((rideHistoryData?.total || 0) / itemsPerPage)}
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(
+                  Math.ceil((rideHistoryData?.total || 0) / itemsPerPage),
+                  prev + 1
+                )
+              )
+            }
+            disabled={
+              currentPage >=
+              Math.ceil((rideHistoryData?.total || 0) / itemsPerPage)
+            }
           >
             Next
           </Button>

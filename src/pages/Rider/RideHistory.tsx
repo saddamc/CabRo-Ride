@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RatingModal from "@/components/ui/RatingModal";
 import { useGetMyRidesQuery } from "@/redux/features/rides/ride.api";
-import { AlertCircle, Calendar, Clock, DollarSign, Eye, MapPin, Star } from "lucide-react";
+import { AlertCircle, Calendar, Clock, DollarSign, MapPin, Star } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -225,26 +225,10 @@ export default function RideHistory() {
                           </div>
                         </div>
 
-                        {/* Rating Display */}
-                        {hasRating && (
-                          <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md">
-                            <Star className="h-3 w-3 fill-yellow-400" />
-                            <span className="text-xs font-medium">{ride.rating?.riderRating}/5</span>
-                          </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/rider/details-history/${ride._id}`)}
-                            className="flex items-center gap-1"
-                          >
-                            <Eye className="h-3 w-3" />
-                            Details
-                          </Button>
-
+                        
+                        <div className="flex justify-between">
+                                   {/* Action Buttons */}
+                        <div >
                           {ride.status === 'completed' && (
                             <Button
                               size="sm"
@@ -258,14 +242,34 @@ export default function RideHistory() {
                               className={`flex items-center gap-1 ${
                                 needsRating
                                   ? 'bg-orange-600 hover:bg-orange-700'
-                                  : 'bg-blue-600 hover:bg-blue-700'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
                               }`}
                             >
                               <Star className="h-3 w-3" />
-                              {hasRating ? 'Edit Rating' : 'Rate Driver'}
+                              {hasRating ? 'Edit' : 'Rate Driver'}
                             </Button>
                           )}
                         </div>
+                        {/* Rating Display */}
+                        {hasRating && (
+                          <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md">
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-5 w-5 ${
+                                    star <= (ride.rating?.riderRating || 0)
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+
+                       
 
                         {/* Priority Message for Recent Unrated Rides */}
                         {needsRating && isCompletedRecently && (

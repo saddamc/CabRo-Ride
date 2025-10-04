@@ -105,7 +105,7 @@ export default function EarningDashboard() {
   return (
     <div className="container mx-auto py-6 bg-white min-h-screen text-black">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Earnings Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Earning Dashboard</h1>
         <p className="text-gray-600 mt-2">Visual breakdown of your earnings</p>
       </div>
 
