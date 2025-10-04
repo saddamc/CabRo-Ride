@@ -157,6 +157,9 @@ export default function RideHistory() {
                                   minute: '2-digit'
                                 })}
                               </div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                #{ride._id.slice(-6)}
+                              </div>
                             </div>
                           </div>
                           <Badge className={`${

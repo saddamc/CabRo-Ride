@@ -1,29 +1,65 @@
+import RatingModalDriver from "@/components/modal/ratingModalDriver";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import RatingModal from "@/components/ui/RatingModal";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetMyRidesQuery, type IRide } from "@/redux/features/ride-api";
-import { Calendar, Car, Clock, FileClock, MapPin, Route, User } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Calendar, Car, Clock, FileClock, MapPin, Route, Star, User } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export default function DriverRideHistory() {
   const [filterStatus, setFilterStatus] = useState("all");
-  const [ratingModal, setRatingModal] = useState<{ open: boolean; rideId: string | null; targetName: string }>({ open: false, rideId: null, targetName: "" });
-  const [refreshKey, setRefreshKey] = useState(0);
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [minFare, setMinFare] = useState("");
+  const [maxFare, setMaxFare] = useState("");
+  const [ratingModal, setRatingModal] = useState({ open: false, rideId: "", riderName: "" });
+  const itemsPerPage = 10;
 
-  // Use real API data
-  const { data: rideHistoryData, isLoading } = useGetMyRidesQuery({ limit: 100, refreshKey });
+  // Use real API data with pagination
+  const { data: rideHistoryData, isLoading } = useGetMyRidesQuery({
+    page: currentPage,
+    limit: itemsPerPage
+  });
 
   // Get all rides from the response
   const rideHistory: IRide[] = rideHistoryData?.rides || [];
 
-  // Filter rides based on status
-  const filteredRides: IRide[] = filterStatus === "all"
-    ? rideHistory
-    : rideHistory.filter(ride => ride.status === filterStatus);
+  // Filter rides based on all filters
+  const filteredRides: IRide[] = useMemo(() => {
+    let filtered = rideHistory;
+
+    // Status filter
+    if (filterStatus !== "all") {
+      filtered = filtered.filter(ride => ride.status === filterStatus);
+    }
+
+    // Date range filter
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      filtered = filtered.filter(ride => new Date(ride.createdAt) >= fromDate);
+    }
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      filtered = filtered.filter(ride => new Date(ride.createdAt) <= toDate);
+    }
+
+    // Fare range filter
+    if (minFare) {
+      const min = parseFloat(minFare);
+      filtered = filtered.filter(ride => ride.fare?.totalFare >= min);
+    }
+    if (maxFare) {
+      const max = parseFloat(maxFare);
+      filtered = filtered.filter(ride => ride.fare?.totalFare <= max);
+    }
+
+    return filtered;
+  }, [rideHistory, filterStatus, dateFrom, dateTo, minFare, maxFare]);
 
   // Format date function
   const formatDate = (dateString: string) => {
@@ -124,123 +160,199 @@ export default function DriverRideHistory() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader>
           <CardTitle>Your Rides</CardTitle>
-          <div className="flex items-center">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Rides</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <CardDescription>Filter and view your past ride records</CardDescription>
         </CardHeader>
+
+        {/* Advanced Filters */}
+        <div className="px-6 pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Rides</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="dateFrom">From Date</Label>
+              <Input
+                id="dateFrom"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="dateTo">To Date</Label>
+              <Input
+                id="dateTo"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="minFare">Min Fare (৳)</Label>
+              <Input
+                id="minFare"
+                type="number"
+                placeholder="0"
+                value={minFare}
+                onChange={(e) => setMinFare(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="maxFare">Max Fare (৳)</Label>
+              <Input
+                id="maxFare"
+                type="number"
+                placeholder="1000"
+                value={maxFare}
+                onChange={(e) => setMaxFare(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFilterStatus("all");
+                  setDateFrom("");
+                  setDateTo("");
+                  setMinFare("");
+                  setMaxFare("");
+                }}
+                className="w-full"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+        </div>
         <CardContent className="pt-6">
           {filteredRides.length > 0 ? (
             <div className="space-y-6">
               {filteredRides.map((ride) => (
-                <div
-                  key={ride._id}
-                  className={`border border-gray-200 dark:border-gray-800 rounded-xl p-4 ${
-                    ride.status === 'completed' ? 'bg-green-50 dark:bg-green-900/10' :
-                    ride.status === 'cancelled' ? 'bg-red-50 dark:bg-red-900/10' :
-                    ride.status === 'in-progress' ? 'bg-blue-50 dark:bg-blue-900/10' :
-                    'bg-white dark:bg-neutral-900'
-                  }`}
-                >
-                  <div className="flex flex-wrap md:flex-nowrap gap-4">
-                    <div className="w-full md:w-1/4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Calendar className="h-4 w-4 text-black" />
-                        <span className="font-medium">{formatDate(ride.createdAt)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <User className="h-4 w-4 text-black" />
-                        <span>{ride.rider.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(ride.status)}
-                        <span className="text-sm text-black">{ride._id.slice(-8)}</span>
-                      </div>
+                <Card key={ride._id} className={`${
+                  ride.status === 'completed' ? 'border-green-200 bg-green-50/50 dark:bg-green-900/10' :
+                  ride.status === 'cancelled' ? 'border-red-200 bg-red-50/50 dark:bg-red-900/10' :
+                  ride.status === 'in-progress' ? 'border-blue-200 bg-blue-50/50 dark:bg-blue-900/10' :
+                  'border-gray-200 dark:border-gray-800'
+                } shadow-sm hover:shadow-md transition-shadow`}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-mono text-gray-500">#{ride._id.slice(-6)}</div>
+                      {getStatusBadge(ride.status)}
                     </div>
-
-                    <div className="w-full md:w-2/4">
-                      <div className="flex items-start gap-3 mb-4">
-                        <div className="flex flex-col items-center">
-                          <div className="rounded-full p-1.5 bg-primary/10">
-                            <MapPin className="h-3 w-3 text-black" />
-                          </div>
-                          <div className="w-0.5 h-8 bg-gray-200 dark:bg-gray-700 my-1"></div>
-                          <div className="rounded-full p-1.5 bg-red-100 dark:bg-red-900/20">
-                            <MapPin className="h-3 w-3 text-black dark:text-black" />
-                          </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      {/* Left Section - Date, Rider, Status */}
+                      <div className="lg:w-1/4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium text-gray-900">{formatDate(ride.createdAt)}</span>
                         </div>
-                        <div className="flex-1">
-                          <div className="mb-2">
-                            <div className="text-sm text-black">Pickup</div>
-                            <div className="font-medium">{ride.pickupLocation.address}</div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="text-gray-700">{ride.rider.name}</span>
+                        </div>
+                      </div>
+
+                      {/* Middle Section - Route */}
+                      <div className="lg:w-2/4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex flex-col items-center">
+                            <div className="rounded-full p-2 bg-green-100">
+                              <MapPin className="h-3 w-3 text-green-600" />
+                            </div>
+                            <div className="w-0.5 h-8 bg-gray-300 my-1"></div>
+                            <div className="rounded-full p-2 bg-red-100">
+                              <MapPin className="h-3 w-3 text-red-500" />
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-sm text-black">Destination</div>
-                            <div className="font-medium">{ride.destinationLocation.address}</div>
+                          <div className="flex-1">
+                            <div className="mb-3">
+                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Pickup</div>
+                              <div className="font-medium text-gray-900">{ride.pickupLocation.address}</div>
+                            </div>
+                            <div>
+                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Destination</div>
+                              <div className="font-medium text-gray-900">{ride.destinationLocation.address}</div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="w-full md:w-1/4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-black">Distance</span>
-                          <span className="font-medium">{ride.distance?.actual?.toFixed(1)} km</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-black">Duration</span>
-                          <span className="font-medium">{ride.duration?.actual ? `${Math.round(ride.duration.actual)} min` : 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-black">Earnings</span>
-                          <span className="font-medium text-black">৳{ride.fare?.totalFare?.toFixed(2)}</span>
-                        </div>
-                        {ride.status === "completed" && ride.rating?.riderRating && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-black">Rider Rating</span>
-                            <button
-                              className="flex items-center group cursor-pointer"
-                              title="Click to rate again or leave a comment"
-                              onClick={() => setRatingModal({ open: true, rideId: ride._id, targetName: ride.rider.name })}
+                      {/* Right Section - Stats */}
+                      <div className="lg:w-1/4">
+                        <div className="">
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-sm text-gray-600">Distance</span>
+                            <span className="font-semibold text-gray-900">{ride.distance?.actual?.toFixed(1)} km</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span className="text-sm text-gray-600">Duration</span>
+                            <span className="font-semibold text-gray-900">{ride.duration?.actual ? `${Math.round(ride.duration.actual)} min` : 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-2">
+                            <span className="text-sm text-gray-600">Earnings</span>
+                            <span className="font-semibold text-green-600">৳{ride.fare?.totalFare?.toFixed(2)}</span>
+                          </div>
+                          {/* Rating Display */}
+                          {ride.rating?.riderRating && (
+                            <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md">
+                              <Star className="h-3 w-3 fill-yellow-400" />
+                              <span className="text-xs font-medium">{ride.rating.riderRating}/5</span>
+                            </div>
+                          )}
+
+                          {/* Rating Action */}
+                          {ride.status === 'completed' && (
+                            <Button
+                              size="sm"
+                              onClick={() => setRatingModal({
+                                open: true,
+                                rideId: ride._id,
+                                riderName: ride.rider.name
+                              })}
+                              className={`flex items-center gap-1 ${
+                                ride.rating?.riderRating
+                                  ? 'bg-blue-600 hover:bg-blue-700'
+                                  : 'bg-orange-600 hover:bg-orange-700'
+                              }`}
                             >
-                              {Array(5).fill(0).map((_, i) => (
-                                <svg
-                                  key={i}
-                                  className={`w-4 h-4 transition-colors ${i < (ride.rating?.riderRating || 0) ? 'text-black fill-current' : 'text-black dark:text-black group-hover:text-black'}`}
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                </svg>
-                              ))}
-                            </button>
-                          </div>
-                        )}
+                              <Star className="h-3 w-3" />
+                              {ride.rating?.riderRating ? 'Edit Rating' : 'Rate Rider'}
+                            </Button>
+                          )}
+
+                          {/* Priority Message for Recent Unrated Rides */}
+                          {ride.status === 'completed' && !ride.rating?.riderRating && (
+                            <div className="text-xs bg-orange-100 px-2 py-1 rounded-md text-center">
+                              ⭐ Please rate your rider to help improve service!
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/driver/ride-details/${ride._id}`)}
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
@@ -253,13 +365,21 @@ export default function DriverRideHistory() {
           )}
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" disabled>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage <= 1}
+          >
             Previous
           </Button>
-          <div className="text-sm text-black">
-            Showing {filteredRides.length} of {rideHistory.length} rides
+          <div className="text-sm text-gray-600">
+            Page {currentPage} of {Math.ceil((rideHistoryData?.total || 0) / itemsPerPage)} ({rideHistoryData?.total || 0} total rides)
           </div>
-          <Button variant="outline" disabled>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(Math.ceil((rideHistoryData?.total || 0) / itemsPerPage), prev + 1))}
+            disabled={currentPage >= Math.ceil((rideHistoryData?.total || 0) / itemsPerPage)}
+          >
             Next
           </Button>
         </CardFooter>
@@ -277,16 +397,17 @@ export default function DriverRideHistory() {
           </AlertDescription>
         </Alert>
       )} */}
-      {/* Rating Modal for re-rating or leaving a comment */}
-      <RatingModal
+
+      {/* Rating Modal */}
+      <RatingModalDriver
         isOpen={ratingModal.open}
-        onClose={() => setRatingModal({ open: false, rideId: null, targetName: "" })}
-        rideId={ratingModal.rideId || ""}
-        rideStatus="completed"
-        userRole="driver"
-        targetName={ratingModal.targetName}
+        onClose={() => setRatingModal({ ...ratingModal, open: false })}
+        rideId={ratingModal.rideId}
+        riderName={ratingModal.riderName}
         onRatingComplete={() => {
-          setRefreshKey((k) => k + 1);
+          setRatingModal({ ...ratingModal, open: false });
+          // Refetch data after rating
+          window.location.reload();
         }}
       />
     </div>

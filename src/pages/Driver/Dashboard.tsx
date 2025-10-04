@@ -14,7 +14,7 @@ import {
   User, X
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 
@@ -269,17 +269,12 @@ useEffect(() => {
                 </SetOnlineModal>
               )}
 
-              <Button variant="outline" className="flex items-center gap-2">
+              {/* <Button variant="outline" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 Set Destination
-              </Button>
+              </Button> */}
 
-              <Button asChild variant="secondary" className="flex items-center gap-2">
-                <Link to="/driver/wallet">
-                  <DollarSign className="h-4 w-4" />
-                  Wallet
-                </Link>
-              </Button>
+          
             </div>
           </CardContent>
         </Card>

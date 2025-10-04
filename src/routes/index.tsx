@@ -13,10 +13,10 @@ const About = lazy(() => import("@/pages/About"));
 const Contact = lazy(() => import("@/pages/Contact"));
 // Removed: DriverBookRide (now handled by RideBooking)
 const DriverDashboard = lazy(() => import("@/pages/Driver/Dashboard"));
-const DriverEarnings = lazy(() => import("@/pages/Driver/Earnings"));
+const DriverEarnings = lazy(() => import("@/pages/Driver/EarningDashboard"));
 const DriverRideHistory = lazy(() => import("@/pages/Driver/RideHistory"));
 const DriverRideDetails = lazy(() => import("@/pages/Driver/RideDetails"));
-const DriverWallet = lazy(() => import("@/pages/Driver/Wallet"));
+const DriverWallet = lazy(() => import("@/pages/User/Wallet"));
 const DriverProfile = lazy(() => import("@/pages/Driver/Profile"));
 
 // Admin pages - now handled by generateRoutes(adminSidebarItems)

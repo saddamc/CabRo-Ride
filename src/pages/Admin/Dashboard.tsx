@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetAdminAnalyticsQuery, useGetBookingsDataQuery, useGetEarningsDataQuery } from "@/redux/features/auth/Admin/admin.api";
 import { CarIcon, DollarSignIcon, Loader2, Mail, Shield, TrendingUp, UserIcon, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
   // Define booking type to avoid any
@@ -110,22 +111,16 @@ export default function AdminDashboard() {
 
             <div className="flex flex-wrap gap-3">
               <Button className="flex items-center gap-2" asChild>
-                <a href="/admin/users">
+                <Link to="/admin/riders">
                   <Users className="h-4 w-4" />
-                  Manage Users
-                </a>
+                  Manage Riders
+                </Link>
               </Button>
               <Button variant="outline" className="flex items-center gap-2" asChild>
-                <a href="/admin/driver-management">
+                <Link to="/admin/drivers">
                   <CarIcon className="h-4 w-4" />
-                  Driver Approvals
-                </a>
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2" asChild>
-                <a href="/admin/reports">
-                  <DollarSignIcon className="h-4 w-4" />
-                  Financial Reports
-                </a>
+                  Manage Drivers
+                </Link>
               </Button>
             </div>
           </CardContent>

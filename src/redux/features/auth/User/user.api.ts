@@ -6,9 +6,16 @@ export interface IUserUpdatePayload {
   data: Record<string, unknown>;
 }
 
+interface IUserResponse {
+  data: IUser[];
+  meta: {
+    total: number;
+  };
+}
+
 export const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllUsers: builder.query<IUser[], Record<string, unknown> | void>({
+    getAllUsers: builder.query<IUserResponse, Record<string, unknown> | void>({
       query: (params) => ({
         url: `/users`,
         params,

@@ -22,6 +22,11 @@ export interface IUser {
     status?: string;
     isOnline?: boolean;
     createdAt?: string;
+    updatedAt?: string;
     role?: string;
+    isActive?: string;
+    totalRides?: number;
+    joinedDate?: string;
+    lastActive?: string;
 }
 

@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useConfirmPaymentReceivedMutation } from '@/redux/features/driver/driver.api';
 import { useRatingRideMutation } from '@/redux/features/ride-api';
 
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -68,11 +69,17 @@ export default function RatingModal({
         }
       }
 
+      // Reset loading state for skipping as well
+      setIsSubmitting(false);
+
+      // Reset loading state after successful submission
+      setIsSubmitting(false);
+
       // After successful submission or skipping, call onRatingComplete and close modal
       setTimeout(() => {
         onRatingComplete();
         onClose();
-        
+
         // Refresh the page after a short delay if it's a driver completing a ride
         if (userRole === 'driver' && rideStatus === 'payment_completed') {
           setTimeout(() => {

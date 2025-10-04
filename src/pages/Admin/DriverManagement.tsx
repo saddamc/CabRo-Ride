@@ -1,12 +1,13 @@
 import ConfirmationModal from "@/components/modal/ConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApprovedDriverMutation, useGetAllDriversQuery, useSuspendDriverMutation } from "@/redux/features/driver/driver.api";
-import { Check, CheckCircle2, FileText, Filter, Loader2, Search, Shield, Star, User, X } from "lucide-react";
+import { CheckCircle2, FileText, Filter, Loader2, MoreHorizontal, Search, Shield, Star, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -41,14 +42,18 @@ export default function DriverManagement() {
   // Confirmation Modal States
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
-    action: 'approve' | 'reject' | 'suspend' | 'reactivate';
     driverId: string;
     driverName: string;
+    currentStatus: string;
+    selectedStatus: 'pending' | 'approved' | 'suspended' | 'rejected';
+    action: string;
   }>({
     isOpen: false,
-    action: 'approve',
     driverId: '',
-    driverName: ''
+    driverName: '',
+    currentStatus: 'pending',
+    selectedStatus: 'pending',
+    action: 'approve'
   });
 
   // API Mutations and Queries
@@ -100,27 +105,29 @@ export default function DriverManagement() {
     return true;
   });
   
-  const openConfirmModal = (action: 'approve' | 'reject' | 'suspend' | 'reactivate', driver: IDriver) => {
+  const handleChangeDriverStatus = (driver: IDriver) => {
     setConfirmModal({
       isOpen: true,
-      action,
       driverId: driver.id,
-      driverName: driver.name
+      driverName: driver.name,
+      currentStatus: driver.status,
+      selectedStatus: driver.status as 'pending' | 'approved' | 'suspended' | 'rejected',
+      action: 'change'
     });
   };
 
   const handleConfirmAction = async () => {
     try {
-      const { action, driverId } = confirmModal;
-      
-      if (action === 'approve' || action === 'reactivate') {
+      const { selectedStatus, driverId } = confirmModal;
+
+      if (selectedStatus === 'approved') {
         await approveDriver({ id: driverId }).unwrap();
-        toast.success(`Driver ${action === 'approve' ? 'approved' : 'reactivated'} successfully`);
-      } else if (action === 'suspend') {
+        toast.success("Driver approved successfully");
+      } else if (selectedStatus === 'suspended') {
         await suspendDriver({ id: driverId }).unwrap();
         toast.success("Driver suspended successfully");
-      } else if (action === 'reject') {
-        // Implement reject API call if needed
+      } else if (selectedStatus === 'rejected') {
+        // Note: reject functionality may need separate API endpoint
         toast.success("Driver rejected successfully");
       }
 
@@ -130,29 +137,17 @@ export default function DriverManagement() {
       refetch();
     } catch (error) {
       console.error("Error performing driver action:", error);
-      toast.error(`Failed to ${confirmModal.action} driver. Please try again.`);
+      toast.error("Failed to update driver status. Please try again.");
     }
   };
 
-  const handleApproveDriver = (id: string, name: string) => {
-    const driver = { id, name } as IDriver;
-    openConfirmModal('approve', driver);
+  const handleStatusChangeInModal = (newStatus: string) => {
+    setConfirmModal(prev => ({
+      ...prev,
+      selectedStatus: newStatus as 'pending' | 'approved' | 'suspended' | 'rejected'
+    }));
   };
-  
-  const handleRejectDriver = (id: string, name: string) => {
-    const driver = { id, name } as IDriver;
-    openConfirmModal('reject', driver);
-  };
-  
-  const handleSuspendDriver = (id: string, name: string) => {
-    const driver = { id, name } as IDriver;
-    openConfirmModal('suspend', driver);
-  };
-  
-  const handleReactivateDriver = (id: string, name: string) => {
-    const driver = { id, name } as IDriver;
-    openConfirmModal('reactivate', driver);
-  };
+
   
   const handleViewDetails = (driver: IDriver) => {
     setSelectedDriver(driver);
@@ -272,59 +267,30 @@ export default function DriverManagement() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewDetails(driver)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                            
-                            {driver.status === 'pending' && (
-                              <>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleApproveDriver(driver.id, driver.name)}
-                                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRejectDriver(driver.id, driver.name)}
-                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            
-                            {driver.status === 'approved' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleSuspendDriver(driver.id, driver.name)}
-                                className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                              >
-                                <Shield className="h-4 w-4" />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
                               </Button>
-                            )}
-                            
-                            {driver.status === 'suspended' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleReactivateDriver(driver.id, driver.name)}
-                                className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white">
+                              <DropdownMenuItem
+                                onClick={() => handleViewDetails(driver)}
+                                className="text-gray-700 hover:text-gray-900 cursor-pointer"
                               >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
+                                <FileText className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleChangeDriverStatus(driver)}
+                                className="text-gray-700 hover:text-gray-900 cursor-pointer"
+                              >
+                                <User className="mr-2 h-4 w-4" />
+                                Change Status
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -348,133 +314,184 @@ export default function DriverManagement() {
             </CardHeader>
             <CardContent>
               {selectedDriver ? (
-                <div className="space-y-6">
-                  {/* Driver Info */}
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mb-3">
-                      <User className="h-10 w-10 text-gray-500" />
-                    </div>
-                    <h3 className="font-semibold text-lg">{selectedDriver.name}</h3>
-                    <div className="text-sm text-gray-500">{selectedDriver.email}</div>
-                    <div className="text-sm text-gray-500">{selectedDriver.phone}</div>
-                    
-                    <div className="flex items-center mt-2">
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium inline-block capitalize ${getStatusColor(selectedDriver.status)}`}>
-                        {selectedDriver.status}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm text-gray-500">Total Trips</div>
-                      <div className="font-semibold text-lg">{selectedDriver.totalTrips}</div>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <div className="text-sm text-gray-500">Rating</div>
-                      <div className="font-semibold text-lg flex items-center justify-center">
-                        {selectedDriver.rating > 0 ? (
-                          <>
-                            {selectedDriver.rating.toFixed(1)}
-                            <Star className="h-4 w-4 text-yellow-500 ml-1 fill-current" />
-                          </>
-                        ) : (
-                          'N/A'
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Vehicle Info */}
-                  <div>
-                    <h4 className="font-medium mb-2">Vehicle Information</h4>
+                <div className="space-y-4">
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Name</TableCell>
+                        <TableCell>{selectedDriver.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Email</TableCell>
+                        <TableCell>{selectedDriver.email}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Phone</TableCell>
+                        <TableCell>{selectedDriver.phone}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Status</TableCell>
+                        <TableCell>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium inline-block capitalize ${getStatusColor(selectedDriver.status)}`}>
+                            {selectedDriver.status}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Total Trips</TableCell>
+                        <TableCell>{selectedDriver.totalTrips}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Rating</TableCell>
+                        <TableCell>
+                          {selectedDriver.rating > 0 ? (
+                            <div className="flex items-center">
+                              {selectedDriver.rating.toFixed(1)}
+                              <Star className="h-4 w-4 text-yellow-500 ml-1 fill-current" />
+                            </div>
+                          ) : (
+                            'N/A'
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Joined Date</TableCell>
+                        <TableCell>{new Date(selectedDriver.joinedDate).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Vehicle Make</TableCell>
+                        <TableCell>{selectedDriver.vehicle.make}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Vehicle Model</TableCell>
+                        <TableCell>{selectedDriver.vehicle.model}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">Vehicle Year</TableCell>
+                        <TableCell>{selectedDriver.vehicle.year}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">License Plate</TableCell>
+                        <TableCell>{selectedDriver.vehicle.plateNumber}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium text-gray-700">License Number</TableCell>
+                        <TableCell>{selectedDriver.licenseNumber}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+
+                  {/* Documents Section */}
+                  <div className="pt-4 border-t">
+                    <h4 className="font-medium mb-3 text-gray-700">Documents</h4>
                     <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Make & Model</span>
-                        <span className="font-medium">{selectedDriver.vehicle.make} {selectedDriver.vehicle.model}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Year</span>
-                        <span className="font-medium">{selectedDriver.vehicle.year}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">License Plate</span>
-                        <span className="font-medium">{selectedDriver.vehicle.plateNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">License Number</span>
-                        <span className="font-medium">{selectedDriver.licenseNumber}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Documents */}
-                  <div>
-                    <h4 className="font-medium mb-2">Documents</h4>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button variant="outline" size="sm" className="w-full justify-start">
                         <FileText className="mr-2 h-4 w-4" />
-                        View Driver's License
+                        Driver's License
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button variant="outline" size="sm" className="w-full justify-start">
                         <FileText className="mr-2 h-4 w-4" />
-                        View Vehicle Registration
+                        Vehicle Registration
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button variant="outline" size="sm" className="w-full justify-start">
                         <FileText className="mr-2 h-4 w-4" />
-                        View Insurance
+                        Insurance
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="pt-4 border-t space-y-3">
                     {selectedDriver.status === 'pending' && (
                       <div className="grid grid-cols-2 gap-3">
-                        <Button 
-                          onClick={() => handleApproveDriver(selectedDriver.id, selectedDriver.name)}
+                        <Button
+                          onClick={() => {
+                            setConfirmModal({
+                              isOpen: true,
+                              driverId: selectedDriver.id,
+                              driverName: selectedDriver.name,
+                              currentStatus: selectedDriver.status,
+                              selectedStatus: 'approved',
+                              action: 'approve'
+                            });
+                          }}
                           className="w-full"
                         >
                           <CheckCircle2 className="mr-2 h-4 w-4" />
                           Approve
                         </Button>
-                        <Button 
+                        <Button
                           variant="outline"
                           className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                          onClick={() => handleRejectDriver(selectedDriver.id, selectedDriver.name)}
+                          onClick={() => {
+                            setConfirmModal({
+                              isOpen: true,
+                              driverId: selectedDriver.id,
+                              driverName: selectedDriver.name,
+                              currentStatus: selectedDriver.status,
+                              selectedStatus: 'rejected',
+                              action: 'reject'
+                            });
+                          }}
                         >
-                          <X className="mr-2 h-4 w-4" />
+                          <Shield className="mr-2 h-4 w-4" />
                           Reject
                         </Button>
                       </div>
                     )}
-                    
+
                     {selectedDriver.status === 'approved' && (
-                      <Button 
+                      <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() => handleSuspendDriver(selectedDriver.id, selectedDriver.name)}
+                        onClick={() => {
+                          setConfirmModal({
+                            isOpen: true,
+                            driverId: selectedDriver.id,
+                            driverName: selectedDriver.name,
+                            currentStatus: selectedDriver.status,
+                            selectedStatus: 'suspended',
+                            action: 'suspend'
+                          });
+                        }}
                       >
                         <Shield className="mr-2 h-4 w-4" />
                         Suspend Driver
                       </Button>
                     )}
-                    
+
                     {selectedDriver.status === 'suspended' && (
-                      <Button 
+                      <Button
                         className="w-full"
-                        onClick={() => handleReactivateDriver(selectedDriver.id, selectedDriver.name)}
+                        onClick={() => {
+                          setConfirmModal({
+                            isOpen: true,
+                            driverId: selectedDriver.id,
+                            driverName: selectedDriver.name,
+                            currentStatus: selectedDriver.status,
+                            selectedStatus: 'approved',
+                            action: 'reactivate'
+                          });
+                        }}
                       >
                         <CheckCircle2 className="mr-2 h-4 w-4" />
                         Reactivate Driver
                       </Button>
                     )}
-                    
+
                     {selectedDriver.status === 'rejected' && (
-                      <Button 
+                      <Button
                         className="w-full"
-                        onClick={() => handleApproveDriver(selectedDriver.id, selectedDriver.name)}
+                        onClick={() => {
+                          setConfirmModal({
+                            isOpen: true,
+                            driverId: selectedDriver.id,
+                            driverName: selectedDriver.name,
+                            currentStatus: selectedDriver.status,
+                            selectedStatus: 'approved',
+                            action: 'approve'
+                          });
+                        }}
                       >
                         <CheckCircle2 className="mr-2 h-4 w-4" />
                         Approve Driver
@@ -500,16 +517,21 @@ export default function DriverManagement() {
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
         onConfirm={handleConfirmAction}
-        title={`${confirmModal.action === 'approve' ? 'Approve' : 
-                confirmModal.action === 'reject' ? 'Reject' :
-                confirmModal.action === 'suspend' ? 'Suspend' : 'Reactivate'} Driver`}
+        title={`${confirmModal.action.charAt(0).toUpperCase() + confirmModal.action.slice(1)} Driver`}
         description={
           confirmModal.action === 'approve' ? 'This will grant the driver access to accept rides on the platform.' :
           confirmModal.action === 'reject' ? 'This will deny the driver application and they will not be able to drive on the platform.' :
           confirmModal.action === 'suspend' ? 'This will temporarily disable the driver\'s ability to accept rides.' :
           'This will reactivate the driver\'s account and allow them to accept rides again.'
         }
+        selectedStatus={confirmModal.selectedStatus}
         actionType={confirmModal.action}
+        statusOptions={[
+          { value: 'approved', label: 'Approved' },
+          { value: 'suspended', label: 'Suspended' },
+          { value: 'rejected', label: 'Rejected' }
+        ]}
+        onStatusChange={handleStatusChangeInModal}
         isLoading={confirmModal.action === 'suspend' ? isSuspendingDriver : isApprovingDriver}
         targetName={confirmModal.driverName}
       />

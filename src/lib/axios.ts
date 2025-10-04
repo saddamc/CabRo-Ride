@@ -12,14 +12,10 @@ export const axiosInstance = axios.create({
 
 // Add a request interceptor
 axiosInstance.interceptors.request.use(function (config) {
-  // Get token from localStorage
-  const token = localStorage.getItem('accessToken');
-  
-  // If token exists, add it to the request headers
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  
+  // Do something before request is sent
+
+
+
   return config;
 }, function (error) {
   // Do something with request error

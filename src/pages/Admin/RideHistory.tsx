@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useGetAllRideQuery } from "@/redux/features/ride-api";
-import { Car, ChevronLeft, ChevronRight, Clock, DollarSign, Filter, MapPin, Navigation, Phone, Search, User } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight, Clock, DollarSign, Filter, Navigation, Search, Table } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface IRide {
@@ -241,155 +242,116 @@ export default function AdminRideHistory() {
           </CardContent>
         </Card>
 
-        {/* Rides Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="border-gray-200">
-                <CardContent className="p-6">
-                  <div className="animate-pulse space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                      <div className="space-y-2">
-                        <div className="w-24 h-4 bg-gray-200 rounded"></div>
-                        <div className="w-20 h-3 bg-gray-200 rounded"></div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="w-full h-3 bg-gray-200 rounded"></div>
-                      <div className="w-3/4 h-3 bg-gray-200 rounded"></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : filteredRides.length > 0 ? (
-            filteredRides.map((ride: IRide) => (
-              <Card key={ride._id} className="hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-blue-300">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold text-gray-900">
-                      Ride #{ride._id.slice(-6).toUpperCase()}
-                    </CardTitle>
-                    <Badge className={`${getStatusColor(ride.status)} border`}>
-                      {ride.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-gray-600">
-                    {formatDate(ride.createdAt)}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {/* Rider Info */}
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-gray-700" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{ride.rider?.name || 'Unknown Rider'}</p>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone className="h-3 w-3" />
-                        {ride.rider?.phone || 'N/A'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Driver Info */}
-                  {ride.driver ? (
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <Car className="h-5 w-5 text-gray-700" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{ride.driver.user?.name || 'Unknown Driver'}</p>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Phone className="h-3 w-3" />
-                          {ride.driver.user?.phone || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
+        {/* Rides Table */}
+        <Card className="border-gray-200 bg-white">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-gray-900">All Rides</CardTitle>
+            <CardDescription className="text-gray-600">
+              Showing {filteredRides.length} of {ridesData?.meta?.total || 0} rides
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-200">
+                    <TableHead className="text-gray-700">Ride ID</TableHead>
+                    <TableHead className="text-gray-700">Rider</TableHead>
+                    <TableHead className="text-gray-700">Driver</TableHead>
+                    <TableHead className="text-gray-700">Status</TableHead>
+                    <TableHead className="text-gray-700">Distance</TableHead>
+                    <TableHead className="text-gray-700">Duration</TableHead>
+                    <TableHead className="text-gray-700">Fare</TableHead>
+                    <TableHead className="text-gray-700">Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    Array.from({ length: 10 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredRides.length > 0 ? (
+                    filteredRides.map((ride: IRide) => (
+                      <TableRow key={ride._id} className="border-gray-200 hover:bg-gray-50">
+                        <TableCell>
+                          <div className="font-medium text-gray-900">
+                            #{ride._id.slice(-6).toUpperCase()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">{ride.rider?.name || 'Unknown'}</div>
+                            <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">{ride.driver?.user?.name || 'No Driver'}</div>
+                            <div className="text-sm text-gray-500">{ride.driver?.user?.phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(ride.status)} border`}>
+                            {ride.status.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-gray-900">
+                            {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-gray-900">
+                            {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-gray-900">
+                            ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-gray-900">
+                            {formatDate(ride.createdAt)}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
                   ) : (
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <Car className="h-5 w-5 text-gray-600" />
-                      </div>
-                      <p className="font-medium text-gray-500">No driver assigned</p>
-                    </div>
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Car className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No rides found</h3>
+                        <p className="text-gray-600 mb-6">Try adjusting your search or filter criteria</p>
+                        <Button
+                          onClick={() => {
+                            setSearchTerm('');
+                            setFilterStatus('all');
+                          }}
+                          variant="outline"
+                          className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          Clear Filters
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   )}
-
-                  {/* Route */}
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <MapPin className="h-5 w-5 text-gray-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-600">From</p>
-                        <p className="font-medium text-gray-900">{ride.pickupLocation?.address || 'N/A'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <MapPin className="h-5 w-5 text-gray-600 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-600">To</p>
-                        <p className="font-medium text-gray-900">{ride.destinationLocation?.address || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Ride Details */}
-                  <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600">Distance</p>
-                      <p className="font-bold text-gray-900">
-                        {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600">Duration</p>
-                      <p className="font-bold text-gray-900">
-                        {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Fare */}
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Fare</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Payment</p>
-                      <p className="font-medium text-gray-900">
-                        {ride.paymentMethod || 'Cash'}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Car className="h-12 w-12 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No rides found</h3>
-              <p className="text-gray-600 mb-6">Try adjusting your search or filter criteria</p>
-              <Button
-                onClick={() => {
-                  setSearchTerm('');
-                  setFilterStatus('all');
-                }}
-                variant="outline"
-                className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Clear Filters
-              </Button>
+                </TableBody>
+              </Table>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Pagination */}
         {totalPages > 1 && (

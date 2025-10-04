@@ -1,6 +1,6 @@
 import { useLogoutMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { logout as logoutAction } from "@/redux/features/authSlice";
-import { Car, Clock, Home, LogOut, Map, Settings } from "lucide-react";
+import { Car, Clock, DollarSign, Home, LogOut, Map, Settings } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 
@@ -127,6 +127,20 @@ export default function RoleDashboard() {
               <Clock className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/history`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
               Ride History
             </Link>
+
+            {userRole === 'driver' && (
+              <Link
+                to={`${routePrefix}/earnings`}
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                  isActive(`${routePrefix}/earnings`)
+                    ? 'text-white bg-black'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <DollarSign className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/earnings`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                Earnings
+              </Link>
+            )}
             
             <div className="px-3 py-2 mt-6 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
               Account
@@ -221,6 +235,21 @@ export default function RoleDashboard() {
             </div>
             <span className="text-xs mt-1">History</span>
           </Link>
+
+          {userRole === 'driver' && (
+            <Link
+              to={`${routePrefix}/earnings`}
+              className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/earnings`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
+            >
+              <div className={`p-2 rounded-full ${isActive(`${routePrefix}/earnings`) ?
+                'bg-blue-500' :
+                'bg-gray-200 dark:bg-gray-700'
+              }`}>
+                <DollarSign className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Earnings</span>
+            </Link>
+          )}
 
           <Link
             to={`${routePrefix}/profile`}
