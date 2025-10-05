@@ -146,15 +146,6 @@ export default function AdminDashboard() {
 
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          {/* Dashboard Content */}
-          <div className="mb-8 bg-white dark:bg-white rounded-lg p-6 shadow-sm">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-900">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-600 mt-1">
-              Welcome back, <span className="text-primary">{userInfo?.data?.name || 'Administrator'}</span>!
-            </p>
-          </div>
 
           {/* Dynamic Content */}
           <div className="bg-white dark:bg-white rounded-lg shadow p-6">

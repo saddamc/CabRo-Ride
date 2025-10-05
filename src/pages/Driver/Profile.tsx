@@ -219,8 +219,16 @@ export default function DriverProfile() {
                   </div>
                 ) : (
                   <>
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <User className="h-12 w-12 text-primary" />
+                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4 overflow-hidden">
+                      {userInfo?.data?.profilePicture ? (
+                        <img
+                          src={userInfo.data.profilePicture}
+                          alt="Profile"
+                          className="h-24 w-24 object-cover rounded-full border border-gray-200"
+                        />
+                      ) : (
+                        <User className="h-12 w-12 text-primary" />
+                      )}
                     </div>
                     <h2 className="text-xl font-bold">
                       {userInfo?.data?.name || "Driver Name"}
@@ -330,45 +338,45 @@ export default function DriverProfile() {
                         className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
                       >
                         <DialogHeader>
-                          <DialogTitle>Edit Profile</DialogTitle>
-                          <DialogDescription>
+                          <DialogTitle className="text-gray-900 dark:text-white">Edit Profile</DialogTitle>
+                          <DialogDescription className="text-gray-600 dark:text-gray-300">
                             Update your personal details
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="name">Full Name</Label>
+                              <Label htmlFor="name" className="text-gray-900 dark:text-white">Full Name</Label>
                               <Input
                                 id="name"
                                 name="name"
                                 value={personalFormData.name}
                                 onChange={handlePersonalInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdatingDriver || isUpdatingUser}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="email">Email Address</Label>
+                              <Label htmlFor="email" className="text-gray-900 dark:text-white">Email Address</Label>
                               <Input
                                 id="email"
                                 name="email"
                                 value={personalFormData.email}
                                 onChange={handlePersonalInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="phone">Phone Number</Label>
+                              <Label htmlFor="phone" className="text-gray-900 dark:text-white">Phone Number</Label>
                               <Input
                                 id="phone"
                                 name="phone"
                                 value={personalFormData.phone}
                                 onChange={handlePersonalInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdatingDriver || isUpdatingUser}
                               />
                             </div>
@@ -383,6 +391,7 @@ export default function DriverProfile() {
                             </Button>
                             <Button
                               onClick={handleSaveProfile}
+                              className="bg-white border-black  hover:bg-black hover:text-white"
                               disabled={isUpdatingDriver || isUpdatingUser}
                             >
                               {isUpdatingDriver || isUpdatingUser ? (
@@ -496,50 +505,50 @@ export default function DriverProfile() {
                       </DialogTrigger>
                       <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
-                          <DialogTitle>Update Vehicle</DialogTitle>
-                          <DialogDescription>
+                          <DialogTitle className="text-gray-900 dark:text-white">Update Vehicle</DialogTitle>
+                          <DialogDescription className="text-gray-600 dark:text-gray-300">
                             Update your vehicle details
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="make">Make</Label>
+                              <Label htmlFor="make" className="text-gray-900 dark:text-white">Make</Label>
                               <Input
                                 id="make"
                                 name="make"
                                 value={vehicleFormData.make}
                                 onChange={handleVehicleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdatingDriver}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="model">Model</Label>
+                              <Label htmlFor="model" className="text-gray-900 dark:text-white">Model</Label>
                               <Input
                                 id="model"
                                 name="model"
                                 value={vehicleFormData.model}
                                 onChange={handleVehicleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdatingDriver}
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="year">Year</Label>
+                              <Label htmlFor="year" className="text-gray-900 dark:text-white">Year</Label>
                               <Input
                                 id="year"
                                 name="year"
                                 value={vehicleFormData.year}
                                 onChange={handleVehicleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdatingDriver}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="licensePlate">
+                              <Label htmlFor="licensePlate" className="text-gray-900 dark:text-white">
                                 License Plate
                               </Label>
                               <Input
@@ -547,19 +556,19 @@ export default function DriverProfile() {
                                 name="licensePlate"
                                 value={vehicleFormData.licensePlate}
                                 onChange={handleVehicleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdatingDriver}
                               />
                             </div>
                           </div>
                           <div>
-                            <Label htmlFor="vehicleType">Vehicle Type</Label>
+                            <Label htmlFor="vehicleType" className="text-gray-900 dark:text-white">Vehicle Type</Label>
                             <Input
                               id="vehicleType"
                               name="vehicleType"
                               value={vehicleFormData.vehicleType}
                               onChange={handleVehicleInputChange}
-                              className="mt-1"
+                              className="mt-1 text-gray-900 dark:text-white"
                               disabled={isUpdatingDriver}
                             />
                           </div>

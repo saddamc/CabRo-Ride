@@ -39,6 +39,9 @@ export default function RiderProfile() {
     emergencyContact: '',
     isOnline: false,
   });
+  // Profile image state
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   // Driver application form state
   const [driverApplicationData, setDriverApplicationData] = useState({
     vehicleType: 'CAR' as 'CAR' | 'BIKE',
@@ -71,6 +74,8 @@ export default function RiderProfile() {
         emergencyContact: userInfo.data.emergencyContact || '',
         isOnline: userInfo.data.isOnline || false,
       });
+      setPreviewImage(userInfo.data.profilePicture || null);
+      setSelectedImage(null);
     }
   }, [userInfo]);
 
@@ -207,11 +212,25 @@ export default function RiderProfile() {
   
   const handleSaveProfile = async () => {
     try {
-      const profileData = {
-        ...formData,
-        _id: userInfo?.data?._id || '',
-      };
-      await updateProfile(profileData).unwrap();
+      let result;
+      if (selectedImage) {
+        const form = new FormData();
+        form.append('name', formData.name);
+        form.append('email', formData.email);
+        form.append('phone', formData.phone);
+        form.append('address', formData.address);
+        form.append('emergencyContact', formData.emergencyContact);
+        form.append('isOnline', String(formData.isOnline));
+        form.append('_id', userInfo?.data?._id || '');
+        form.append('profilePicture', selectedImage);
+        result = await updateProfile(form).unwrap();
+      } else {
+        const profileData = {
+          ...formData,
+          _id: userInfo?.data?._id || '',
+        };
+        result = await updateProfile(profileData).unwrap();
+      }
       toast.success("Profile Updated", {
         description: "Your profile has been updated successfully.",
       });
@@ -231,7 +250,10 @@ export default function RiderProfile() {
       phone: userInfo?.data?.phone || '',
       address: userInfo?.data?.address || '',
       emergencyContact: userInfo?.data?.emergencyContact || '',
+      isOnline: userInfo?.data?.isOnline || false,
     });
+    setSelectedImage(null);
+    setPreviewImage(userInfo?.data?.profilePicture || null);
     setIsEditModalOpen(false);
   };
   
@@ -259,22 +281,23 @@ export default function RiderProfile() {
                   </div>
                 ) : (
                   <>
-                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <User className="h-12 w-12 text-primary" />
+                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4 overflow-hidden">
+                      {userInfo?.data?.profilePicture ? (
+                        <img
+                          src={userInfo.data.profilePicture}
+                          alt="Profile"
+                          className="h-24 w-24 object-cover rounded-full border border-gray-200"
+                        />
+                      ) : (
+                        <User className="h-12 w-12 text-primary" />
+                      )}
                     </div>
                     <h2 className="text-xl font-bold">{userInfo?.data?.name || 'User Name'}</h2>
                     <p className="text-gray-500">{userInfo?.data?.email || 'user@example.com'}</p>
-                    
                     <div className="mt-2 mb-4 space-y-2">
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                        Rider
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs uppercase">
+                        {userInfo?.data?.role || ''}
                       </span>
-                      <div className="flex items-center">
-                        <div className={`w-2 h-2 rounded-full mr-2 ${userInfo?.data?.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span className="text-xs text-gray-600">
-                          {userInfo?.data?.isOnline ? 'Online' : 'Offline'}
-                        </span>
-                      </div>
                     </div>
                   </>
                 )}
@@ -332,74 +355,97 @@ export default function RiderProfile() {
                           Edit Profile
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
+                      <DialogContent className="bg-white/60 backdrop-blur-lg dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
-                          <DialogTitle>Edit Profile</DialogTitle>
-                          <DialogDescription>Update your personal details</DialogDescription>
+                          <DialogTitle className="text-gray-900 dark:text-white">Edit Profile</DialogTitle>
+                          <DialogDescription className="text-gray-600 dark:text-gray-300">Update your personal details</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
+                          {/* Profile Image Uploader */}
+                          {/* <div>
+                            <Label>Profile Image</Label>
+                            <SingleImageUploader
+                              onChange={(file) => {
+                                setSelectedImage(file);
+                                if (file) {
+                                  setPreviewImage(URL.createObjectURL(file));
+                                } else {
+                                  setPreviewImage(userInfo?.data?.profilePicture || null);
+                                }
+                              }}
+                            />
+                            {previewImage && (
+                              <div className="mt-2 flex justify-center">
+                                <img
+                                  src={previewImage}
+                                  alt="Preview"
+                                  className="h-20 w-20 object-cover rounded-full border border-gray-200"
+                                />
+                              </div>
+                            )}
+                          </div> */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="name">Full Name</Label>
+                              <Label htmlFor="name" className="text-gray-900 dark:text-white">Full Name</Label>
                               <Input
                                 id="name"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdating}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="email">Email Address</Label>
+                              <Label htmlFor="email" className="text-gray-900 dark:text-white">Email Address</Label>
                               <Input
                                 id="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="phone">Phone Number</Label>
+                              <Label htmlFor="phone" className="text-gray-900 dark:text-white">Phone Number</Label>
                               <Input
                                 id="phone"
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdating}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="address">Address</Label>
+                              <Label htmlFor="address" className="text-gray-900 dark:text-white">Address</Label>
                               <Input
                                 id="address"
                                 name="address"
                                 value={formData.address}
                                 onChange={handleInputChange}
-                                className="mt-1"
+                                className="mt-1 text-gray-900 dark:text-white"
                                 disabled={isUpdating}
                               />
                             </div>
                           </div>
-                          <div>
-                            <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                          {/* <div>
+                            <Label htmlFor="emergencyContact" className="text-gray-900 dark:text-white">Emergency Contact</Label>
                             <Input
                               id="emergencyContact"
                               name="emergencyContact"
                               value={formData.emergencyContact}
                               onChange={handleInputChange}
-                              className="mt-1"
+                              className="mt-1 text-gray-900 dark:text-white"
                               placeholder="Name: Contact Number"
                               disabled={isUpdating}
                             />
-                          </div>
+                          </div> */}
                           <div className="flex items-center space-x-2">
-                            <input
+                            {/* <input
                               type="checkbox"
                               id="isOnline"
                               name="isOnline"
@@ -407,8 +453,8 @@ export default function RiderProfile() {
                               onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
                               disabled={isUpdating}
                               className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                            />
-                            <Label htmlFor="isOnline">Set Online Status</Label>
+                            /> */}
+                            {/* <Label htmlFor="isOnline" className="text-gray-900 dark:text-white">Set Online Status</Label> */}
                           </div>
                           <div className="flex justify-end gap-2">
                             <Button
@@ -421,6 +467,7 @@ export default function RiderProfile() {
                             <Button
                               onClick={handleSaveProfile}
                               disabled={isUpdating}
+                              className="bg-white border-black  hover:bg-black hover:text-white"
                             >
                               {isUpdating ? (
                                 <>
@@ -429,7 +476,7 @@ export default function RiderProfile() {
                                 </>
                               ) : (
                                 <>
-                                  <Save className="h-4 w-4 mr-2" />
+                                  <Save className="h-4 w-4 mr-2 " />
                                   Save
                                 </>
                               )}
@@ -561,7 +608,7 @@ export default function RiderProfile() {
                         </div>
                       </div>
 
-                      <div>
+                      {/* <div>
                         <Label htmlFor="emergencyContact">Emergency Contact</Label>
                         <div className="p-2 mt-1 bg-gray-50 rounded">
                           {formData.emergencyContact || 'Not provided'}
@@ -571,7 +618,7 @@ export default function RiderProfile() {
                             Adding an emergency contact is recommended for your safety
                           </p>
                         )}
-                      </div>
+                      </div> */}
                     
                       <Separator className="my-6" />
                       

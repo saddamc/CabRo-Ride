@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetAdminAnalyticsQuery, useGetBookingsDataQuery, useGetEarningsDataQuery } from "@/redux/features/auth/Admin/admin.api";
 import { CarIcon, DollarSignIcon, Loader2, Mail, Shield, TrendingUp, UserIcon, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Area, AreaChart, Bar, BarChart, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function AdminDashboard() {
   // Define booking type to avoid any
@@ -27,6 +29,40 @@ export default function AdminDashboard() {
   const totalRevenue = earningsData?.data?.earnings
     ? earningsData.data.earnings.reduce((total, item) => total + item.amount, 0)
     : 3547628.50;
+
+  // Mock data for visualizations
+  const rideVolumeData = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (29 - i));
+    return {
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      rides: Math.floor(Math.random() * 500) + 200 + Math.sin(i / 5) * 100,
+      completed: Math.floor((Math.floor(Math.random() * 500) + 200 + Math.sin(i / 5) * 100) * 0.85),
+      cancelled: Math.floor((Math.floor(Math.random() * 500) + 200 + Math.sin(i / 5) * 100) * 0.15),
+    };
+  });
+
+  const revenueData = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (11 - i));
+    return {
+      month: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      revenue: Math.floor(Math.random() * 50000) + 50000 + Math.sin(i / 3) * 20000,
+      bookings: Math.floor(Math.random() * 500) + 1000,
+    };
+  });
+
+  const driverActivityData = Array.from({ length: 24 }, (_, i) => ({
+    hour: `${i.toString().padStart(2, '0')}:00`,
+    activeDrivers: Math.floor(Math.random() * 50) + 20 + Math.sin(i / 4) * 20,
+    bookings: Math.floor(Math.random() * 30) + 10 + Math.sin(i / 4) * 15,
+  }));
+
+  const rideStatusData = [
+    { name: 'Completed', value: analyticsData?.data?.rides?.completedRides ?? 85, color: '#10b981' },
+    { name: 'Cancelled', value: analyticsData?.data?.rides?.cancelledRides ?? 10, color: '#ef4444' },
+    { name: 'Ongoing', value: (analyticsData?.data?.rides?.totalRides ?? 0) - (analyticsData?.data?.rides?.completedRides ?? 0) - (analyticsData?.data?.rides?.cancelledRides ?? 0), color: '#f59e0b' },
+  ];
   
   return (
     <div className="container mx-auto py-6 px-4 bg-white text-black min-h-screen">
@@ -91,6 +127,166 @@ export default function AdminDashboard() {
           </div>
         </>
       )}
+
+      {/* Data Visualizations Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Ride Volume Chart */}
+        <Card className="lg:col-span-1 hover:shadow-lg transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-500" />
+              Ride Volume Trends
+            </CardTitle>
+            <CardDescription>Daily ride bookings over the last 30 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={rideVolumeData}>
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    fontSize: '14px'
+                  }}
+                  labelStyle={{ color: '#374151', fontWeight: '600' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="rides"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, fill: '#1d4ed8', stroke: '#ffffff', strokeWidth: 2 }}
+                  animationDuration={1500}
+                  animationEasing="ease-in-out"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="completed"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  animationDuration={1500}
+                  animationEasing="ease-in-out"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue Trends Chart */}
+        <Card className="lg:col-span-1 hover:shadow-lg transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSignIcon className="h-5 w-5 text-amber-500" />
+              Revenue Trends
+            </CardTitle>
+            <CardDescription>Monthly revenue and booking volume</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={revenueData}>
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    fontSize: '14px'
+                  }}
+                  labelStyle={{ color: '#374151', fontWeight: '600' }}
+                  formatter={(value: any, name: any) => [
+                    name === 'revenue' ? `৳${value.toLocaleString()}` : value.toLocaleString(),
+                    name === 'revenue' ? 'Revenue' : 'Bookings'
+                  ]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stackId="1"
+                  stroke="#f59e0b"
+                  fill="url(#colorRevenue)"
+                  strokeWidth={3}
+                  animationDuration={1500}
+                  animationEasing="ease-in-out"
+                />
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Driver Activity and Ride Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Driver Activity Chart */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Driver Activity (24h)</CardTitle>
+            <CardDescription>Active drivers and bookings by hour</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={driverActivityData}>
+                <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#f8f9fa',
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Bar dataKey="activeDrivers" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="bookings" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Ride Status Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Ride Status Distribution</CardTitle>
+            <CardDescription>Current ride completion status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={rideStatusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {rideStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Admin Profile and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
         <Card className="lg:col-span-2">
