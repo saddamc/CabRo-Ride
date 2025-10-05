@@ -50,6 +50,29 @@ export interface EarningsDataResponse {
   };
 }
 
+export interface RideVolumeDataResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    date: string;
+    rides: number;
+    completed: number;
+    cancelled: number;
+  }[];
+}
+
+export interface DriverActivityDataResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: {
+    hour: string;
+    activeDrivers: number;
+    bookings: number;
+  }[];
+}
+
 export interface AllUsersResponse {
   success: boolean;
   statusCode: number;
@@ -97,12 +120,28 @@ export const adminApi = baseApi.injectEndpoints({
       }),
       providesTags: ['admin', 'payment'],
     }),
+    getRideVolumeData: builder.query<RideVolumeDataResponse, void>({
+      query: () => ({
+        url: '/rides/volume',
+        method: 'GET',
+      }),
+      providesTags: ['admin', 'RIDES'],
+    }),
+    getDriverActivityData: builder.query<DriverActivityDataResponse, void>({
+      query: () => ({
+        url: '/rides/activity',
+        method: 'GET',
+      }),
+      providesTags: ['admin', 'RIDES'],
+    }),
   }),
 });
 
-export const { 
-  useGetAdminAnalyticsQuery, 
-  useGetAllUsersQuery, 
-  useGetBookingsDataQuery, 
-  useGetEarningsDataQuery 
+export const {
+  useGetAdminAnalyticsQuery,
+  useGetAllUsersQuery,
+  useGetBookingsDataQuery,
+  useGetEarningsDataQuery,
+  useGetRideVolumeDataQuery,
+  useGetDriverActivityDataQuery
 } = adminApi;

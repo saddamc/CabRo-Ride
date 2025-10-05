@@ -5,56 +5,47 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useGetAllRideQuery } from "@/redux/features/ride-api";
-import { Car, ChevronLeft, ChevronRight, Clock, DollarSign, Navigation, Search, Table, UserIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Car, Clock, DollarSign, Navigation, Search, Table, UserIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-interface IRide {
+// Define a type for the ride objects to avoid using 'any'
+interface IRideDisplay {
   _id: string;
-  rider: {
-    _id: string;
-    name: string;
-    phone: string;
-    profilePicture?: string;
+  status: string;
+  rider?: {
+    name?: string;
     email?: string;
+    phone?: string;
   };
   driver?: {
-    _id: string;
-    user: {
-      name: string;
-      phone: string;
-      profilePicture?: string;
+    name?: string;
+    phone?: string;
+    user?: {
+      name?: string;
+      phone?: string;
     };
   };
-  pickupLocation: {
-    address: string;
-    coordinates: [number, number];
+  pickupLocation?: {
+    address?: string;
   };
-  destinationLocation: {
-    address: string;
-    coordinates: [number, number];
+  destinationLocation?: {
+    address?: string;
   };
-  status: string;
-  fare: {
-    baseFare: number;
-    distanceFare: number;
-    timeFare: number;
-    totalFare: number;
+  fare?: {
+    totalFare?: number;
   };
-  distance: {
-    estimated: number;
-    actual: number;
+  distance?: {
+    actual?: number;
   };
-  duration: {
-    estimated: number;
-    actual: number;
+  duration?: {
+    actual?: number;
   };
   createdAt: string;
-  paymentMethod?: string;
-  paymentStatus?: string;
+  updatedAt?: string;
 }
 
 export default function AdminRideHistory() {
-  const [currentPage, setCurrentPage] = useState(1);
+  // No need for currentPage state as we're showing all data at once
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -65,73 +56,72 @@ export default function AdminRideHistory() {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const { data: ridesData, isLoading, error } = useGetAllRideQuery({
-    page: currentPage,
-    limit: 12
+  const { data: ridesData, isLoading, error, refetch } = useGetAllRideQuery({
+    page: 1,
+    limit: 999 // Using a high limit to fetch all rides at once
+  }, {
+    refetchOnMountOrArgChange: true
   });
 
-  // Handle authentication errors gracefully
-  const hasAuthError = error || !ridesData;
-
-  // Mock data for demonstration when no data is available
-  const mockRidesData = {
-    data: [
-      {
-        _id: "mock1",
-        rider: { _id: "r1", name: "John Doe", phone: "+1234567890", profilePicture: "" },
-        driver: { _id: "d1", user: { name: "Mike Johnson", phone: "+0987654321", profilePicture: "" } },
-        pickupLocation: { address: "123 Main St, City", coordinates: [0, 0] },
-        destinationLocation: { address: "456 Oak Ave, City", coordinates: [0, 0] },
-        status: "completed",
-        fare: { baseFare: 20, distanceFare: 3.5, timeFare: 2, totalFare: 25.50, currency: "USD" },
-        distance: { estimated: 12, actual: 12.5 },
-        duration: { estimated: 1800, actual: 1800 },
-        timestamps: { requested: new Date().toISOString(), completed: new Date().toISOString() },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        paymentMethod: "cash",
-        paymentStatus: "paid"
-      },
-      {
-        _id: "mock2",
-        rider: { _id: "r2", name: "Jane Smith", phone: "+1234567891", profilePicture: "" },
-        driver: { _id: "d2", user: { name: "Sarah Wilson", phone: "+0987654322", profilePicture: "" } },
-        pickupLocation: { address: "789 Pine St, City", coordinates: [0, 0] },
-        destinationLocation: { address: "321 Elm St, City", coordinates: [0, 0] },
-        status: "in_transit",
-        fare: { baseFare: 15, distanceFare: 2.75, timeFare: 1, totalFare: 18.75, currency: "USD" },
-        distance: { estimated: 8, actual: 8.2 },
-        duration: { estimated: 1200, actual: 1200 },
-        timestamps: { requested: new Date(Date.now() - 86400000).toISOString(), pickedUp: new Date(Date.now() - 3600000).toISOString() },
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        updatedAt: new Date().toISOString(),
-        paymentMethod: "card",
-        paymentStatus: "pending"
-      }
-    ] as unknown as IRide[],
-    meta: {
-      total: 2,
-      page: 1,
-      limit: 12,
-      totalPages: 1
+  // Format data to match expected structure
+  // The API is returning an array directly instead of {data: [...], meta: {...}}
+  const displayData = useMemo(() => {
+    if (!ridesData) return { data: [], meta: { total: 0, page: 1, limit: 999, totalPages: 1 } };
+    
+    // If ridesData is an array, wrap it in the expected structure
+    if (Array.isArray(ridesData)) {
+      console.log("Wrapping array data in expected structure");
+      return {
+        data: ridesData,
+        meta: {
+          total: ridesData.length,
+          page: 1,
+          limit: 999,
+          totalPages: 1
+        }
+      };
     }
-  };
+    
+    // If ridesData already has data and meta
+    if (ridesData.data && ridesData.meta) {
+      console.log("Using existing data structure");
+      return ridesData;
+    }
+    
+    // Fallback - create empty structure
+    console.log("Fallback - creating empty structure");
+    return {
+      data: [],
+      meta: { total: 0, page: 1, limit: 999, totalPages: 1 }
+    };
+  }, [ridesData]);
+  
+  // Refetch data when component mounts
+  useEffect(() => {
+    console.log("Refetching all ride data");
+    refetch()
+      .then(result => {
+        console.log("Refetch success:", result);
+      })
+      .catch(err => {
+        console.error("Refetch error:", err);
+      });
+  }, [refetch]);
 
-  // Use mock data if no real data is available
-  const displayData = hasAuthError ? mockRidesData : (ridesData || mockRidesData);
-
-  console.log('Rides data:', ridesData);
-  console.log('Loading:', isLoading);
-  console.log('Error:', error);
-  console.log('Has auth error:', hasAuthError);
-  console.log('Using mock data:', hasAuthError);
+  console.log('Raw API response:', ridesData);
+  console.log('Display data structure:', displayData);
+  console.log('Display data.data:', displayData?.data);
+  console.log('Display data.meta:', displayData?.meta);
 
   // Client-side filtering
   const filteredRides = useMemo(() => {
-    if (!displayData?.data) return [];
+    if (!displayData?.data) {
+      console.log("No data available to filter");
+      return [];
+    }
 
-    console.log('Raw rides data:', displayData.data);
-    let filtered = displayData.data;
+    // Create a mutable copy of the array to avoid issues with frozen objects
+    let filtered: IRideDisplay[] = Array.isArray(displayData.data) ? [...displayData.data] : [];
 
     // Filter by status
     if (filterStatus !== "all") {
@@ -166,7 +156,8 @@ export default function AdminRideHistory() {
     if (driverName) {
       const term = driverName.toLowerCase();
       filtered = filtered.filter(ride =>
-        ride.driver?.user?.name?.toLowerCase().includes(term)
+        ride.driver?.user?.name?.toLowerCase().includes(term) ||
+        ride.driver?.name?.toLowerCase().includes(term)
       );
     }
 
@@ -182,8 +173,8 @@ export default function AdminRideHistory() {
       );
     }
 
-    // Sort the filtered rides
-    filtered.sort((a, b) => {
+    // Sort the filtered rides - using a new sorted array instead of in-place sort
+    const sortedRides = [...filtered].sort((a: IRideDisplay, b: IRideDisplay) => {
       let aValue: string | number | Date;
       let bValue: string | number | Date;
 
@@ -205,8 +196,8 @@ export default function AdminRideHistory() {
           bValue = b.rider?.name || '';
           break;
         case 'driverName':
-          aValue = a.driver?.user?.name || '';
-          bValue = b.driver?.user?.name || '';
+          aValue = a.driver?.user?.name || a.driver?.name || '';
+          bValue = b.driver?.user?.name || b.driver?.name || '';
           break;
         default:
           aValue = new Date(a.createdAt);
@@ -220,8 +211,8 @@ export default function AdminRideHistory() {
       }
     });
 
-    console.log('Filtered rides:', filtered);
-    return filtered;
+    console.log('Filtered rides:', sortedRides);
+    return sortedRides;
   }, [displayData, filterStatus, searchTerm, startDate, endDate, riderName, driverName, selectedStatuses, sortBy, sortOrder]);
 
   const formatDate = (dateString: string) => {
@@ -254,13 +245,14 @@ export default function AdminRideHistory() {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
+// Log display data for debugging purposes
+console.log("displayData:", displayData);
+console.log("isLoading:", isLoading);
+console.log("error:", error);
+console.log("filteredRides length:", filteredRides.length);
+console.log("First ride sample:", filteredRides[0]);
 
-
-  // Pagination
-  const totalPages = displayData?.meta?.totalPages || 1;
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  // No pagination needed as we're showing all data
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -269,13 +261,6 @@ export default function AdminRideHistory() {
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">🚗 Ride Management</h1>
           <p className="text-gray-600 text-lg">Monitor and manage all rides in your platform</p>
-          {hasAuthError && (
-            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-              <p className="text-yellow-800 text-sm">
-                🔒 Demo mode: Showing sample data. Please log in as an admin to view real ride data.
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -287,7 +272,7 @@ export default function AdminRideHistory() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-700 font-medium">Total Rides</p>
-                  <p className="text-3xl font-bold text-gray-900">{displayData?.meta?.total || 0}</p>
+                  <p className="text-3xl font-bold text-gray-900">{displayData?.data?.length || displayData?.meta?.total || 0}</p>
                 </div>
                 <div className="bg-gray-200 p-3 rounded-full">
                   <Car className="h-8 w-8 text-gray-700" />
@@ -490,7 +475,7 @@ export default function AdminRideHistory() {
           <CardHeader className="pb-3">
             <CardTitle className="text-gray-900">All Rides</CardTitle>
             <CardDescription className="text-gray-600">
-              Showing {filteredRides.length} of {displayData?.meta?.total || 0} rides
+              Showing all {filteredRides.length} rides
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -509,6 +494,10 @@ export default function AdminRideHistory() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {(() => {
+                    console.log('Table render:', { isLoading, error: !!error, filteredRidesLength: filteredRides.length });
+                    return null;
+                  })()}
                   {isLoading ? (
                     Array.from({ length: 10 }).map((_, i) => (
                       <TableRow key={i}>
@@ -522,56 +511,151 @@ export default function AdminRideHistory() {
                         <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
                       </TableRow>
                     ))
+                  ) : Array.isArray(ridesData) && ridesData.length > 0 && filteredRides.length === 0 ? (
+                    // If we have raw data but filteredRides is empty, something's wrong with the filtering
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <div className="w-24 h-24 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
+                          <Car className="h-12 w-12 text-yellow-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Data Format Issue</h3>
+                        <p className="text-gray-600 mb-6">
+                          We received {ridesData.length} rides from the server but couldn't display them properly.
+                        </p>
+                        <Button
+                          onClick={() => window.location.reload()}
+                          variant="outline"
+                          className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          Reload Page
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   ) : filteredRides.length > 0 ? (
-                    filteredRides.map((ride: IRide) => {
-                      console.log('Rendering ride:', ride._id, ride.rider?.name);
-                      return (
-                        <TableRow key={ride._id} className="border-gray-200 hover:bg-gray-50">
-                          <TableCell>
-                            <div className="font-medium text-gray-900">
-                              #{ride._id.slice(-6).toUpperCase()}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium text-gray-900">{ride.rider?.name || 'Unknown'}</div>
-                              <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium text-gray-900">{ride.driver?.user?.name || 'No Driver'}</div>
-                              <div className="text-sm text-gray-500">{ride.driver?.user?.phone || 'N/A'}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${getStatusColor(ride.status)} border`}>
-                              {ride.status.replace('_', ' ')}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-gray-900">
-                              {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-gray-900">
-                              {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium text-gray-900">
-                              ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm text-gray-900">
-                              {formatDate(ride.createdAt)}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                    filteredRides.map((ride: IRideDisplay) => (
+                      <TableRow key={ride._id} className="border-gray-200 hover:bg-gray-50">
+                        <TableCell>
+                          <div className="font-medium text-gray-900">
+                            #{ride._id?.slice(-6).toUpperCase() || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">{ride.rider?.name || ride.rider?.email || 'Unknown Rider'}</div>
+                            <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">{ride.driver?.user?.name || ride.driver?.name || 'No Driver'}</div>
+                            <div className="text-sm text-gray-500">{ride.driver?.user?.phone || ride.driver?.phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(ride.status)} border`}>
+                            {ride.status?.replace('_', ' ') || 'Unknown'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-gray-900">
+                            {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-gray-900">
+                            {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-gray-900">
+                            ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-gray-900">
+                            {ride.createdAt ? formatDate(ride.createdAt) : 'N/A'}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : Array.isArray(ridesData) && filteredRides.length === 0 ? (
+                    // Direct fallback rendering of array data if filtering failed
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ridesData.map((ride: any) => (
+                      <TableRow key={ride._id} className="border-gray-200 hover:bg-gray-50">
+                        <TableCell>
+                          <div className="font-medium text-gray-900">
+                            #{ride._id?.slice(-6).toUpperCase() || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">{ride.rider?.name || ride.rider?.email || 'Unknown Rider'}</div>
+                            <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">{ride.driver?.user?.name || ride.driver?.name || 'No Driver'}</div>
+                            <div className="text-sm text-gray-500">{ride.driver?.user?.phone || ride.driver?.phone || 'N/A'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(ride.status)} border`}>
+                            {ride.status?.replace('_', ' ') || 'Unknown'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-gray-900">
+                            {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-gray-900">
+                            {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-gray-900">
+                            ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-gray-900">
+                            {ride.createdAt ? formatDate(ride.createdAt) : 'N/A'}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                          <Car className="h-12 w-12 text-red-600" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Data</h3>
+                        <p className="text-gray-600 mb-6">
+                          {error.status === 401 || error.status === 403 ? 
+                            "You need admin privileges to view ride data. Please log in as an administrator." :
+                            `There was a problem loading the ride data: ${error.status ? `Error ${error.status}` : "Connection failed"}. Please try again.`}
+                        </p>
+                        <div className="flex gap-4 justify-center">
+                          <Button
+                            onClick={() => window.location.href = '/login'}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Go to Login
+                          </Button>
+                          <Button
+                            onClick={() => refetch()}
+                            variant="outline"
+                            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            Try Again
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-12">
@@ -599,59 +683,12 @@ export default function AdminRideHistory() {
           </CardContent>
         </Card>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center space-x-2 mt-8">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-
-            <div className="flex space-x-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                if (pageNum > totalPages) return null;
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handlePageChange(pageNum)}
-                    className={currentPage === pageNum
-                      ? "bg-gray-800 text-white hover:bg-gray-900"
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }
-                  >
-                    {pageNum}
-                  </Button>
-                );
-              })}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+        {/* Pagination removed as we're showing all data */}
 
         {/* Footer Stats */}
         <div className="mt-8 text-center text-gray-600">
           <p className="text-sm">
-            Showing {filteredRides.length} of {displayData?.meta?.total || 0} rides •
-            Page {currentPage} of {totalPages}
+            Displaying all {filteredRides.length} rides
           </p>
         </div>
       </div>

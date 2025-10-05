@@ -524,13 +524,45 @@ export const rideApi = baseApi.injectEndpoints({
     }),
 
     // getAllRide
-    getAllRide: builder.query<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }, { page?: number; limit?: number }>({
+    getAllRide: builder.query<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } } | IRide[], { page?: number; limit?: number }>({
       query: (params = {}) => ({
         url: "/rides",
         method: "GET",
         params,
       }),
-      transformResponse: (response: IResponse<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }>) => response.data,
+      transformResponse: (response: IResponse<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }> | IRide[] | any) => {
+        console.log("Original response in ride-api:", response);
+        
+        // Check if the response is an array (direct rides array)
+        if (Array.isArray(response)) {
+          console.log("Response is a direct array");
+          return {
+            data: response,
+            meta: {
+              total: response.length,
+              page: 1,
+              limit: response.length,
+              totalPages: 1
+            }
+          };
+        }
+        
+        // Check if response is wrapped in a data property (standard API response)
+        if (response && response.data) {
+          console.log("Response has data property");
+          return response.data;
+        }
+        
+        // If response is already the expected format
+        if (response && response.data && response.meta) {
+          console.log("Response already has data and meta");
+          return response;
+        }
+        
+        // Fallback
+        console.log("Using fallback response format");
+        return response;
+      },
       providesTags: ["RIDES"],
     }),
 

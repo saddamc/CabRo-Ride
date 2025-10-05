@@ -169,7 +169,7 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
       case 'payment_pending':
         return 'Confirm Payment & Complete Ride';
       case 'payment_completed':
-        return 'Confirm Payment & Complete Ride';
+        return 'Confirm Received Payment';
       case 'completed':
         return 'Completed';
       default:
@@ -535,7 +535,7 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
                             Processing...
                           </span>
                         ) : (
-                          <span>Confirm Payment &amp; Complete Ride</span>
+                          <span>Confirm Received Payment</span>
                         )}
                       </Button>
                     </div>

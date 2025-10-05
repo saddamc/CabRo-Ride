@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { useGetActiveRideQuery, useGetCurrentLocationQuery, useGetRideHistoryQuery } from "@/redux/features/rides/ride.api";
-import { Calendar, Car, Clock, DollarSign, Mail, MapPin, Phone, Shield, Star, User } from "lucide-react";
+import { Calendar, Car, Clock, Mail, MapPin, Phone, Shield, Star, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function RiderDashboard() {
@@ -31,7 +31,8 @@ export default function RiderDashboard() {
   }, [refetchHistory]);
 
   // Calculate real stats from ride history
-  const completedRides = rideHistory?.grouped?.completed || [];
+  const allRides = rideHistory?.rides || [];
+  const completedRides = allRides.filter((ride: any) => ride.status === 'completed');
   const totalRides = rideHistory?.total || 0;
 
   // Calculate average rating from completed rides
@@ -39,21 +40,14 @@ export default function RiderDashboard() {
     ? completedRides.reduce((sum: number, ride: any) => sum + (ride.rating?.riderRating || 0), 0) / completedRides.length
     : 0;
 
-  // Calculate total spent and distance
-  const totalSpent = (rideHistory?.rides || []).reduce((sum, ride: any) => sum + (ride.fare?.totalFare || 0), 0);
-  const totalDistance = (rideHistory?.rides || []).reduce((sum, ride: any) => sum + (ride.distance?.estimated || 0), 0);
+  // Calculate total spent and distance from completed rides only
+  const totalSpent = completedRides.reduce((sum, ride: any) => sum + (ride.fare?.totalFare || 0), 0);
+  const totalDistance = completedRides.reduce((sum, ride: any) => sum + (ride.distance?.actual || ride.distance?.estimated || 0), 0);
 
   // Get recent rides (last 3)
   const recentRides = [...(rideHistory?.rides || [])]
     .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 3);
-
-  // Popular destinations - keeping as static for now since this seems intentional
-  const popularDestinations = [
-    { id: 1, name: "Central Park", distance: "2.5 miles", eta: "15 min" },
-    { id: 2, name: "Grand Central Station", distance: "1.8 miles", eta: "12 min" },
-    { id: 3, name: "Times Square", distance: "3.2 miles", eta: "20 min" }
-  ];
   
   return (
     <div className="container mx-auto py-6 px-4 bg-white min-h-screen">
@@ -85,7 +79,7 @@ export default function RiderDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4" />
+            <h1>৳</h1>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">৳{totalSpent.toFixed(2)}</div>
@@ -99,7 +93,7 @@ export default function RiderDashboard() {
             <Star className="h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageRating.toFixed(1)}/5</div>
+            <div className="text-2xl font-bold">{averageRating.toFixed(1)}</div>
             <p className="text-xs text-muted-foreground">Based on {completedRides.length} reviews</p>
           </CardContent>
         </Card>
@@ -440,7 +434,7 @@ export default function RiderDashboard() {
       </Card>
 
       {/* Popular Destinations */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Popular Destinations</CardTitle>
           <CardDescription>Quick access to frequently visited places</CardDescription>
@@ -462,7 +456,7 @@ export default function RiderDashboard() {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Driver Application Modal */}
       {/* <DriverApplicationModal

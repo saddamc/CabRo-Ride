@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RatingModal from "@/components/ui/RatingModal";
 import { useGetMyRidesQuery } from "@/redux/features/rides/ride.api";
-import { AlertCircle, Calendar, Clock, DollarSign, MapPin, Star } from "lucide-react";
+import { AlertCircle, Calendar, Clock, MapPin, Star } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -97,7 +97,7 @@ export default function RideHistory() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4" />
+            <h1 className="font-bold text-xl">৳</h1>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">৳{totalSpent.toFixed(2)}</div>

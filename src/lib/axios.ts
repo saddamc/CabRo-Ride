@@ -13,12 +13,17 @@ export const axiosInstance = axios.create({
 // Add a request interceptor
 axiosInstance.interceptors.request.use(function (config) {
   // Do something before request is sent
-
-
+  
+  // Add auth token from localStorage if available
+  const token = localStorage.getItem("accessToken");
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
   return config;
 }, function (error) {
   // Do something with request error
+  console.error("Request interceptor error:", error);
   return Promise.reject(error);
 });
 // ✅ step-3 for save accessToken for new token
@@ -48,6 +53,39 @@ axiosInstance.interceptors.response.use(function onFulfilled(response) {
     return response;
   }, function onRejected(error) {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
+    
+    // Safely log the error with proper checks to prevent undefined errors
+    if (error.response) {
+      console.error("API Error:", {
+        status: error.response.status,
+        data: error.response.data,
+        url: error.config?.url
+      });
+      
+      // Check for authentication errors
+      if (error.response.status === 401 || 
+          error.response.status === 403 || 
+          (error.response.data && error.response.data.message === "Unauthorized") ||
+          (error.response.data && error.response.data.message === "jwt expired")) {
+        console.log("Authentication error detected, consider redirecting to login");
+        
+        // Optional: Redirect to login page for authentication errors
+        // window.location.href = '/login';
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error("API Error: No response received", {
+        request: error.request,
+        url: error.config?.url
+      });
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error("API Error: Request setup failed", {
+        message: error.message,
+        url: error.config?.url
+      });
+    }
+    
     return Promise.reject(error);
 });
   

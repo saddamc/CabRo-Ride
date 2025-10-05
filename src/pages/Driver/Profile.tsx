@@ -17,7 +17,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useChangePasswordMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
+import {
+  useChangePasswordMutation,
+  useUserInfoQuery,
+} from "@/redux/features/auth/auth.api";
 import { useUpdateUserMutation } from "@/redux/features/auth/User/user.api";
 
 import {
@@ -39,22 +42,22 @@ export default function DriverProfile() {
   const [updateDriverDetails, { isLoading: isUpdatingDriver }] =
     useUpdateDriverDocMutation();
   const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
-  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+  const [changePassword, { isLoading: isChangingPassword }] =
+    useChangePasswordMutation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [vehicleModalKey, setVehicleModalKey] = useState(0);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
 
-
   // ChangePassword form state
   const [passwordData, setPasswordData] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
-    const handlePasswordInputChange = (
+  const handlePasswordInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
@@ -108,7 +111,6 @@ export default function DriverProfile() {
     setVehicleFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleSaveProfile = async () => {
     try {
       // Update user information using useUpdateUserMutation
@@ -148,13 +150,13 @@ export default function DriverProfile() {
     setIsEditModalOpen(false);
   };
 
-
-// step -2 changePassword
-   const handleChangePassword = async () => {
+  // step -2 changePassword
+  const handleChangePassword = async () => {
     // Validate passwords match
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("Passwords don't match", {
-        description: "Please make sure your new password and confirmation match.",
+        description:
+          "Please make sure your new password and confirmation match.",
       });
       return;
     }
@@ -179,20 +181,19 @@ export default function DriverProfile() {
 
       // Reset form and close modal
       setPasswordData({
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
       setIsChangePasswordModalOpen(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error("Password Change Failed", {
-        description: error?.data?.message || "There was an error changing your password.",
+        description:
+          error?.data?.message || "There was an error changing your password.",
       });
     }
   };
-
-
 
   return (
     <div className="container mx-auto py-6 bg-white text-black">
@@ -251,9 +252,9 @@ export default function DriverProfile() {
                       Member Since
                     </div>
                     <div className="font-medium">
-                      {driverDetails?.createdAt
-                        ? new Date(driverDetails.createdAt).toLocaleDateString()
-                        : "Not available"}
+                      {userInfo?.data?.createdAt
+                        ? new Date(userInfo.data.createdAt).toLocaleDateString()
+                        : "August 2023"}
                     </div>
                   </div>
                 </div>
@@ -338,7 +339,9 @@ export default function DriverProfile() {
                         className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
                       >
                         <DialogHeader>
-                          <DialogTitle className="text-gray-900 dark:text-white">Edit Profile</DialogTitle>
+                          <DialogTitle className="text-gray-900 dark:text-white">
+                            Edit Profile
+                          </DialogTitle>
                           <DialogDescription className="text-gray-600 dark:text-gray-300">
                             Update your personal details
                           </DialogDescription>
@@ -346,7 +349,12 @@ export default function DriverProfile() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="name" className="text-gray-900 dark:text-white">Full Name</Label>
+                              <Label
+                                htmlFor="name"
+                                className="text-gray-900 dark:text-white"
+                              >
+                                Full Name
+                              </Label>
                               <Input
                                 id="name"
                                 name="name"
@@ -357,7 +365,12 @@ export default function DriverProfile() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="email" className="text-gray-900 dark:text-white">Email Address</Label>
+                              <Label
+                                htmlFor="email"
+                                className="text-gray-900 dark:text-white"
+                              >
+                                Email Address
+                              </Label>
                               <Input
                                 id="email"
                                 name="email"
@@ -370,7 +383,12 @@ export default function DriverProfile() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="phone" className="text-gray-900 dark:text-white">Phone Number</Label>
+                              <Label
+                                htmlFor="phone"
+                                className="text-gray-900 dark:text-white"
+                              >
+                                Phone Number
+                              </Label>
                               <Input
                                 id="phone"
                                 name="phone"
@@ -505,7 +523,9 @@ export default function DriverProfile() {
                       </DialogTrigger>
                       <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
-                          <DialogTitle className="text-gray-900 dark:text-white">Update Vehicle</DialogTitle>
+                          <DialogTitle className="text-gray-900 dark:text-white">
+                            Update Vehicle
+                          </DialogTitle>
                           <DialogDescription className="text-gray-600 dark:text-gray-300">
                             Update your vehicle details
                           </DialogDescription>
@@ -513,7 +533,12 @@ export default function DriverProfile() {
                         <div className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="make" className="text-gray-900 dark:text-white">Make</Label>
+                              <Label
+                                htmlFor="make"
+                                className="text-gray-900 dark:text-white"
+                              >
+                                Make
+                              </Label>
                               <Input
                                 id="make"
                                 name="make"
@@ -524,7 +549,12 @@ export default function DriverProfile() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="model" className="text-gray-900 dark:text-white">Model</Label>
+                              <Label
+                                htmlFor="model"
+                                className="text-gray-900 dark:text-white"
+                              >
+                                Model
+                              </Label>
                               <Input
                                 id="model"
                                 name="model"
@@ -537,7 +567,12 @@ export default function DriverProfile() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="year" className="text-gray-900 dark:text-white">Year</Label>
+                              <Label
+                                htmlFor="year"
+                                className="text-gray-900 dark:text-white"
+                              >
+                                Year
+                              </Label>
                               <Input
                                 id="year"
                                 name="year"
@@ -548,7 +583,10 @@ export default function DriverProfile() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="licensePlate" className="text-gray-900 dark:text-white">
+                              <Label
+                                htmlFor="licensePlate"
+                                className="text-gray-900 dark:text-white"
+                              >
                                 License Plate
                               </Label>
                               <Input
@@ -562,7 +600,12 @@ export default function DriverProfile() {
                             </div>
                           </div>
                           <div>
-                            <Label htmlFor="vehicleType" className="text-gray-900 dark:text-white">Vehicle Type</Label>
+                            <Label
+                              htmlFor="vehicleType"
+                              className="text-gray-900 dark:text-white"
+                            >
+                              Vehicle Type
+                            </Label>
                             <Input
                               id="vehicleType"
                               name="vehicleType"
@@ -584,7 +627,9 @@ export default function DriverProfile() {
                               onClick={async () => {
                                 try {
                                   const vehicleData = {
-                                    category: vehicleFormData.vehicleType as "CAR" | "BIKE",
+                                    category: vehicleFormData.vehicleType as
+                                      | "CAR"
+                                      | "BIKE",
                                     make: vehicleFormData.make,
                                     model: vehicleFormData.model,
                                     year: parseInt(vehicleFormData.year),
@@ -597,10 +642,6 @@ export default function DriverProfile() {
                                   sonnerToast.success(
                                     "Vehicle updated successfully."
                                   );
-                                  // toast({
-                                  //   title: "Vehicle Updated",
-                                  //   description: "Your vehicle has been updated successfully.",
-                                  // });
                                   setIsVehicleModalOpen(false);
                                 } catch (error) {
                                   console.error(
@@ -608,14 +649,10 @@ export default function DriverProfile() {
                                     error
                                   );
                                   sonnerToast.error("Vehicle update failed.");
-                                  //   ({
-                                  //   title: "Update Failed",
-                                  //   description: "There was a problem updating your vehicle.",
-                                  //   variant: "destructive",
-                                  // });
                                 }
                               }}
                               disabled={isUpdatingDriver}
+                              className="bg-white border-black  hover:bg-black hover:text-white"
                             >
                               {isUpdatingDriver ? (
                                 <>
@@ -769,78 +806,110 @@ export default function DriverProfile() {
                     open={isChangePasswordModalOpen}
                     onOpenChange={setIsChangePasswordModalOpen}
                   >
-                    <Dialog open={isChangePasswordModalOpen} onOpenChange={setIsChangePasswordModalOpen}>
-                    <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
-                      <DialogHeader>
-                        <DialogTitle className="text-gray-900 dark:text-white">Change Password</DialogTitle>
-                        <DialogDescription className="text-gray-600 dark:text-gray-300">Enter your current password and set a new one</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="oldPassword" className="text-gray-900 dark:text-white">Current Password</Label>
-                          <Input
-                            id="oldPassword"
-                            name="oldPassword"
-                            type="password"
-                            value={passwordData.oldPassword}
-                            onChange={handlePasswordInputChange}
-                            className="mt-1 text-gray-900 dark:text-white"
-                            placeholder="Enter your current password"
-                            disabled={isChangingPassword}
-                          />
+                    <Dialog
+                      open={isChangePasswordModalOpen}
+                      onOpenChange={setIsChangePasswordModalOpen}
+                    >
+                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
+                        <DialogHeader>
+                          <DialogTitle className="text-gray-900 dark:text-white">
+                            Change Password
+                          </DialogTitle>
+                          <DialogDescription className="text-gray-600 dark:text-gray-300">
+                            Enter your current password and set a new one
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label
+                              htmlFor="oldPassword"
+                              className="text-gray-900 dark:text-white"
+                            >
+                              Current Password
+                            </Label>
+                            <Input
+                              id="oldPassword"
+                              name="oldPassword"
+                              type="password"
+                              value={passwordData.oldPassword}
+                              onChange={handlePasswordInputChange}
+                              className="mt-1 text-gray-900 dark:text-white"
+                              placeholder="Enter your current password"
+                              disabled={isChangingPassword}
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              htmlFor="newPassword"
+                              className="text-gray-900 dark:text-white"
+                            >
+                              New Password
+                            </Label>
+                            <Input
+                              id="newPassword"
+                              name="newPassword"
+                              type="password"
+                              value={passwordData.newPassword}
+                              onChange={handlePasswordInputChange}
+                              className="mt-1 text-gray-900 dark:text-white"
+                              placeholder="Enter your new password"
+                              disabled={isChangingPassword}
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              htmlFor="confirmPassword"
+                              className="text-gray-900 dark:text-white"
+                            >
+                              Confirm New Password
+                            </Label>
+                            <Input
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              type="password"
+                              value={passwordData.confirmPassword}
+                              onChange={handlePasswordInputChange}
+                              className="mt-1 text-gray-900 dark:text-white"
+                              placeholder="Confirm your new password"
+                              disabled={isChangingPassword}
+                            />
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() =>
+                                setIsChangePasswordModalOpen(false)
+                              }
+                              disabled={isChangingPassword}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              className="bg-white border-black  hover:bg-black hover:text-white"
+                              onClick={handleChangePassword}
+                              disabled={
+                                isChangingPassword ||
+                                !passwordData.oldPassword ||
+                                !passwordData.newPassword ||
+                                !passwordData.confirmPassword
+                              }
+                            >
+                              {isChangingPassword ? (
+                                <>
+                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                                  Changing...
+                                </>
+                              ) : (
+                                <>
+                                  <Save className="h-4 w-4 mr-2" />
+                                  Change Password
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         </div>
-                        <div>
-                          <Label htmlFor="newPassword" className="text-gray-900 dark:text-white">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            name="newPassword"
-                            type="password"
-                            value={passwordData.newPassword}
-                            onChange={handlePasswordInputChange}
-                            className="mt-1 text-gray-900 dark:text-white"
-                            placeholder="Enter your new password"
-                            disabled={isChangingPassword}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="confirmPassword" className="text-gray-900 dark:text-white">Confirm New Password</Label>
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type="password"
-                            value={passwordData.confirmPassword}
-                            onChange={handlePasswordInputChange}
-                            className="mt-1 text-gray-900 dark:text-white"
-                            placeholder="Confirm your new password"
-                            disabled={isChangingPassword}
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => setIsChangePasswordModalOpen(false)}
-                            disabled={isChangingPassword}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleChangePassword}
-                            disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                            className="bg-white border-black  hover:bg-black hover:text-white"
-                          >
-                            {isChangingPassword ? (
-                              <>
-                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
-                                Changing...
-                              </>
-                            ) : (
-                              'Change Password'
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                      </DialogContent>
+                    </Dialog>
                   </Dialog>
                 </CardContent>
               </Card>
