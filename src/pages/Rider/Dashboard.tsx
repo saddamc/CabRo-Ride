@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import RidesSummary from "@/components/layout/function/RidesSummary";
 import CancelRide from "@/components/RideBooking/CancelRide";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,16 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { useGetActiveRideQuery, useGetCurrentLocationQuery, useGetRideHistoryQuery } from "@/redux/features/rides/ride.api";
 import { Calendar, Car, Clock, Mail, MapPin, Phone, Shield, Star, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-export default function RiderDashboard() {
+
+const RiderDashboard = () => {
   const { data: userInfo } = useUserInfoQuery(undefined);
   const { data: activeRide, isLoading: isLoadingRide } = useGetActiveRideQuery();
   const { data: currentLocation, isLoading: isLoadingLocation } = useGetCurrentLocationQuery();
   const { data: rideHistory, refetch: refetchHistory } = useGetRideHistoryQuery({ limit: 100 });
 
-  // Driver application modal state
-  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
+  const allRides = rideHistory?.rides || [];
+
+  // Example: calculate stats locally
+  const completedRides = allRides.filter((ride) => ride.status === "completed");
+  const totalRides = allRides.length;
+  const averageRating =
+    completedRides.reduce((sum, r) => sum + (r.rating?.riderRating || 0), 0) /
+    (completedRides.length || 1);
 
   // Auto-refetch ride history on mount and every 30 seconds
   const refetchInterval = useRef<NodeJS.Timeout | null>(null);
@@ -30,19 +38,7 @@ export default function RiderDashboard() {
     };
   }, [refetchHistory]);
 
-  // Calculate real stats from ride history
-  const allRides = rideHistory?.rides || [];
-  const completedRides = allRides.filter((ride: any) => ride.status === 'completed');
-  const totalRides = rideHistory?.total || 0;
-
-  // Calculate average rating from completed rides
-  const averageRating = completedRides.length > 0
-    ? completedRides.reduce((sum: number, ride: any) => sum + (ride.rating?.riderRating || 0), 0) / completedRides.length
-    : 0;
-
-  // Calculate total spent and distance from completed rides only
-  const totalSpent = completedRides.reduce((sum, ride: any) => sum + (ride.fare?.totalFare || 0), 0);
-  const totalDistance = completedRides.reduce((sum, ride: any) => sum + (ride.distance?.actual || ride.distance?.estimated || 0), 0);
+  
 
   // Get recent rides (last 3)
   const recentRides = [...(rideHistory?.rides || [])]
@@ -53,51 +49,7 @@ export default function RiderDashboard() {
     <div className="container mx-auto py-6 px-4 bg-white min-h-screen">
 
       {/* Rider Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
-            <Clock className="h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalRides}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Distance</CardTitle>
-            <MapPin className="h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalDistance.toFixed(1)} km</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <h1>৳</h1>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">৳{totalSpent.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Rating</CardTitle>
-            <Star className="h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageRating.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground">Based on {completedRides.length} reviews</p>
-          </CardContent>
-        </Card>
-      </div>
+      <RidesSummary />
 
       {/* Current Location and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
@@ -463,6 +415,10 @@ export default function RiderDashboard() {
         isOpen={isDriverModalOpen}
         onClose={() => setIsDriverModalOpen(false)}
       /> */}
+      {/* <RideHistory rides= */}
     </div>
   );
 }
+
+
+export default RiderDashboard;

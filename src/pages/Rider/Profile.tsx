@@ -667,13 +667,6 @@ export default function RiderProfile() {
                             <div className="font-medium">{new Date(ride.createdAt).toLocaleDateString()}</div>
                             <div className="text-sm text-gray-500">{ride.distance?.estimated?.toFixed(1)} km • ৳{ride.fare?.totalFare?.toFixed(2)}</div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/rider/details-history/${ride._id}`)}
-                          >
-                            View Details
-                          </Button>
                         </div>
                       ))}
                       <div className="text-center pt-4">
