@@ -82,7 +82,7 @@ export interface IDriverApplication {
 export interface IDriverProfile {
   // data, type from /drivers/me endpoint
   data: any;
-  _id: string;
+  _id: string;  
   user: {
     _id: string;
     name: string;
@@ -262,6 +262,7 @@ export const driverApi = baseApi.injectEndpoints({
         params,
         method: "GET",
       }),
+      transformResponse: (response: any) => response.data.map((driver: any) => ({ ...driver, status: driver.status.toLowerCase() as 'pending' | 'approved' | 'suspended' | 'rejected' })),
       providesTags: ["DRIVER"],
     }),
 
@@ -276,20 +277,26 @@ export const driverApi = baseApi.injectEndpoints({
 
     // approvedDriver
     approvedDriver: builder.mutation<void, { id: string }>({
-      query: ({ id }) => ({
-        url: `/drivers/approved-driver/${id}`,
-        method: "PATCH",
-      }),
-      invalidatesTags: ["DRIVER"],
+      query: ({ id }) => {
+        console.log("Approving driver with ID:", id);
+        return {
+          url: `/drivers/approved-driver/${id}`,
+          method: "PATCH",
+        };
+      },
+      invalidatesTags: ["DRIVER", "USER"],
     }),
 
     // suspendDriver
     suspendDriver: builder.mutation<void, { id: string }>({
-      query: ({ id }) => ({
-        url: `/drivers/suspend/${id}`,
-        method: "PATCH",
-      }),
-      invalidatesTags: ["DRIVER"],
+      query: ({ id }) => {
+        console.log("Suspending driver with ID:", id);
+        return {
+          url: `/drivers/suspend/${id}`,
+          method: "PATCH",
+        };
+      },
+      invalidatesTags: ["DRIVER", "USER"],
     }),
 
     // Confirm payment received

@@ -1,11 +1,9 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useGetAllRideQuery } from "@/redux/features/ride-api";
-import { Car, Clock, DollarSign, Navigation, Search, Table, UserIcon } from "lucide-react";
+import { Car, Clock, Navigation, Search, UserIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 // Define a type for the ride objects to avoid using 'any'
@@ -40,13 +38,16 @@ interface IRideDisplay {
   duration?: {
     actual?: number;
   };
+  timestamps?: {
+    pickedUp?: string;
+    completed?: string;
+  };
   createdAt: string;
   updatedAt?: string;
 }
 
 export default function AdminRideHistory() {
   // No need for currentPage state as we're showing all data at once
-  const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -70,7 +71,6 @@ export default function AdminRideHistory() {
     
     // If ridesData is an array, wrap it in the expected structure
     if (Array.isArray(ridesData)) {
-      console.log("Wrapping array data in expected structure");
       return {
         data: ridesData,
         meta: {
@@ -81,15 +81,13 @@ export default function AdminRideHistory() {
         }
       };
     }
-    
+
     // If ridesData already has data and meta
     if (ridesData.data && ridesData.meta) {
-      console.log("Using existing data structure");
       return ridesData;
     }
-    
+
     // Fallback - create empty structure
-    console.log("Fallback - creating empty structure");
     return {
       data: [],
       meta: { total: 0, page: 1, limit: 999, totalPages: 1 }
@@ -98,35 +96,19 @@ export default function AdminRideHistory() {
   
   // Refetch data when component mounts
   useEffect(() => {
-    console.log("Refetching all ride data");
-    refetch()
-      .then(result => {
-        console.log("Refetch success:", result);
-      })
-      .catch(err => {
-        console.error("Refetch error:", err);
-      });
+    refetch();
   }, [refetch]);
-
-  console.log('Raw API response:', ridesData);
-  console.log('Display data structure:', displayData);
-  console.log('Display data.data:', displayData?.data);
-  console.log('Display data.meta:', displayData?.meta);
 
   // Client-side filtering
   const filteredRides = useMemo(() => {
     if (!displayData?.data) {
-      console.log("No data available to filter");
       return [];
     }
 
     // Create a mutable copy of the array to avoid issues with frozen objects
     let filtered: IRideDisplay[] = Array.isArray(displayData.data) ? [...displayData.data] : [];
 
-    // Filter by status
-    if (filterStatus !== "all") {
-      filtered = filtered.filter(ride => ride.status === filterStatus);
-    }
+    // Status filtering is now handled by selectedStatuses checkboxes below
 
     // Filter by multiple statuses if selected
     if (selectedStatuses.length > 0) {
@@ -211,9 +193,8 @@ export default function AdminRideHistory() {
       }
     });
 
-    console.log('Filtered rides:', sortedRides);
     return sortedRides;
-  }, [displayData, filterStatus, searchTerm, startDate, endDate, riderName, driverName, selectedStatuses, sortBy, sortOrder]);
+  }, [displayData, searchTerm, startDate, endDate, riderName, driverName, selectedStatuses, sortBy, sortOrder]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -245,12 +226,7 @@ export default function AdminRideHistory() {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
-// Log display data for debugging purposes
-console.log("displayData:", displayData);
-console.log("isLoading:", isLoading);
-console.log("error:", error);
-console.log("filteredRides length:", filteredRides.length);
-console.log("First ride sample:", filteredRides[0]);
+// Debug logs removed - data is now displaying correctly
 
   // No pagination needed as we're showing all data
 
@@ -267,21 +243,21 @@ console.log("First ride sample:", filteredRides[0]);
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gray-50 border-gray-200 hover:shadow-lg transition-all duration-300">
+          <Card className="bg-[#f9c58d] border-gray-200 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-700 font-medium">Total Rides</p>
                   <p className="text-3xl font-bold text-gray-900">{displayData?.data?.length || displayData?.meta?.total || 0}</p>
                 </div>
-                <div className="bg-gray-200 p-3 rounded-full">
+                <div className="bg-[#f9c58d] p-3 rounded-full">
                   <Car className="h-8 w-8 text-gray-700" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 border-gray-200 hover:shadow-lg transition-all duration-300">
+          <Card className="bg-[#eca0ff] border-gray-200 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -290,33 +266,33 @@ console.log("First ride sample:", filteredRides[0]);
                     {filteredRides.filter(r => r.status === 'completed').length}
                   </p>
                 </div>
-                <div className="bg-gray-200 p-3 rounded-full">
+                <div className="bg-[#eca0ff] p-3 rounded-full">
                   <Navigation className="h-8 w-8 text-gray-700" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 border-gray-200 hover:shadow-lg transition-all duration-300">
+          <Card className="bg-[#96c6ea] border-gray-200 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-700 font-medium">Revenue</p>
                   <p className="text-3xl font-bold text-gray-900">
-                    ${filteredRides
+                    ৳{filteredRides
                       .filter(r => r.status === 'completed')
                       .reduce((sum, r) => sum + (r.fare?.totalFare || 0), 0)
                       .toFixed(0)}
                   </p>
                 </div>
-                <div className="bg-gray-200 p-3 rounded-full">
-                  <DollarSign className="h-8 w-8 text-gray-700" />
+                <div className="bg-[#96c6ea] p-3 rounded-full">
+                  <h1 className="h-8 w-8 text-4xl font-bold items-center text-center justify-center text-gray-700" >৳</h1>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-50 border-gray-200 hover:shadow-lg transition-all duration-300">
+          <Card className="bg-[#83d0cb] border-gray-200 hover:shadow-lg transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -325,7 +301,7 @@ console.log("First ride sample:", filteredRides[0]);
                     {filteredRides.filter(r => r.status === 'cancelled').length}
                   </p>
                 </div>
-                <div className="bg-gray-200 p-3 rounded-full">
+                <div className="bg-[#83d0cb] p-3 rounded-full">
                   <Clock className="h-8 w-8 text-gray-700" />
                 </div>
               </div>
@@ -373,14 +349,14 @@ console.log("First ride sample:", filteredRides[0]);
               {/* Sort By */}
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="bg-white border-gray-300 text-black">
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder="Sort by" className="text-black" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="createdAt">Date</SelectItem>
-                  <SelectItem value="fare">Fare</SelectItem>
-                  <SelectItem value="distance">Distance</SelectItem>
-                  <SelectItem value="riderName">Rider Name</SelectItem>
-                  <SelectItem value="driverName">Driver Name</SelectItem>
+                <SelectContent className="bg-white">
+                  <SelectItem value="createdAt" className="text-black hover:bg-gray-100">Date</SelectItem>
+                  <SelectItem value="fare" className="text-black hover:bg-gray-100">Fare</SelectItem>
+                  <SelectItem value="distance" className="text-black hover:bg-gray-100">Distance</SelectItem>
+                  <SelectItem value="riderName" className="text-black hover:bg-gray-100">Rider Name</SelectItem>
+                  <SelectItem value="driverName" className="text-black hover:bg-gray-100">Driver Name</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -413,11 +389,11 @@ console.log("First ride sample:", filteredRides[0]);
                 <label className="block text-sm font-medium text-gray-700 mb-1">Sort Order</label>
                 <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
                   <SelectTrigger className="bg-white border-gray-300 text-black">
-                    <SelectValue />
+                    <SelectValue className="text-black" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="desc">Newest First</SelectItem>
-                    <SelectItem value="asc">Oldest First</SelectItem>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="desc" className="text-black hover:bg-gray-100">Newest First</SelectItem>
+                    <SelectItem value="asc" className="text-black hover:bg-gray-100">Oldest First</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -460,7 +436,6 @@ console.log("First ride sample:", filteredRides[0]);
                   setSelectedStatuses([]);
                   setSortBy('createdAt');
                   setSortOrder('desc');
-                  setFilterStatus('all');
                 }}
                 className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               >
@@ -469,6 +444,7 @@ console.log("First ride sample:", filteredRides[0]);
             </div>
           </CardContent>
         </Card>
+
 
         {/* Rides Table */}
         <Card className="border-gray-200 bg-white">
@@ -479,42 +455,39 @@ console.log("First ride sample:", filteredRides[0]);
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Temporary simple HTML table for debugging */}
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-gray-200">
-                    <TableHead className="text-gray-700">Ride ID</TableHead>
-                    <TableHead className="text-gray-700">Rider</TableHead>
-                    <TableHead className="text-gray-700">Driver</TableHead>
-                    <TableHead className="text-gray-700">Status</TableHead>
-                    <TableHead className="text-gray-700">Distance</TableHead>
-                    <TableHead className="text-gray-700">Duration</TableHead>
-                    <TableHead className="text-gray-700">Fare</TableHead>
-                    <TableHead className="text-gray-700">Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(() => {
-                    console.log('Table render:', { isLoading, error: !!error, filteredRidesLength: filteredRides.length });
-                    return null;
-                  })()}
+              <table className="w-full border-collapse border border-gray-200">
+                <thead>
+                  <tr className="border-gray-200">
+                    <th className="text-gray-700 border border-gray-200 p-2">Ride ID</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Rider</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Driver</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Status</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Distance</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Duration</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Fare</th>
+                    <th className="text-gray-700 border border-gray-200 p-2">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {isLoading ? (
                     Array.from({ length: 10 }).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                        <TableCell><div className="h-4 bg-gray-200 rounded animate-pulse"></div></TableCell>
-                      </TableRow>
+                      <tr key={i}>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        <td className="border border-gray-200 p-2"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                      </tr>
                     ))
                   ) : Array.isArray(ridesData) && ridesData.length > 0 && filteredRides.length === 0 ? (
                     // If we have raw data but filteredRides is empty, something's wrong with the filtering
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12">
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 border border-gray-200 p-2">
                         <div className="w-24 h-24 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
                           <Car className="h-12 w-12 text-yellow-600" />
                         </div>
@@ -529,113 +502,89 @@ console.log("First ride sample:", filteredRides[0]);
                         >
                           Reload Page
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredRides.length > 0 ? (
-                    filteredRides.map((ride: IRideDisplay) => (
-                      <TableRow key={ride._id} className="border-gray-200 hover:bg-gray-50">
-                        <TableCell>
-                          <div className="font-medium text-gray-900">
-                            #{ride._id?.slice(-6).toUpperCase() || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-gray-900">{ride.rider?.name || ride.rider?.email || 'Unknown Rider'}</div>
-                            <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-gray-900">{ride.driver?.user?.name || ride.driver?.name || 'No Driver'}</div>
-                            <div className="text-sm text-gray-500">{ride.driver?.user?.phone || ride.driver?.phone || 'N/A'}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${getStatusColor(ride.status)} border`}>
-                            {ride.status?.replace('_', ' ') || 'Unknown'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-gray-900">
-                            {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-gray-900">
-                            {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium text-gray-900">
-                            ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-gray-900">
-                            {ride.createdAt ? formatDate(ride.createdAt) : 'N/A'}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : Array.isArray(ridesData) && filteredRides.length === 0 ? (
-                    // Direct fallback rendering of array data if filtering failed
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    ridesData.map((ride: any) => (
-                      <TableRow key={ride._id} className="border-gray-200 hover:bg-gray-50">
-                        <TableCell>
-                          <div className="font-medium text-gray-900">
-                            #{ride._id?.slice(-6).toUpperCase() || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-gray-900">{ride.rider?.name || ride.rider?.email || 'Unknown Rider'}</div>
-                            <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-gray-900">{ride.driver?.user?.name || ride.driver?.name || 'No Driver'}</div>
-                            <div className="text-sm text-gray-500">{ride.driver?.user?.phone || ride.driver?.phone || 'N/A'}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${getStatusColor(ride.status)} border`}>
-                            {ride.status?.replace('_', ' ') || 'Unknown'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-gray-900">
-                            {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-gray-900">
-                            {ride.duration?.actual ? `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s` : 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium text-gray-900">
-                            ${ride.fare?.totalFare?.toFixed(2) || '0.00'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-gray-900">
-                            {ride.createdAt ? formatDate(ride.createdAt) : 'N/A'}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : error ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12">
+                      </td>
+                    </tr>
+                 ) : filteredRides.length > 0 ? (
+                   filteredRides.map((ride: IRideDisplay, index: number) => (
+                     <tr key={ride._id || index} className="border-gray-200 hover:bg-gray-50">
+                       <td className="border border-gray-200 p-2">
+                         <div className="font-medium text-gray-900">
+                           #{ride._id?.slice(-6).toUpperCase() || 'N/A'}
+                         </div>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <div>
+                           <div className="font-medium text-gray-900">{ride.rider?.name || ride.rider?.email || 'Unknown Rider'}</div>
+                           <div className="text-sm text-gray-500">{ride.rider?.phone || 'N/A'}</div>
+                         </div>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <div>
+                           <div className="font-medium text-gray-900">{ride.driver?.user?.name || ride.driver?.name || 'No Driver'}</div>
+                           <div className="text-sm text-gray-500">{ride.driver?.user?.phone || ride.driver?.phone || 'N/A'}</div>
+                         </div>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(ride.status)}`}>
+                           {ride.status?.replace('_', ' ') || 'Unknown'}
+                         </span>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <div className="text-gray-900">
+                           {ride.distance?.actual ? `${ride.distance.actual.toFixed(1)} km` : 'N/A'}
+                         </div>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <div className="text-gray-900">
+                           {(() => {
+                             // Try to calculate duration from timestamps first
+                             if (ride.timestamps?.pickedUp && ride.timestamps?.completed) {
+                               const pickedUpTime = new Date(ride.timestamps.pickedUp).getTime();
+                               const completedTime = new Date(ride.timestamps.completed).getTime();
+                               const durationSeconds = Math.floor((completedTime - pickedUpTime) / 1000);
+
+                               if (durationSeconds > 0) {
+                                 const minutes = Math.floor(durationSeconds / 60);
+                                 const seconds = durationSeconds % 60;
+                                 return `${minutes}m ${seconds}s`;
+                               }
+                             }
+
+                             // Fallback to duration.actual if available
+                             if (ride.duration?.actual) {
+                               return `${Math.floor(ride.duration.actual / 60)}m ${ride.duration.actual % 60}s`;
+                             }
+
+                             // Final fallback to estimated duration based on distance
+                             if (ride.distance?.actual) {
+                               return `${Math.floor((ride.distance.actual / 1000) * 2)}m`; // Estimate: 2 min per km
+                             }
+
+                             return 'N/A';
+                           })()}
+                         </div>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <div className="font-medium text-gray-900">
+                           ৳{ride.fare?.totalFare?.toFixed(2) || '0.00'}
+                         </div>
+                       </td>
+                       <td className="border border-gray-200 p-2">
+                         <div className="text-sm text-gray-900">
+                           {ride.createdAt ? formatDate(ride.createdAt) : 'N/A'}
+                         </div>
+                       </td>
+                     </tr>
+                   ))
+                 ) : error ? (
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 border border-gray-200 p-2">
                         <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
                           <Car className="h-12 w-12 text-red-600" />
                         </div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Data</h3>
                         <p className="text-gray-600 mb-6">
-                          {error.status === 401 || error.status === 403 ? 
+                          {error.status === 401 || error.status === 403 ?
                             "You need admin privileges to view ride data. Please log in as an administrator." :
                             `There was a problem loading the ride data: ${error.status ? `Error ${error.status}` : "Connection failed"}. Please try again.`}
                         </p>
@@ -654,11 +603,11 @@ console.log("First ride sample:", filteredRides[0]);
                             Try Again
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ) : (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12">
+                    <tr>
+                      <td colSpan={8} className="text-center py-12 border border-gray-200 p-2">
                         <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                           <Car className="h-12 w-12 text-gray-400" />
                         </div>
@@ -667,18 +616,17 @@ console.log("First ride sample:", filteredRides[0]);
                         <Button
                           onClick={() => {
                             setSearchTerm('');
-                            setFilterStatus('all');
                           }}
                           variant="outline"
                           className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                         >
                           Clear Filters
                         </Button>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   )}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>

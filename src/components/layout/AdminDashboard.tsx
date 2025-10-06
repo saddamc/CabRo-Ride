@@ -82,27 +82,27 @@ export default function AdminDashboard() {
             </div>
 
             <Link
-              to={`${routePrefix}/riders`}
+              to={`${routePrefix}/user`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                isActive(`${routePrefix}/riders`)
+                isActive(`${routePrefix}/user`)
                   ? 'text-white bg-black'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <Users className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/riders`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
-              Riders
+              <Users className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/user`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+              User
             </Link>
 
             <Link
-              to={`${routePrefix}/drivers`}
+              to={`${routePrefix}/admins`}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                isActive(`${routePrefix}/drivers`)
+                isActive(`${routePrefix}/admins`)
                   ? 'text-white bg-black'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <Car className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/drivers`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
-              Drivers
+              <Car className={`mr-2 h-5 w-5 ${isActive(`${routePrefix}/admins`) ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+              Admin
             </Link>
 
             <Link
@@ -168,27 +168,27 @@ export default function AdminDashboard() {
           </Link>
 
           <Link
-            to={`${routePrefix}/riders`}
-            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/riders`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
+            to={`${routePrefix}/user`}
+            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/user`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
           >
-            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/riders`) ?
+            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/user`) ?
               'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
             }`}>
               <Users className="h-4 w-4" />
             </div>
-            <span className="text-xs mt-1">Riders</span>
+            <span className="text-xs mt-1">User</span>
           </Link>
 
           <Link
-            to={`${routePrefix}/drivers`}
-            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/drivers`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
+            to={`${routePrefix}/admins`}
+            className={`flex flex-col items-center p-1 ${isActive(`${routePrefix}/admins`) ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}
           >
-            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/drivers`) ?
+            <div className={`p-2 rounded-full ${isActive(`${routePrefix}/admins`) ?
               'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
             }`}>
               <Car className="h-4 w-4" />
             </div>
-            <span className="text-xs mt-1">Drivers</span>
+            <span className="text-xs mt-1">Admin</span>
           </Link>
 
           <Link

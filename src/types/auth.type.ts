@@ -28,5 +28,6 @@ export interface IUser {
     totalRides?: number;
     joinedDate?: string;
     lastActive?: string;
+    profilePicture?: string;
 }
 

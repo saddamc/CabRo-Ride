@@ -1,10 +1,10 @@
+import AdminManagement from "@/pages/Admin/AdminManagement";
 import type { ISidebarItem } from "@/types";
 import { lazy } from "react";
 
 const Dashboard = lazy(() => import("@/pages/Admin/Dashboard"));
 const RideHistory = lazy(() => import("@/pages/Admin/RideHistory"));
-const Profile = lazy(() => import("@/pages/Admin/Profile"));
-const DriverManagement = lazy(() => import("@/pages/Admin/DriverManagement"));
+const Profile = lazy(() => import("@/pages/Admin/Profile"));;
 const RiderManagement = lazy(() => import("@/pages/Admin/RiderManagement"));
 
 export const adminSidebarItems : ISidebarItem[] = [
@@ -32,13 +32,13 @@ export const adminSidebarItems : ISidebarItem[] = [
         title: "User Management",
         items: [
             {
-                title: "Drivers",
-                url: "/admin/drivers",
-                component: DriverManagement,
+                title: "Admin",
+                url: "/admin/admins",
+                component: AdminManagement,
             },
             {
-                title: "Riders",
-                url: "/admin/riders",
+                title: "User",
+                url: "/admin/user",
                 component: RiderManagement,
             },
         ],
