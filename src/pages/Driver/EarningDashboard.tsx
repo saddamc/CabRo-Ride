@@ -65,7 +65,7 @@ export default function EarningDashboard() {
       }
     });
 
-    const weeklyData = Array.from(weeklyMap.entries()).map(([date, earnings], index) => ({
+    const weeklyData = Array.from(weeklyMap.entries()).map(([, earnings], index) => ({
       week: `Week ${4 - index}`,
       earnings
     }));

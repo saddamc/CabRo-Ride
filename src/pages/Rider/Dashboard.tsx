@@ -202,14 +202,14 @@ const RiderDashboard = () => {
                   {activeRide.driver && (
                     <div className="flex justify-between">
                       <span>Driver</span>
-                      <span className="font-medium">{activeRide.driver.user.name}</span>
+                      <span className="font-medium">{activeRide.driver.user?.name || 'Unknown'}</span>
                     </div>
                   )}
                   {activeRide.driver && (
                     <div className="flex justify-between">
                       <span>Vehicle</span>
                       <span className="font-medium">
-                        {activeRide.driver.vehicle?.make} {activeRide.driver.vehicle?.model}
+                        {activeRide.driver.vehicle?.make || 'Unknown'} {activeRide.driver.vehicle?.model || 'Vehicle'}
                       </span>
                     </div>
                   )}

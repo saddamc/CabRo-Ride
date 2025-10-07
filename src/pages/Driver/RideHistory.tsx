@@ -52,7 +52,8 @@ export default function DriverRideHistory() {
   });
 
   // Get all rides from the response
-  const rideHistory: IRide[] = rideHistoryData?.rides || [];
+  const rideHistory: IRide[] = useMemo(() => rideHistoryData?.rides || [], [rideHistoryData]);
+  console.log("Fetched ride history:", rideHistoryData);
 
   // Filter rides based on all filters
   const filteredRides: IRide[] = useMemo(() => {
@@ -412,7 +413,7 @@ export default function DriverRideHistory() {
                           </div>
                           {/* Rating Display */}
                           {ride.rating?.riderRating && (
-                            <div className="flex justify-between gap-2 bg-yellow-50 px-4 py-2 rounded-md">
+                            <div className="flex justify-center bg-yellow-50 px-4 py-2 rounded-md mb-2">
                               <div className="flex items-center gap-0.5">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <Star
@@ -425,32 +426,44 @@ export default function DriverRideHistory() {
                                   />
                                 ))}
                               </div>
+                            </div>
+                          )}
 
-                              {/* Rating Action */}
-                              <div>
-                                {ride.status === "completed" && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      setRatingModal({
-                                        open: true,
-                                        rideId: ride._id,
-                                        riderName: ride.rider.name,
-                                      })
-                                    }
-                                    className={`flex items-center gap-1 ${
-                                      ride.rating?.riderRating
-                                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                                        : "bg-orange-600 hover:bg-orange-700"
-                                    }`}
-                                  >
-                                    <Star className="h-3 w-3" />
-                                    {ride.rating?.riderRating
-                                      ? "Edit"
-                                      : "Rate Rider"}
-                                  </Button>
-                                )}
-                              </div>
+                          {/* Rating Action */}
+                          {ride.status === "completed" && (
+                            <div className="flex justify-center">
+                              {!ride.rating?.driverRating ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    setRatingModal({
+                                      open: true,
+                                      rideId: ride._id,
+                                      riderName: ride.rider.name,
+                                    })
+                                  }
+                                  className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700"
+                                >
+                                  <Star className="h-3 w-3" />
+                                  Rate Rider
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setRatingModal({
+                                      open: true,
+                                      rideId: ride._id,
+                                      riderName: ride.rider.name,
+                                    })
+                                  }
+                                  className="flex items-center gap-1 text-blue-600 border-blue-600 hover:bg-blue-50"
+                                >
+                                  <Star className="h-3 w-3" />
+                                  Edit Rating
+                                </Button>
+                              )}
                             </div>
                           )}
 
@@ -534,8 +547,8 @@ export default function DriverRideHistory() {
         riderName={ratingModal.riderName}
         onRatingComplete={() => {
           setRatingModal({ ...ratingModal, open: false });
-          // Refetch data after rating
-          window.location.reload();
+          // Refetch data after rating using RTK Query
+          // The query will automatically refetch due to invalidation
         }}
       />
     </div>

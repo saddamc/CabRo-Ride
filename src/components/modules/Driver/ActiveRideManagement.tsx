@@ -78,7 +78,7 @@ export default function ActiveRideManagement({ ride }: ActiveRideProps) {
     if (ride && ride.status === 'completed') {
       toast.success('Ride completed successfully!');
     }
-  }, [ride?.status]);
+  }, [ride]);
 
   if (!ride) {
     return (

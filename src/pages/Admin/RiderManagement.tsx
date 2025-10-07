@@ -533,9 +533,9 @@ export default function RiderManagement() {
                                 <TableRow key={driver._id} className="border-gray-200 hover:bg-gray-50">
                                   <TableCell>
                                     <div className="flex items-center gap-3">
-                                      {driver.user?.profilePicture ? (
+                                      {driver.profilePicture ? (
                                         <img
-                                          src={driver.user.profilePicture}
+                                          src={driver.profilePicture}
                                           alt="Profile"
                                           className="w-10 h-10 rounded-full object-cover"
                                         />
@@ -545,8 +545,8 @@ export default function RiderManagement() {
                                         </div>
                                       )}
                                       <div>
-                                        <div className="font-medium text-gray-900">{driver.user?.name || 'Unknown'}</div>
-                                        <div className="text-sm text-gray-500">{driver.user?.email || 'No email'}</div>
+                                        <div className="font-medium text-gray-900">{driver.name || 'Unknown'}</div>
+                                        <div className="text-sm text-gray-500">{driver.email || 'No email'}</div>
                                       </div>
                                     </div>
                                   </TableCell>
@@ -556,7 +556,7 @@ export default function RiderManagement() {
                                     </div>
                                   </TableCell>
                                   <TableCell>
-                                    <div className="text-sm text-gray-900">{driver.user?.phone || 'No phone'}</div>
+                                    <div className="text-sm text-gray-900">{driver.phone || 'No phone'}</div>
                                   </TableCell>
                                   <TableCell>
                                     <div className={`px-2 py-1  rounded-full font-medium inline-block capitalize ${getStatusColorDriver(driver.status)}`}>
@@ -671,9 +671,9 @@ export default function RiderManagement() {
                                 <TableRow key={driver._id} className="border-gray-200 hover:bg-gray-50">
                                   <TableCell>
                                     <div className="flex items-center gap-3">
-                                      {driver.user?.profilePicture ? (
+                                      {driver.profilePicture ? (
                                         <img
-                                          src={driver.user.profilePicture}
+                                          src={driver.profilePicture}
                                           alt="Profile"
                                           className="w-10 h-10 rounded-full object-cover"
                                         />
@@ -683,13 +683,13 @@ export default function RiderManagement() {
                                         </div>
                                       )}
                                       <div>
-                                        <div className="font-medium text-gray-900">{driver.user?.name || 'Unknown'}</div>
-                                        <div className="text-sm text-gray-500">{driver.user?.email || 'No email'}</div>
+                                        <div className="font-medium text-gray-900">{driver.name || 'Unknown'}</div>
+                                        <div className="text-sm text-gray-500">{driver.email || 'No email'}</div>
                                       </div>
                                     </div>
                                   </TableCell>
                                   <TableCell>
-                                    <div className="text-sm text-gray-900">{driver.user?.phone || 'No phone'}</div>
+                                    <div className="text-sm text-gray-900">{driver.phone || 'No phone'}</div>
                                   </TableCell>
                                   <TableCell>
                                     <div className={`px-2 py-1 rounded-full text-xs font-medium inline-block capitalize ${getStatusColorDriver(driver.status)}`}>

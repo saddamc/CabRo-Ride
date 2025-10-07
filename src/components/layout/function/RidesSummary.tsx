@@ -4,7 +4,7 @@ import { useGetRideHistoryQuery } from '@/redux/features/ride-api';
 import { Clock, MapPin, Star } from 'lucide-react';
 
 const RidesSummary = () => {
-      const { data: rideHistory, refetch: refetchHistory } = useGetRideHistoryQuery({ limit: 100 });
+      const { data: rideHistory } = useGetRideHistoryQuery({ limit: 100 });
 
     // Calculate real stats from ride history
   const allRides = rideHistory?.rides || [];
@@ -19,8 +19,6 @@ const RidesSummary = () => {
   // Calculate total spent and distance from completed rides only
   const totalSpent = completedRides.reduce((sum, ride: any) => sum + (ride.fare?.totalFare || 0), 0);
     const totalDistance = completedRides.reduce((sum, ride: any) => sum + (ride.distance?.actual || ride.distance?.estimated || 0), 0);
-    
-    // refetchHistory()
 
     return (
         <div>

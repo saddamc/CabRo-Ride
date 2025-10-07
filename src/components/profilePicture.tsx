@@ -3,23 +3,18 @@ import { useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { useGetRideHistoryQuery } from "@/redux/features/ride-api";
 import { Star, User } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
+export default function ProfilePicture() {
+  const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfoQuery(undefined);
+  const { data: rideHistory } = useGetRideHistoryQuery({ limit: 100 });
 
-interface ProfilePictureProps {
-  profilePicture?: string | null;
-  name: string;
-  role?: string;
-  memberSince?: string;
-}
-
-const { data: userInfo, isLoading: isUserInfoLoading } = useUserInfoQuery(undefined);
-const { data: rideHistory } = useGetRideHistoryQuery(undefined);
-
- const totalRides = rideHistory?.total || 0;
-
-
+  const totalRides = rideHistory?.total || 0;
+  const allRides = rideHistory?.rides || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const completedRides = allRides.filter((ride: any) => ride.status === 'completed');
   const averageRating = completedRides.length > 0
-
-export default function ProfilePicture({ profilePicture, name, role, memberSince }: ProfilePictureProps) {
+    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      completedRides.reduce((sum: number, ride: any) => sum + (ride.rating?.riderRating || 0), 0) / completedRides.length
+    : 0;
   return (
     <div className="flex flex-col items-center">
       {/* Profile sidebar */}

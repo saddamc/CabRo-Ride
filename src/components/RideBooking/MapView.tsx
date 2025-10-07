@@ -203,10 +203,10 @@ export default function MapView({
                   🚗 {matchedDriver.name}
                 </div>
                 <div className="text-gray-600 mt-1">
-                  ⭐ {matchedDriver.rating} • {matchedDriver.vehicleInfo.make} {matchedDriver.vehicleInfo.model}
+                  ⭐ {matchedDriver.rating} • {matchedDriver.vehicleType?.make || 'Unknown'} {matchedDriver.vehicleType?.model || 'Vehicle'}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {matchedDriver.vehicleInfo.licensePlate}
+                  {matchedDriver.vehicleType?.plateNumber || 'N/A'}
                 </div>
               </div>
             </Popup>

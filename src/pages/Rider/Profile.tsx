@@ -39,9 +39,6 @@ export default function RiderProfile() {
     emergencyContact: '',
     isOnline: false,
   });
-  // Profile image state
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
   // Driver application form state
   const [driverApplicationData, setDriverApplicationData] = useState({
     vehicleType: 'CAR' as 'CAR' | 'BIKE',
@@ -74,8 +71,6 @@ export default function RiderProfile() {
         emergencyContact: userInfo.data.emergencyContact || '',
         isOnline: userInfo.data.isOnline || false,
       });
-      setPreviewImage(userInfo.data.profilePicture || null);
-      setSelectedImage(null);
     }
   }, [userInfo]);
 
@@ -203,6 +198,7 @@ export default function RiderProfile() {
         experience: '',
         references: '',
       });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error("Application Failed", {
         description: error?.data?.message || "There was an error submitting your application. Please try again.",
@@ -212,25 +208,11 @@ export default function RiderProfile() {
   
   const handleSaveProfile = async () => {
     try {
-      let result;
-      if (selectedImage) {
-        const form = new FormData();
-        form.append('name', formData.name);
-        form.append('email', formData.email);
-        form.append('phone', formData.phone);
-        form.append('address', formData.address);
-        form.append('emergencyContact', formData.emergencyContact);
-        form.append('isOnline', String(formData.isOnline));
-        form.append('_id', userInfo?.data?._id || '');
-        form.append('profilePicture', selectedImage);
-        result = await updateProfile(form).unwrap();
-      } else {
-        const profileData = {
-          ...formData,
-          _id: userInfo?.data?._id || '',
-        };
-        result = await updateProfile(profileData).unwrap();
-      }
+      const profileData = {
+        ...formData,
+        _id: userInfo?.data?._id || '',
+      };
+      await updateProfile(profileData).unwrap();
       toast.success("Profile Updated", {
         description: "Your profile has been updated successfully.",
       });
@@ -252,8 +234,6 @@ export default function RiderProfile() {
       emergencyContact: userInfo?.data?.emergencyContact || '',
       isOnline: userInfo?.data?.isOnline || false,
     });
-    setSelectedImage(null);
-    setPreviewImage(userInfo?.data?.profilePicture || null);
     setIsEditModalOpen(false);
   };
   
@@ -661,6 +641,7 @@ export default function RiderProfile() {
                 <CardContent>
                   {completedRides.length > 0 ? (
                     <div className="space-y-4">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {completedRides.slice(0, 3).map((ride: any) => (
                         <div key={ride._id} className="flex items-center justify-between p-4 border rounded-lg">
                           <div>

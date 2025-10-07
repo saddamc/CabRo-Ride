@@ -14,10 +14,56 @@ import { Separator } from "@/components/ui/separator";
 import { Car, Loader2 } from "lucide-react";
 import { useState } from "react";
 
+interface DriverData {
+  vehicleType?: {
+    category?: string;
+    model?: string;
+    year?: string;
+    color?: string;
+    plateNumber?: string;
+  };
+  licenseNumber?: string;
+  documents?: {
+    licenseImage?: string;
+    vehicleRegistration?: string;
+    insurance?: string;
+  };
+  additionalInfo?: {
+    experience?: string;
+    references?: string;
+  };
+}
+
+interface UpdateData {
+  licenseNumber: string;
+  vehicleType: {
+    category: string;
+    make: string;
+    model: string;
+    year: number;
+    plateNumber: string;
+    color: string;
+  };
+  location: {
+    coordinates: number[];
+    address: string;
+    lastUpdated: Date;
+  };
+  documents: {
+    licenseImage: string;
+    vehicleRegistration: string;
+    insurance: string;
+  };
+  additionalInfo: {
+    experience: string;
+    references: string;
+  };
+}
+
 interface UpdateDriverProfileModalProps {
-  driverData: any;
+  driverData: DriverData;
   isLoading: boolean;
-  onConfirm: (data: any) => Promise<void>;
+  onConfirm: (data: UpdateData) => Promise<void>;
   children: React.ReactNode;
 }
 

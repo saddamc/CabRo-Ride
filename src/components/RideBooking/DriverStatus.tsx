@@ -39,10 +39,13 @@ export default function DriverStatus({
   const [showRatingModal, setShowRatingModal] = useState(false);
   const navigate = useNavigate();
 
-  // Automatically show rating modal when ride is completed
+  // Automatically show rating modal when ride is completed (after driver confirms payment)
   useEffect(() => {
     if (rideStatus === 'completed' && bookingPhase === 'completed') {
-      setShowRatingModal(true);
+      // Small delay to ensure UI is updated
+      setTimeout(() => {
+        setShowRatingModal(true);
+      }, 1000);
     }
   }, [rideStatus, bookingPhase]);
 
@@ -110,9 +113,9 @@ export default function DriverStatus({
 
         <div className="flex items-center mb-4">
           <div className="h-16 w-16 bg-gray-100 rounded-full mr-4 overflow-hidden">
-            {matchedDriver?.profileImage ? (
+            {matchedDriver?.profilePicture ? (
               <img
-                src={matchedDriver.profileImage}
+                src={matchedDriver.profilePicture}
                 alt={matchedDriver.name}
                 className="h-full w-full object-cover"
               />
@@ -128,11 +131,11 @@ export default function DriverStatus({
               <span className="text-yellow-500 mr-1">★</span>
               <span className="mr-2">{matchedDriver?.rating}</span>
               <span className="text-gray-500">
-                {matchedDriver?.vehicleInfo?.make} {matchedDriver?.vehicleInfo?.model}
+                {matchedDriver?.vehicleType?.make} {matchedDriver?.vehicleType?.model}
               </span>
             </div>
             <p className="text-gray-600 text-sm">
-              {matchedDriver?.vehicleInfo?.color} • {matchedDriver?.vehicleInfo?.licensePlate}
+              {matchedDriver?.vehicleType?.color} • {matchedDriver?.vehicleType?.plateNumber}
             </p>
           </div>
         </div>
@@ -193,9 +196,9 @@ export default function DriverStatus({
 
         <div className="flex items-center mb-4">
           <div className="h-16 w-16 bg-gray-100 rounded-full mr-4 overflow-hidden">
-            {matchedDriver?.profileImage ? (
+            {matchedDriver?.profilePicture ? (
               <img
-                src={matchedDriver.profileImage}
+                src={matchedDriver.profilePicture}
                 alt={matchedDriver.name}
                 className="h-full w-full object-cover"
               />
@@ -211,11 +214,11 @@ export default function DriverStatus({
               <span className="text-yellow-500 mr-1">★</span>
               <span className="mr-2">{matchedDriver?.rating}</span>
               <span className="text-gray-500">
-                {matchedDriver?.vehicleInfo?.make} {matchedDriver?.vehicleInfo?.model}
+                {matchedDriver?.vehicleType?.make} {matchedDriver?.vehicleType?.model}
               </span>
             </div>
             <p className="text-gray-600 text-sm">
-              {matchedDriver?.vehicleInfo?.color} • {matchedDriver?.vehicleInfo?.licensePlate}
+              {matchedDriver?.vehicleType?.color} • {matchedDriver?.vehicleType?.plateNumber}
             </p>
           </div>
         </div>
@@ -313,13 +316,13 @@ export default function DriverStatus({
               <div className="flex justify-between">
                 <span className="text-gray-500">Vehicle</span>
                 <span className="font-medium">
-                  {matchedDriver?.vehicleInfo?.make} {matchedDriver?.vehicleInfo?.model}
+                  {matchedDriver?.vehicleType?.make} {matchedDriver?.vehicleType?.model}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">License Plate</span>
                 <span className="font-medium">
-                  {matchedDriver?.vehicleInfo?.licensePlate}
+                  {matchedDriver?.vehicleType?.plateNumber}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -392,7 +395,7 @@ export default function DriverStatus({
               <div className="flex justify-between">
                 <span className="text-gray-500">Vehicle</span>
                 <span className="font-medium">
-                  {matchedDriver?.vehicleInfo?.make} {matchedDriver?.vehicleInfo?.model}
+                  {matchedDriver?.vehicleType?.make} {matchedDriver?.vehicleType?.model}
                 </span>
               </div>
               <Separator className="my-2" />

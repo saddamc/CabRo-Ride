@@ -23,11 +23,6 @@ import {
 } from "@/redux/features/auth/auth.api";
 import { useUpdateUserMutation } from "@/redux/features/auth/User/user.api";
 
-import {
-  useGetDriverDetailsQuery,
-  useGetDriverEarningsQuery,
-  useUpdateDriverDocMutation,
-} from "@/redux/features/driver/driver.api";
 import { Edit, Save, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast as sonnerToast, toast } from "sonner";
@@ -35,18 +30,10 @@ import { toast as sonnerToast, toast } from "sonner";
 export default function DriverProfile() {
   const { data: userInfo, isLoading: isUserInfoLoading } =
     useUserInfoQuery(undefined);
-  const { data: driverDetails, isLoading: isDriverLoading } =
-    useGetDriverDetailsQuery();
-  // console.log("driver:", driverDetails)
-  const { data: earningsData } = useGetDriverEarningsQuery();
-  const [updateDriverDetails, { isLoading: isUpdatingDriver }] =
-    useUpdateDriverDocMutation();
   const [updateUser, { isLoading: isUpdatingUser }] = useUpdateUserMutation();
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
-  const [vehicleModalKey, setVehicleModalKey] = useState(0);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
 
@@ -71,14 +58,6 @@ export default function DriverProfile() {
     phone: "",
   });
 
-  // Form state for vehicle info
-  const [vehicleFormData, setVehicleFormData] = useState({
-    make: "",
-    model: "",
-    year: "",
-    licensePlate: "",
-    vehicleType: "",
-  });
 
   useEffect(() => {
     if (userInfo?.data) {
@@ -88,16 +67,7 @@ export default function DriverProfile() {
         phone: userInfo.data.phone || "",
       });
     }
-    if (driverDetails?.vehicleType) {
-      setVehicleFormData({
-        make: driverDetails.vehicleType.make || "",
-        model: driverDetails.vehicleType.model || "",
-        year: driverDetails.vehicleType.year?.toString() || "",
-        licensePlate: driverDetails.vehicleType.plateNumber || "",
-        vehicleType: driverDetails.vehicleType.category || "",
-      });
-    }
-  }, [userInfo, driverDetails]);
+  }, [userInfo]);
 
   const handlePersonalInputChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -106,10 +76,6 @@ export default function DriverProfile() {
     setPersonalFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleVehicleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setVehicleFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSaveProfile = async () => {
     try {
@@ -139,13 +105,6 @@ export default function DriverProfile() {
       name: userInfo?.data?.name || "",
       email: userInfo?.data?.email || "",
       phone: userInfo?.data?.phone || "",
-    });
-    setVehicleFormData({
-      make: driverDetails?.vehicleType?.make || "",
-      model: driverDetails?.vehicleType?.model || "",
-      year: driverDetails?.vehicleType?.year?.toString() || "",
-      licensePlate: driverDetails?.vehicleType?.plateNumber || "",
-      vehicleType: driverDetails?.vehicleType?.category || "",
     });
     setIsEditModalOpen(false);
   };
@@ -210,7 +169,7 @@ export default function DriverProfile() {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6">
               <div className="flex flex-col items-center">
-                {isUserInfoLoading || isDriverLoading ? (
+                {isUserInfoLoading ? (
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                       <div className="h-10 w-10 animate-spin rounded-full border-4 border-t-transparent border-primary"></div>
@@ -282,7 +241,7 @@ export default function DriverProfile() {
                       Manage your personal details
                     </CardDescription>
                   </div>
-                  {!(isUserInfoLoading || isDriverLoading) && (
+                  {!(isUserInfoLoading) && (
                     <Dialog
                       open={isEditModalOpen}
                       onOpenChange={setIsEditModalOpen}
@@ -298,7 +257,7 @@ export default function DriverProfile() {
                         </Button>
                       </DialogTrigger>
                       <DialogContent
-                        key={vehicleModalKey}
+                        
                         className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
                       >
                         <DialogHeader>
@@ -324,7 +283,7 @@ export default function DriverProfile() {
                                 value={personalFormData.name}
                                 onChange={handlePersonalInputChange}
                                 className="mt-1 text-gray-900 dark:text-white"
-                                disabled={isUpdatingDriver || isUpdatingUser}
+                                disabled={isUpdatingUser}
                               />
                             </div>
                             <div>
@@ -358,7 +317,7 @@ export default function DriverProfile() {
                                 value={personalFormData.phone}
                                 onChange={handlePersonalInputChange}
                                 className="mt-1 text-gray-900 dark:text-white"
-                                disabled={isUpdatingDriver || isUpdatingUser}
+                                disabled={isUpdatingUser}
                               />
                             </div>
                           </div>
@@ -366,16 +325,16 @@ export default function DriverProfile() {
                             <Button
                               variant="outline"
                               onClick={handleCancelEdit}
-                              disabled={isUpdatingDriver || isUpdatingUser}
+                              disabled={isUpdatingUser}
                             >
                               Cancel
                             </Button>
                             <Button
                               onClick={handleSaveProfile}
                               className="bg-white text-black border-black  hover:bg-black hover:text-white"
-                              disabled={isUpdatingDriver || isUpdatingUser}
+                              disabled={isUpdatingUser}
                             >
-                              {isUpdatingDriver || isUpdatingUser ? (
+                              {isUpdatingUser ? (
                                 <>
                                   <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
                                   Saving...

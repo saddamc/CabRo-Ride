@@ -201,7 +201,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                 Driver
                               </span>
                               <span className="font-medium">
-                                {ride.driver?.user?.name || "N/A"}
+                                {ride.driver?.name || "N/A"}
                               </span>
                             </div>
                             <div>
@@ -209,8 +209,8 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                 Vehicle
                               </span>
                               <span className="font-medium text-xs">
-                                {ride.driver?.vehicle?.make}{" "}
-                                {ride.driver?.vehicle?.model}
+                                {ride.driver?.vehicleType?.make}{" "}
+                                {ride.driver?.vehicleType?.model}
                               </span>
                             </div>
                           </div>
@@ -239,7 +239,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                       open: true,
                                       rideId: ride._id,
                                       driverName:
-                                        ride.driver?.user?.name || "Driver",
+                                        ride.driver?.name || "Driver",
                                       currentRating:
                                         ride.rating?.riderRating || 0,
                                       rideStatus: ride.status,
@@ -264,7 +264,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                     <Star
                                       key={star}
                                       className={`h-5 w-5 ${
-                                        star <= (ride.rating?.riderRating || 0)
+                                        star <= (ride.rating?.driverRating || 0)
                                           ? "fill-yellow-400 text-yellow-400"
                                           : "text-gray-300"
                                       }`}

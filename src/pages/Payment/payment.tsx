@@ -60,7 +60,7 @@ const PaymentPage: React.FC = () => {
                 onClick={() => setShowRatingModal(true)}
                 className="w-full bg-gradient-to-r from-blue-500 to-green-500 text-white text-lg font-semibold py-3 rounded-xl shadow hover:from-blue-600 hover:to-green-600 transition-all duration-200"
               >
-                ⭐ Rate Your Driver ({ride.driver?.user?.name || 'Driver'})
+                ⭐ Rate Your Driver ({ride.driver?.name || 'Driver'})
               </button>
             )}
             {/* Show rating summary if already rated */}
@@ -94,7 +94,7 @@ const PaymentPage: React.FC = () => {
           rideId={ride._id}
           rideStatus="completed"
           userRole="rider"
-          targetName={ride.driver?.user?.name || 'Driver'}
+          targetName={ride.driver?.name || 'Driver'}
           onRatingComplete={() => {
             setShowRatingModal(false);
             refetch(); // Refresh to show rating summary
@@ -141,7 +141,7 @@ const PaymentPage: React.FC = () => {
         await completePayment({ id: ride._id, method: paymentMethod }).unwrap();
         toast.success("Payment successful!");
         refetch();
-        setShowRatingModal(true);
+        // Rating modal will open after driver confirms payment receipt
       }
     } catch (error) {
       console.error("Payment error:", error);

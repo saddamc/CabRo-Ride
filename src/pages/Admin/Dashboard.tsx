@@ -59,10 +59,8 @@ export default function AdminDashboard() {
     useGetBookingsDataQuery({});
   const { data: earningsData, isLoading: isLoadingEarnings } =
     useGetEarningsDataQuery({});
-  const { data: rideVolumeData, isLoading: isLoadingVolume } =
-    useGetRideVolumeDataQuery();
-  const { data: driverActivityData, isLoading: isLoadingActivity } =
-    useGetDriverActivityDataQuery();
+  const { data: rideVolumeData } = useGetRideVolumeDataQuery();
+  const { data: driverActivityData } = useGetDriverActivityDataQuery();
   const { data: userInfo, isLoading: isUserInfoLoading } =
     useUserInfoQuery(undefined);
 

@@ -35,14 +35,17 @@ export interface IRideRequest {
 export interface IDriver {
   id: string;
   name: string;
+  email: string;
+  phone: string;
+  profilePicture: string;
   rating: number;
   profileImage: string;
-  vehicleInfo: {
+  vehicleType: {
     make: string;
     model: string;
-    year: string;
+    year: number;
     color: string;
-    licensePlate: string;
+    plateNumber: string;
   };
   currentLocation: {
     coordinates: [number, number];
@@ -60,17 +63,16 @@ export interface IRide {
   };
   driver?: {
     _id: string;
-    user: {
-      name: string;
-      phone: string;
-      profilePicture?: string;
-    };
-    vehicle?: {
+    name: string;
+    email: string;
+    phone: string;
+    profilePicture: string;
+    vehicleType?: {
       make: string;
       model: string;
-      year: string;
+      year: number;
       color: string;
-      licensePlate: string;
+      plateNumber: string;
     };
     rating?: number;
   };

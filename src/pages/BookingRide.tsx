@@ -260,15 +260,18 @@ export default function BookingRide() {
         if (activeRide.driver) {
           setMatchedDriver({
             id: activeRide.driver._id,
-            name: activeRide.driver.user.name,
+            name: activeRide.driver.name,
+            email: activeRide.driver.email,
+            phone: activeRide.driver.phone,
+            profilePicture: activeRide.driver.profilePicture,
             rating: (activeRide.driver.rating as any)?.average ?? 4.5,
-            profileImage: activeRide.driver.user.profilePicture || 'https://randomuser.me/api/portraits/men/32.jpg',
-            vehicleInfo: {
-              make: activeRide.driver.vehicle?.make || 'Toyota',
-              model: activeRide.driver.vehicle?.model || 'Corolla',
-              year: activeRide.driver.vehicle?.year || '2020',
-              color: activeRide.driver.vehicle?.color || 'Silver',
-              licensePlate: activeRide.driver.vehicle?.licensePlate || 'DHK-1234'
+            profileImage: activeRide.driver.profilePicture || 'https://randomuser.me/api/portraits/men/32.jpg',
+            vehicleType: {
+              make: activeRide.driver.vehicleType?.make || 'Toyota',
+              model: activeRide.driver.vehicleType?.model || 'Corolla',
+              year: activeRide.driver.vehicleType?.year || 2020,
+              color: activeRide.driver.vehicleType?.color || 'Silver',
+              plateNumber: activeRide.driver.vehicleType?.plateNumber || 'DHK-1234'
             },
             currentLocation: {
               coordinates: [90.4125, 23.8103] // Default coordinates for demo
