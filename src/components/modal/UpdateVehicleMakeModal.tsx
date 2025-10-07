@@ -1,92 +1,288 @@
+import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Car, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-interface UpdateVehicleMakeModalProps {
-  currentMake: string;
+interface UpdateDriverProfileModalProps {
+  driverData: any;
   isLoading: boolean;
-  onConfirm: (newMake: string) => Promise<void>;
+  onConfirm: (data: any) => Promise<void>;
   children: React.ReactNode;
 }
 
-export default function UpdateVehicleMakeModal({
-  currentMake,
+export default function UpdateDriverProfileModal({
+  driverData,
   isLoading,
   onConfirm,
   children
-}: UpdateVehicleMakeModalProps) {
-  const [newMake, setNewMake] = useState(currentMake);
+}: UpdateDriverProfileModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    vehicleType: driverData?.vehicleType?.category || 'CAR',
+    vehicleModel: driverData?.vehicleType?.model || '',
+    vehicleYear: driverData?.vehicleType?.year || '',
+    vehicleColor: driverData?.vehicleType?.color || '',
+    licensePlate: driverData?.vehicleType?.plateNumber || '',
+    licenseNumber: driverData?.licenseNumber || '',
+    // Load existing document values or empty strings
+    driverLicense: driverData?.documents?.licenseImage || '',
+    vehicleRegistration: driverData?.documents?.vehicleRegistration || '',
+    insurance: driverData?.documents?.insurance || '',
+    // Load additional information if available
+    experience: driverData?.additionalInfo?.experience || '',
+    references: driverData?.additionalInfo?.references || '',
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleConfirm = async () => {
-    if (newMake.trim() && newMake !== currentMake) {
-      await onConfirm(newMake.trim());
-    }
+    const applicationData = {
+      licenseNumber: formData.licenseNumber,
+      vehicleType: {
+        category: formData.vehicleType,
+        make: formData.vehicleType, // Using category as make for now
+        model: formData.vehicleModel,
+        year: parseInt(formData.vehicleYear),
+        plateNumber: formData.licensePlate,
+        color: formData.vehicleColor,
+      },
+      location: {
+        coordinates: [90.4125, 23.7928], // Default to Gulshan, Dhaka
+        address: "Dhaka, Bangladesh",
+        lastUpdated: new Date(),
+      },
+      documents: {
+        licenseImage: formData.driverLicense,
+        vehicleRegistration: formData.vehicleRegistration,
+        insurance: formData.insurance,
+      },
+      additionalInfo: {
+        experience: formData.experience,
+        references: formData.references
+      }
+    };
+
+    await onConfirm(applicationData);
+    // Close the dialog after successful update
+    setIsOpen(false);
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild onClick={() => setIsOpen(true)}>
         {children}
-      </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-black/80 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700 text-white">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-white">
             <Car className="h-5 w-5" />
-            Update Vehicle Make
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
-            Update your vehicle's make information. This will be reflected in your profile and ride requests.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+            Update Driver Profile
+          </DialogTitle>
+          <DialogDescription className="text-white">
+            Complete or update your driver profile information to start accepting rides.
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="py-4">
-          <div className="space-y-2">
-            <label htmlFor="vehicleMake" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Vehicle Make
-            </label>
-            <Input
-              id="vehicleMake"
-              value={newMake}
-              onChange={(e) => setNewMake(e.target.value)}
-              placeholder="Enter vehicle make"
+        <div className="space-y-6">
+          {/* Vehicle Information Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold border-b pb-2">Vehicle Information</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="vehicleType">Vehicle Type *</Label>
+                <select
+                  id="vehicleType"
+                  name="vehicleType"
+                  value={formData.vehicleType}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2  focus:ring-primary focus:border-transparent"
+                  required
+                >
+                  <option className="text-black" value="CAR">Car</option>
+                  <option className="text-black" value="BIKE">Bike</option>
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="vehicleModel">Vehicle Model *</Label>
+                <Input
+                  id="vehicleModel"
+                  name="vehicleModel"
+                  value={formData.vehicleModel}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Camry"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="vehicleYear">Vehicle Year *</Label>
+                <Input
+                  id="vehicleYear"
+                  name="vehicleYear"
+                  value={formData.vehicleYear}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 2020"
+                  type="number"
+                  min="1990"
+                  max={new Date().getFullYear() + 1}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="vehicleColor">Vehicle Color *</Label>
+                <Input
+                  id="vehicleColor"
+                  name="vehicleColor"
+                  value={formData.vehicleColor}
+                  onChange={handleInputChange}
+                  placeholder="e.g., White"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="licenseNumber">License Number *</Label>
+                <Input
+                  id="licenseNumber"
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={handleInputChange}
+                  placeholder="POI655555"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="licensePlate">Number Plate *</Label>
+                <Input
+                  id="licensePlate"
+                  name="licensePlate"
+                  value={formData.licensePlate}
+                  onChange={handleInputChange}
+                  placeholder="e.g., ABC-1234"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Documents Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold border-b pb-2">Required Documents</h3>
+            <p className="text-sm text-gray-600">Please provide links or upload your documents</p>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="driverLicense">Driver's License *</Label>
+                <Input
+                  id="driverLicense"
+                  name="driverLicense"
+                  value={formData.driverLicense}
+                  onChange={handleInputChange}
+                  placeholder="Upload or enter document URL"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="vehicleRegistration">Vehicle Registration *</Label>
+                <Input
+                  id="vehicleRegistration"
+                  name="vehicleRegistration"
+                  value={formData.vehicleRegistration}
+                  onChange={handleInputChange}
+                  placeholder="Upload or enter document URL"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="insurance">Insurance Document *</Label>
+                <Input
+                  id="insurance"
+                  name="insurance"
+                  value={formData.insurance}
+                  onChange={handleInputChange}
+                  placeholder="Upload or enter document URL"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Information Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold border-b pb-2">Additional Information</h3>
+
+            <div>
+              <Label htmlFor="experience">Driving Experience (Optional)</Label>
+              <textarea
+                id="experience"
+                name="experience"
+                value={formData.experience}
+                onChange={handleInputChange}
+                placeholder="Describe your driving experience, years of service, etc."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="references">References (Optional)</Label>
+              <textarea
+                id="references"
+                name="references"
+                value={formData.references}
+                onChange={handleInputChange}
+                placeholder="Contact information for professional references"
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isLoading}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={handleConfirm}
               disabled={isLoading}
-              className="w-full"
-            />
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Profile"
+              )}
+            </Button>
           </div>
         </div>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleConfirm}
-            disabled={isLoading || !newMake.trim() || newMake === currentMake}
-            className="bg-blue-600 text-white hover:bg-blue-700"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Updating...
-              </>
-            ) : (
-              <>
-                <Car className="h-4 w-4 mr-2" />
-                Update Make
-              </>
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      </DialogContent>
+    </Dialog>
   );
 }

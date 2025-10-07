@@ -153,7 +153,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                             <Badge
                               className={`${
                                 ride.status === "completed"
-                                  ? "bg-green-100"
+                                  ? "bg-green-100 text-green-700"
                                   : ride.status === "cancelled"
                                   ? "bg-red-100"
                                   : "bg-yellow-100"

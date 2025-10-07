@@ -33,12 +33,37 @@ export default function Register() {
     try {
       const result = await register({ name, email, password, role }).unwrap();
       if (result.success) {
-        toast.success('Registration successful!');
+        // Show different message based on role
+        if (role === 'driver') {
+          toast.success('Driver registration successful! You can now log in and complete your driver profile.');
+        } else {
+          toast.success('Registration successful!');
+        }
         navigate('/login');
       }
     } catch (err: unknown) {
-      const error = err as { data?: { message?: string } };
-      toast.error(error.data?.message || 'Registration failed');
+      console.error('Registration error:', err);
+      
+      // Type assertion and improved error handling
+      const error = err as { 
+        data?: { message?: string; success?: boolean; error?: string }, 
+        status?: number 
+      };
+      
+      // Handle specific error cases
+      if (error.status === 409) {
+        if (error.data?.message?.includes('email')) {
+          toast.error(`An account with email ${email} already exists. Please use a different email or log in.`);
+        } else if (error.data?.message?.includes('plate') || error.data?.error?.includes('plate')) {
+          toast.error('Vehicle plate number is already registered. Please use a different plate number.');
+        } else {
+          toast.error(error.data?.message || 'A duplicate entry was detected. Please try again with different information.');
+        }
+      } else if (error.status === 400) {
+        toast.error(error.data?.message || 'Please check your information and try again.');
+      } else {
+        toast.error(error.data?.message || 'Registration failed. Please try again later.');
+      }
     }
     setIsLoading(false);
   };

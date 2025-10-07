@@ -37,9 +37,30 @@ const axiosBaseQuery =
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         errorStatus = err.response.status;
-        errorMessage = typeof err.response.data === 'object' && err.response.data !== null 
-          ? JSON.stringify(err.response.data)
-          : String(err.response.data || err.message);
+        
+        // Special handling for common error codes
+        if (errorStatus === 409) {
+          // Check for specific conflict errors
+          if (err.response.data?.message?.includes('email')) {
+            errorMessage = "An account with this email already exists. Please use a different email address.";
+          } else if (err.response.data?.message?.includes('plate') || err.response.data?.error?.includes('plate')) {
+            errorMessage = "This vehicle plate number is already registered. Please use a different plate number.";
+          } else if (err.response.data?.message?.includes('licenseNumber')) {
+            errorMessage = "This driver license number is already registered. Please use a different license number.";
+          } else {
+            errorMessage = "This information already exists in our system. Please try with different details.";
+          }
+          console.warn("409 Conflict detected:", err.response.data);
+        } else if (errorStatus === 401) {
+          errorMessage = "Authentication required. Please log in again.";
+        } else if (errorStatus === 403) {
+          errorMessage = "You don't have permission to perform this action.";
+        } else {
+          // General case for other error codes
+          errorMessage = typeof err.response.data === 'object' && err.response.data !== null 
+            ? (err.response.data.message || JSON.stringify(err.response.data))
+            : String(err.response.data || err.message);
+        }
       } else if (err.request) {
         // The request was made but no response was received
         errorMessage = "No response received from server";

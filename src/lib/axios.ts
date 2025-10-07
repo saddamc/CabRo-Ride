@@ -18,6 +18,9 @@ axiosInstance.interceptors.request.use(function (config) {
   const token = localStorage.getItem("accessToken");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log("Using token from localStorage for authorization");
+  } else {
+    console.log("No token found in localStorage, will rely on cookies if available");
   }
 
   return config;
@@ -62,7 +65,7 @@ axiosInstance.interceptors.response.use(function onFulfilled(response) {
         url: error.config?.url
       });
       
-      // Check for authentication errors
+      // Check for different error types
       if (error.response.status === 401 || 
           error.response.status === 403 || 
           (error.response.data && error.response.data.message === "Unauthorized") ||
@@ -71,6 +74,9 @@ axiosInstance.interceptors.response.use(function onFulfilled(response) {
         
         // Optional: Redirect to login page for authentication errors
         // window.location.href = '/login';
+      } 
+      else if (error.response.status === 409) {
+        console.warn("Conflict error - resource already exists:", error.response.data);
       }
     } else if (error.request) {
       // The request was made but no response was received

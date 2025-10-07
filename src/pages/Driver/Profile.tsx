@@ -1,3 +1,4 @@
+import UpdateDriverProfileModal from "@/components/modal/UpdateVehicleMakeModal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -45,8 +46,7 @@ export default function DriverProfile() {
   const [changePassword, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
-  const [vehicleModalKey, setVehicleModalKey] = useState(0);
+  // Removed unused state variables
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
 
@@ -71,14 +71,6 @@ export default function DriverProfile() {
     phone: "",
   });
 
-  // Form state for vehicle info
-  const [vehicleFormData, setVehicleFormData] = useState({
-    make: "",
-    model: "",
-    year: "",
-    licensePlate: "",
-    vehicleType: "",
-  });
 
   useEffect(() => {
     if (userInfo?.data) {
@@ -86,15 +78,6 @@ export default function DriverProfile() {
         name: userInfo.data.name || "",
         email: userInfo.data.email || "",
         phone: userInfo.data.phone || "",
-      });
-    }
-    if (driverDetails?.vehicleType) {
-      setVehicleFormData({
-        make: driverDetails.vehicleType.make || "",
-        model: driverDetails.vehicleType.model || "",
-        year: driverDetails.vehicleType.year?.toString() || "",
-        licensePlate: driverDetails.vehicleType.plateNumber || "",
-        vehicleType: driverDetails.vehicleType.category || "",
       });
     }
   }, [userInfo, driverDetails]);
@@ -106,10 +89,6 @@ export default function DriverProfile() {
     setPersonalFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleVehicleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setVehicleFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleSaveProfile = async () => {
     try {
@@ -139,13 +118,6 @@ export default function DriverProfile() {
       name: userInfo?.data?.name || "",
       email: userInfo?.data?.email || "",
       phone: userInfo?.data?.phone || "",
-    });
-    setVehicleFormData({
-      make: driverDetails?.vehicleType?.make || "",
-      model: driverDetails?.vehicleType?.model || "",
-      year: driverDetails?.vehicleType?.year?.toString() || "",
-      licensePlate: driverDetails?.vehicleType?.plateNumber || "",
-      vehicleType: driverDetails?.vehicleType?.category || "",
     });
     setIsEditModalOpen(false);
   };
@@ -334,10 +306,7 @@ export default function DriverProfile() {
                           Edit Profile
                         </Button>
                       </DialogTrigger>
-                      <DialogContent
-                        key={vehicleModalKey}
-                        className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700"
-                      >
+                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
                           <DialogTitle className="text-gray-900 dark:text-white">
                             Edit Profile
@@ -409,7 +378,7 @@ export default function DriverProfile() {
                             </Button>
                             <Button
                               onClick={handleSaveProfile}
-                              className="bg-white border-black  hover:bg-black hover:text-white"
+                              className="bg-white text-black border-black  hover:bg-black hover:text-white"
                               disabled={isUpdatingDriver || isUpdatingUser}
                             >
                               {isUpdatingDriver || isUpdatingUser ? (
@@ -483,193 +452,28 @@ export default function DriverProfile() {
                     </CardDescription>
                   </div>
                   {!(isUserInfoLoading || isDriverLoading) && (
-                    <Dialog
-                      open={isVehicleModalOpen}
-                      onOpenChange={(open) => {
-                        if (open) {
-                          setVehicleFormData({
-                            make: driverDetails?.data?.vehicleType?.make || "",
-                            model:
-                              driverDetails?.data?.vehicleType?.model || "",
-                            year:
-                              driverDetails?.data?.vehicleType?.year?.toString() ||
-                              "",
-                            licensePlate:
-                              driverDetails?.data?.vehicleType?.plateNumber ||
-                              "",
-                            vehicleType:
-                              driverDetails?.data?.vehicleType?.category || "",
-                          });
-                          setVehicleModalKey(Date.now());
-
-                          sonnerToast.success("Vehicle Edit Ready.");
-                          // toast({
-                          //   title: "Vehicle Edit Ready",
-                          //   description: "You can now edit your vehicle information.",
-                          // });
+                    <UpdateDriverProfileModal
+                      driverData={driverDetails?.data}
+                      isLoading={isUpdatingDriver}
+                      onConfirm={async (data) => {
+                        try {
+                          await updateDriverDetails(data).unwrap();
+                          sonnerToast.success("Driver profile updated successfully!");
+                        } catch (error) {
+                          console.error("Driver profile update failed:", error);
+                          sonnerToast.error("Failed to update driver profile.");
                         }
-                        setIsVehicleModalOpen(open);
                       }}
                     >
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center"
-                        >
-                          <Truck className="h-4 w-4 mr-2" />
-                          Update Driver Doc
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
-                        <DialogHeader>
-                          <DialogTitle className="text-gray-900 dark:text-white">
-                            Update Vehicle
-                          </DialogTitle>
-                          <DialogDescription className="text-gray-600 dark:text-gray-300">
-                            Update your vehicle details
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label
-                                htmlFor="make"
-                                className="text-gray-900 dark:text-white"
-                              >
-                                Make
-                              </Label>
-                              <Input
-                                id="make"
-                                name="make"
-                                value={vehicleFormData.make}
-                                onChange={handleVehicleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
-                                disabled={isUpdatingDriver}
-                              />
-                            </div>
-                            <div>
-                              <Label
-                                htmlFor="model"
-                                className="text-gray-900 dark:text-white"
-                              >
-                                Model
-                              </Label>
-                              <Input
-                                id="model"
-                                name="model"
-                                value={vehicleFormData.model}
-                                onChange={handleVehicleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
-                                disabled={isUpdatingDriver}
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <Label
-                                htmlFor="year"
-                                className="text-gray-900 dark:text-white"
-                              >
-                                Year
-                              </Label>
-                              <Input
-                                id="year"
-                                name="year"
-                                value={vehicleFormData.year}
-                                onChange={handleVehicleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
-                                disabled={isUpdatingDriver}
-                              />
-                            </div>
-                            <div>
-                              <Label
-                                htmlFor="licensePlate"
-                                className="text-gray-900 dark:text-white"
-                              >
-                                License Plate
-                              </Label>
-                              <Input
-                                id="licensePlate"
-                                name="licensePlate"
-                                value={vehicleFormData.licensePlate}
-                                onChange={handleVehicleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
-                                disabled={isUpdatingDriver}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <Label
-                              htmlFor="vehicleType"
-                              className="text-gray-900 dark:text-white"
-                            >
-                              Vehicle Type
-                            </Label>
-                            <Input
-                              id="vehicleType"
-                              name="vehicleType"
-                              value={vehicleFormData.vehicleType}
-                              onChange={handleVehicleInputChange}
-                              className="mt-1 text-gray-900 dark:text-white"
-                              disabled={isUpdatingDriver}
-                            />
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => setIsVehicleModalOpen(false)}
-                              disabled={isUpdatingDriver}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              onClick={async () => {
-                                try {
-                                  const vehicleData = {
-                                    category: vehicleFormData.vehicleType as
-                                      | "CAR"
-                                      | "BIKE",
-                                    make: vehicleFormData.make,
-                                    model: vehicleFormData.model,
-                                    year: parseInt(vehicleFormData.year),
-                                    plateNumber: vehicleFormData.licensePlate,
-                                    // add color if you have it
-                                  };
-                                  await updateDriverDetails(
-                                    vehicleData
-                                  ).unwrap();
-                                  sonnerToast.success(
-                                    "Vehicle updated successfully."
-                                  );
-                                  setIsVehicleModalOpen(false);
-                                } catch (error) {
-                                  console.error(
-                                    "Vehicle update failed:",
-                                    error
-                                  );
-                                  sonnerToast.error("Vehicle update failed.");
-                                }
-                              }}
-                              disabled={isUpdatingDriver}
-                              className="bg-white border-black  hover:bg-black hover:text-white"
-                            >
-                              {isUpdatingDriver ? (
-                                <>
-                                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
-                                  Updating...
-                                </>
-                              ) : (
-                                <>
-                                  <Save className="h-4 w-4 mr-2" />
-                                  Update
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center"
+                      >
+                        <Truck className="h-4 w-4 mr-2" />
+                        Update Driver Doc
+                      </Button>
+                    </UpdateDriverProfileModal>
                   )}
                 </CardHeader>
                 <CardContent>
@@ -755,6 +559,76 @@ export default function DriverProfile() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Documents Section */}
+                      {driverDetails?.data?.documents && (
+                        <div className="mt-6">
+                          <h4 className="text-lg font-medium mb-4">Documents</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {driverDetails.data.documents.insurance && (
+                              <div>
+                                <Label htmlFor="insurance">Insurance</Label>
+                                <div className="p-2 mt-1 bg-gray-50 rounded">
+                                  <img
+                                    src={driverDetails.data.documents.insurance}
+                                    alt="Insurance Document"
+                                    className="w-full h-20 object-cover rounded"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                            {driverDetails.data.documents.licenseImage && (
+                              <div>
+                                <Label htmlFor="licenseImage">License Image</Label>
+                                <div className="p-2 mt-1 bg-gray-50 rounded">
+                                  <img
+                                    src={driverDetails.data.documents.licenseImage}
+                                    alt="License Document"
+                                    className="w-full h-20 object-cover rounded"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                            {driverDetails.data.documents.vehicleRegistration && (
+                              <div>
+                                <Label htmlFor="vehicleRegistration">Vehicle Registration</Label>
+                                <div className="p-2 mt-1 bg-gray-50 rounded">
+                                  <img
+                                    src={driverDetails.data.documents.vehicleRegistration}
+                                    alt="Vehicle Registration Document"
+                                    className="w-full h-20 object-cover rounded"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Additional Info Section */}
+                      {driverDetails?.data?.additionalInfo && (
+                        <div className="mt-6">
+                          <h4 className="text-lg font-medium mb-4">Additional Information</h4>
+                          <div className="space-y-4">
+                            {driverDetails.data.additionalInfo.experience && (
+                              <div>
+                                <Label htmlFor="experience">Experience</Label>
+                                <div className="p-2 mt-1 bg-gray-50 rounded">
+                                  {driverDetails.data.additionalInfo.experience}
+                                </div>
+                              </div>
+                            )}
+                            {driverDetails.data.additionalInfo.references && (
+                              <div>
+                                <Label htmlFor="references">References</Label>
+                                <div className="p-2 mt-1 bg-gray-50 rounded">
+                                  {driverDetails.data.additionalInfo.references}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>

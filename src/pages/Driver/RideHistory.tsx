@@ -107,7 +107,7 @@ export default function DriverRideHistory() {
     switch (status) {
       case "completed":
         return (
-          <Badge className="bg-green-100 text-black dark:bg-green-900/30 dark:text-black hover:bg-green-100">
+          <Badge className="bg-green-200 text-green-700 hover:bg-green-100">
             {status}
           </Badge>
         );
