@@ -64,7 +64,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
   const rides = sortedRides.slice(startIndex, endIndex);
 
   return (
-    <div className="container mx-auto rounded-2xl py-8 px-4 bg-white">
+    <div className="container mx-auto rounded-2xl py-8 px-4 text-black bg-white">
      
 
       {/* Rider Stats */}
@@ -75,7 +75,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
         <CardHeader>
           <CardTitle> <div className="mb-8">
         <h1 className="text-3xl font-bold">Ride History</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-black mt-2">
           View your past rides and receipts
         </p>
       </div></CardTitle>
@@ -135,7 +135,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                     }
                                   )}
                                 </div>
-                                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <div className="text-xs text-black flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {new Date(ride.createdAt).toLocaleTimeString(
                                     [],
@@ -145,7 +145,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                     }
                                   )}
                                 </div>
-                                <div className="text-xs text-muted-foreground font-mono">
+                                <div className="text-xs text-black font-mono">
                                   #{ride._id.slice(-6)}
                                 </div>
                               </div>
@@ -176,7 +176,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                             </div>
                             <div className="flex-1 space-y-1">
                               <div>
-                                <span className="text-xs text-muted-foreground block">
+                                <span className="text-xs text-black block">
                                   From
                                 </span>
                                 <span className="text-sm font-medium truncate block">
@@ -184,7 +184,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                                 </span>
                               </div>
                               <div>
-                                <span className="text-xs text-muted-foreground block">
+                                <span className="text-xs text-black block">
                                   To
                                 </span>
                                 <span className="text-sm font-medium truncate block">
@@ -197,7 +197,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                           {/* Driver & Vehicle Info */}
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <span className="text-muted-foreground block">
+                              <span className="text-black block">
                                 Driver
                               </span>
                               <span className="font-medium">
@@ -205,7 +205,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                               </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground block">
+                              <span className="text-black block">
                                 Vehicle
                               </span>
                               <span className="font-medium text-xs">
@@ -223,7 +223,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                             <div className="text-2xl font-bold">
                               ৳{ride.fare?.totalFare?.toFixed(2) || "0.00"}
                             </div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-black">
                               {ride.distance?.estimated?.toFixed(1)} km
                             </div>
                           </div>
@@ -294,7 +294,7 @@ const RideHistory: React.FC<RideHistoryProps> = () => {
                   <MapPin className="h-8 w-8" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">No rides yet</h3>
-                <p className="text-muted-foreground">
+                <p className="text-black">
                   Your ride history will appear here once you complete your
                   first ride.
                 </p>

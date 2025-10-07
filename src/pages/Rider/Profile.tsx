@@ -259,7 +259,7 @@ export default function RiderProfile() {
   
   
   return (
-    <div className="container mx-auto py-6 rounded-2xl bg-white">
+    <div className="container mx-auto py-6 rounded-2xl text-black bg-white">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">My Profile</h1>
         <p className="text-gray-500">Manage your account details and preferences</p>
@@ -289,7 +289,7 @@ export default function RiderProfile() {
                           className="h-24 w-24 object-cover rounded-full border border-gray-200"
                         />
                       ) : (
-                        <User className="h-12 w-12 text-primary" />
+                        <User className="h-12 w-12 text-black" />
                       )}
                     </div>
                     <h2 className="text-xl font-bold">{userInfo?.data?.name || 'User Name'}</h2>
@@ -386,48 +386,48 @@ export default function RiderProfile() {
                           </div> */}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="name" className="text-gray-900 dark:text-white">Full Name</Label>
+                              <Label htmlFor="name" className="text-gray-900 ">Full Name</Label>
                               <Input
                                 id="name"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
+                                className="mt-1 text-gray-900 "
                                 disabled={isUpdating}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="email" className="text-gray-900 dark:text-white">Email Address</Label>
+                              <Label htmlFor="email" className="text-gray-900 ">Email Address</Label>
                               <Input
                                 id="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
+                                className="mt-1 text-gray-900"
                                 disabled
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="phone" className="text-gray-900 dark:text-white">Phone Number</Label>
+                              <Label htmlFor="phone" className="text-gray-900 ">Phone Number</Label>
                               <Input
                                 id="phone"
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
+                                className="mt-1 text-gray-900 "
                                 disabled={isUpdating}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="address" className="text-gray-900 dark:text-white">Address</Label>
+                              <Label htmlFor="address" className="text-gray-900 ">Address</Label>
                               <Input
                                 id="address"
                                 name="address"
                                 value={formData.address}
                                 onChange={handleInputChange}
-                                className="mt-1 text-gray-900 dark:text-white"
+                                className="mt-1 text-gray-900 "
                                 disabled={isUpdating}
                               />
                             </div>
@@ -490,45 +490,45 @@ export default function RiderProfile() {
                   <Dialog open={isChangePasswordModalOpen} onOpenChange={setIsChangePasswordModalOpen}>
                     <DialogContent className="bg-white/60 backdrop-blur-lg border border-gray-200 dark:bg-gray-900/60 dark:border-gray-700">
                       <DialogHeader>
-                        <DialogTitle className="text-gray-900 dark:text-white">Change Password</DialogTitle>
-                        <DialogDescription className="text-gray-600 dark:text-gray-300">Enter your current password and set a new one</DialogDescription>
+                        <DialogTitle className="text-white ">Change Password</DialogTitle>
+                        <DialogDescription className="text-white">Enter your current password and set a new one</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="oldPassword" className="text-gray-900 dark:text-white">Current Password</Label>
+                          <Label htmlFor="oldPassword" className="text-white ">Current Password</Label>
                           <Input
                             id="oldPassword"
                             name="oldPassword"
                             type="password"
                             value={passwordData.oldPassword}
                             onChange={handlePasswordInputChange}
-                            className="mt-1 text-gray-900 dark:text-white"
+                            className="mt-1 text-white "
                             placeholder="Enter your current password"
                             disabled={isChangingPassword}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="newPassword" className="text-gray-900 dark:text-white">New Password</Label>
+                          <Label htmlFor="newPassword" className="text-white ">New Password</Label>
                           <Input
                             id="newPassword"
                             name="newPassword"
                             type="password"
                             value={passwordData.newPassword}
                             onChange={handlePasswordInputChange}
-                            className="mt-1 text-gray-900 dark:text-white"
+                            className="mt-1 text-white "
                             placeholder="Enter your new password"
                             disabled={isChangingPassword}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="confirmPassword" className="text-gray-900 dark:text-white">Confirm New Password</Label>
+                          <Label htmlFor="confirmPassword" className="text-white ">Confirm New Password</Label>
                           <Input
                             id="confirmPassword"
                             name="confirmPassword"
                             type="password"
                             value={passwordData.confirmPassword}
                             onChange={handlePasswordInputChange}
-                            className="mt-1 text-gray-900 dark:text-white"
+                            className="mt-1 text-white "
                             placeholder="Confirm your new password"
                             disabled={isChangingPassword}
                           />
@@ -544,7 +544,7 @@ export default function RiderProfile() {
                           <Button
                             onClick={handleChangePassword}
                             disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                            className="bg-white border-black  hover:bg-black hover:text-white"
+                            className="bg-white text-black border-black  hover:bg-black hover:text-white"
                           >
                             {isChangingPassword ? (
                               <>

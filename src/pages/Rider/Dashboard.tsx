@@ -46,7 +46,7 @@ const RiderDashboard = () => {
     .slice(0, 3);
   
   return (
-    <div className="container mx-auto py-6 px-4 bg-white min-h-screen">
+    <div className="container mx-auto py-6 px-4 text-black bg-white min-h-screen">
 
       {/* Rider Stats */}
       <RidesSummary />
