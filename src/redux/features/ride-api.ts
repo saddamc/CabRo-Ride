@@ -526,18 +526,23 @@ export const rideApi = baseApi.injectEndpoints({
     }),
 
     // getAllRide
-    getAllRide: builder.query<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } } | IRide[], { page?: number; limit?: number }>({
+    getAllRide: builder.query<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }, { page?: number; limit?: number }>({
       query: (params = {}) => ({
         url: "/rides",
         method: "GET",
         params,
       }),
-      transformResponse: (response: IResponse<{ data: IRide[]; meta: { total: number; page: number; limit: number; totalPages: number } }> | IRide[] | any) => {
-        console.log("Original response in ride-api:", response);
+      // Enhanced error handling and response transformation
+      transformResponse: (response: any, meta, arg) => {
+        console.log("Original response in getAllRide:", response);
+        console.log("Meta information:", meta);
+        console.log("Query arguments:", arg);
         
-        // Check if the response is an array (direct rides array)
+        // Standardize the response format regardless of what the backend returns
+        
+        // Case 1: Response is an array of rides
         if (Array.isArray(response)) {
-          console.log("Response is a direct array");
+          console.log("Converting array response to standard format");
           return {
             data: response,
             meta: {
@@ -549,22 +554,51 @@ export const rideApi = baseApi.injectEndpoints({
           };
         }
         
-        // Check if response is wrapped in a data property (standard API response)
-        if (response && response.data) {
-          console.log("Response has data property");
-          return response.data;
-        }
-        
-        // If response is already the expected format
-        if (response && response.data && response.meta) {
-          console.log("Response already has data and meta");
+        // Case 2: Response is already wrapped in our expected format
+        if (response && 'data' in response && 'meta' in response && Array.isArray(response.data)) {
+          console.log("Response already in expected format");
           return response;
         }
         
-        // Fallback
-        console.log("Using fallback response format");
-        return response;
+        // Case 3: Response is an API response object with data property
+        if (response && 'data' in response && !('meta' in response)) {
+          const data = response.data;
+          
+          // If data is an array, wrap it in our format
+          if (Array.isArray(data)) {
+            console.log("Wrapping response.data array in standard format");
+            return {
+              data: data,
+              meta: {
+                total: data.length,
+                page: arg?.page || 1,
+                limit: arg?.limit || data.length,
+                totalPages: 1
+              }
+            };
+          }
+          
+          // If data already has our format
+          if (data && 'data' in data && 'meta' in data) {
+            console.log("Using nested data.data format");
+            return data;
+          }
+        }
+        
+        // Case 4: Empty or invalid response - return empty data structure
+        console.log("Falling back to empty data structure");
+        return {
+          data: [],
+          meta: {
+            total: 0,
+            page: arg?.page || 1,
+            limit: arg?.limit || 10,
+            totalPages: 0
+          }
+        };
       },
+      // Add keepUnusedDataFor to prevent caching stale data for too long
+      keepUnusedDataFor: 30, // only cache for 30 seconds
       providesTags: ["RIDES"],
     }),
 

@@ -210,10 +210,10 @@ const DetailsHistory = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="font-medium text-lg">{ride.driver.user.name}</p>
+                <p className="font-medium text-lg">{ride.driver?.name}</p>
                 <div className="flex items-center gap-1 text-gray-600">
                   <Phone className="h-4 w-4" />
-                  <span>{ride.driver.user.phone}</span>
+                  <span>{ride.driver?.phone}</span>
                 </div>
                 {ride.driver.rating && (
                   <div className="flex items-center gap-1">
@@ -223,16 +223,16 @@ const DetailsHistory = () => {
                 )}
               </div>
 
-              {ride.driver.vehicle && (
+              {ride.driver.vehicleType && (
                 <>
                   <Separator />
                   <div>
                     <p className="text-sm text-gray-600 mb-2">Vehicle Details</p>
                     <p className="font-medium">
-                      {ride.driver.vehicle.make} {ride.driver.vehicle.model}
+                      {ride.driver.vehicleType.make} {ride.driver.vehicleType.model}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {ride.driver.vehicle.licensePlate} • {ride.driver.vehicle.color}
+                      {ride.driver.vehicleType.plateNumber} • {ride.driver.vehicleType.color}
                     </p>
                   </div>
                 </>

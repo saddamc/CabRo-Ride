@@ -90,7 +90,7 @@ export default function DriverDashboard() {
     try {
       // Toggle the current availability status locally first for immediate UI feedback
       const newLocalStatus = localAvailability === "online" ? "offline" : "online";
-      const newApiStatus = newLocalStatus === "online" ? true : false;
+      const newApiStatus: boolean = newLocalStatus === "online" ? true : false;
 
       // Update local state immediately for instant UI feedback
       setLocalAvailability(newLocalStatus);
@@ -223,7 +223,8 @@ export default function DriverDashboard() {
                 onConfirm={async (data) => {
                   try {
                     console.log("Submitting driver profile update:", data);
-                    await updateDriverDoc(data).unwrap();
+                    // Only pass the vehicleType part to the mutation
+                    await updateDriverDoc(data.vehicleType).unwrap();
                     toast.success("Profile updated successfully!");
                     refetchDriverDetails(); // Refetch to update the UI
                   } catch (error) {

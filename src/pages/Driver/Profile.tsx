@@ -457,7 +457,8 @@ export default function DriverProfile() {
                       isLoading={isUpdatingDriver}
                       onConfirm={async (data) => {
                         try {
-                          await updateDriverDetails(data).unwrap();
+                          // Only pass the vehicleType part to the mutation
+                          await updateDriverDetails(data.vehicleType).unwrap();
                           sonnerToast.success("Driver profile updated successfully!");
                         } catch (error) {
                           console.error("Driver profile update failed:", error);

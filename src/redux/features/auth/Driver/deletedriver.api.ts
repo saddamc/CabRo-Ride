@@ -2,7 +2,7 @@ import { baseApi } from "@/redux/baseApi";
 
 export interface IDriverStatus {
   availability: 'online' | 'offline' | 'busy';
-  status: 'pending' | 'approved' | 'suspended' | 'rejected';
+  status: 'pending' | 'approved' | 'suspended' | 'rejected'; 
 }
 
 export interface IDriverUpdateResponse {

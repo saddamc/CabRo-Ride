@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -61,42 +62,52 @@ export default function AdminRideHistory() {
     page: 1,
     limit: 999 // Using a high limit to fetch all rides at once
   }, {
-    refetchOnMountOrArgChange: true
+    refetchOnMountOrArgChange: true,
+    // Add better error handling and retry logic
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+    pollingInterval: 30000, // Poll every 30 seconds
   });
 
-  // Format data to match expected structure
-  // The API is returning an array directly instead of {data: [...], meta: {...}}
-  const displayData = useMemo(() => {
-    if (!ridesData) return { data: [], meta: { total: 0, page: 1, limit: 999, totalPages: 1 } };
-    
-    // If ridesData is an array, wrap it in the expected structure
-    if (Array.isArray(ridesData)) {
-      return {
-        data: ridesData,
-        meta: {
-          total: ridesData.length,
-          page: 1,
-          limit: 999,
-          totalPages: 1
+  // Debugging - log the error if present
+  useEffect(() => {
+      if (error) {
+        console.error("Error loading rides data:", error);
+        // Additional debugging for common errors
+        if ('status' in (error as any)) {
+          if ((error as any).status === 'FETCH_ERROR') {
+            console.error("Backend connection failed - please check that your backend server is running");
+          } else if ((error as any).status === 401 || (error as any).status === 403) {
+            console.error("Authentication or authorization error - please check your login status");
+          }
         }
-      };
-    }
+      }
+  }, [error]);
 
-    // If ridesData already has data and meta
-    if (ridesData.data && ridesData.meta) {
-      return ridesData;
+  // Format data to match expected structure
+  const displayData = useMemo(() => {
+    // If there's an error or no data, return empty structure
+    if (error || !ridesData) {
+      return { data: [], meta: { total: 0, page: 1, limit: 999, totalPages: 1 } };
     }
-
-    // Fallback - create empty structure
-    return {
-      data: [],
-      meta: { total: 0, page: 1, limit: 999, totalPages: 1 }
-    };
-  }, [ridesData]);
+    
+    // ridesData should now always have the structure we expect thanks to our updated transformResponse function
+    return ridesData;
+  }, [ridesData, error]);
   
   // Refetch data when component mounts
   useEffect(() => {
-    refetch();
+    // Add try/catch to handle any refetch errors
+    const fetchData = async () => {
+      try {
+        await refetch();
+        console.log("Rides data refreshed successfully");
+      } catch (err) {
+        console.error("Failed to refresh rides data:", err);
+      }
+    };
+    
+    fetchData();
   }, [refetch]);
 
   // Client-side filtering
@@ -584,9 +595,9 @@ export default function AdminRideHistory() {
                         </div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Data</h3>
                         <p className="text-gray-600 mb-6">
-                          {error.status === 401 || error.status === 403 ?
+                          {(error as any)?.status === 401 || (error as any)?.status === 403 ?
                             "You need admin privileges to view ride data. Please log in as an administrator." :
-                            `There was a problem loading the ride data: ${error.status ? `Error ${error.status}` : "Connection failed"}. Please try again.`}
+                            `There was a problem loading the ride data: ${(error as any)?.status ? `Error ${(error as any)?.status}` : "Connection failed"}. Please try again.`}
                         </p>
                         <div className="flex gap-4 justify-center">
                           <Button

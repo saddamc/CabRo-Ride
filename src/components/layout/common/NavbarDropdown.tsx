@@ -3,7 +3,7 @@ import { useGetWalletQuery } from "@/redux/features/auth/Rider/rider.api";
 import { useGetDriverDetailsQuery, useGetDriverEarningsQuery } from "@/redux/features/driver/driver.api";
 import { useGetRideHistoryQuery } from "@/redux/features/ride-api";
 import { useGetAvailableRidesQuery } from "@/redux/features/rides/ride.api";
-import { DollarSign, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface NavbarDropdownProps {
@@ -185,23 +185,23 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
             <div className="grid grid-cols-2 gap-3">
               {/* Total Earnings Card */}
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
-                <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex  items-center gap-2 mb-1">
+                  <span className="w-5 h-5 text-sm text-blue-600 dark:text-blue-400 font-extrabold">৳</span>
                   <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Total</span>
                 </div>
                 <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                  ${driverEarnings?.totalEarnings?.toFixed(2) || '0.00'}
+                  ৳{driverEarnings?.totalEarnings?.toFixed(2) || '0.00'}
                 </div>
               </div>
 
               {/* Today's Earnings Card */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-3 border border-green-200 dark:border-green-700">
                 <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="w-5 h-5 text-sm text-green-700 dark:text-green-400 font-extrabold">৳</span>
                   <span className="text-xs font-medium text-green-700 dark:text-green-300">Today</span>
                 </div>
                 <div className="text-lg font-bold text-green-900 dark:text-green-100">
-                  ${driverEarnings?.todayEarnings?.toFixed(2) || '0.00'}
+                  ৳{driverEarnings?.todayEarnings?.toFixed(2) || '0.00'}
                 </div>
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function NavbarDropdown({ menuOpen, handleMenuClose, handleLogout
                         textShadow: '0 1px 4px #065f46cc'
                       }}
                     >
-                      ${wallet?.balance?.toFixed(2)}
+                      ৳{wallet?.balance?.toFixed(2)}
                     </span>
                   )}
                 </div>

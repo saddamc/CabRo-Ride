@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,6 @@ export function RegisterForm({
   })
 
   const onSubmit = async (data: z.infer<typeof registerSchema>) => {
-
     const userInfo = {
       name: data.name,
       email: data.email,
@@ -54,8 +54,22 @@ export function RegisterForm({
       console.log(result);
       toast.success("User created successfully")
       navigate("/verify")
-    } catch (error) {
-      console.error(error)
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      
+      // Show appropriate error message based on the error type
+      if (error.status === 'FETCH_ERROR') {
+        toast.error("Cannot connect to the server. Please check your internet connection or try again later.");
+        
+        // Log additional debug information
+        console.error("Backend connection failed. Current API URL:", import.meta.env.VITE_BASE_URL);
+      } else if (error.status === 409) {
+        toast.error("This email is already registered. Please use a different email or login.");
+      } else if (error.data?.message) {
+        toast.error(error.data.message);
+      } else {
+        toast.error("Registration failed. Please try again.");
+      }
     }
   }
   

@@ -47,6 +47,7 @@ export interface IDriverDetails {
 export interface IDriverStatus {
   availability: 'online' | 'offline' | 'busy';
   status: 'pending' | 'approved' | 'suspended' | 'rejected';
+    newApiStatus: boolean; // true for online, false for offline
 }
 export interface IDriverUpdateResponse {
   success: boolean;
@@ -131,7 +132,7 @@ export interface IDriverProfile {
   updatedAt: string;
 }
 
-export interface IDriverStatus {
+export interface IOnlineStatus {
   isOnline: boolean;
   currentLocation?: {
     coordinates: [number, number];
@@ -179,7 +180,7 @@ export const driverApi = baseApi.injectEndpoints({
     }),
 
     // Set driver online/offline status
-    setOnlineOffline: builder.mutation<IDriverProfile, IDriverStatus>({
+    setOnlineOffline: builder.mutation<IDriverProfile, IOnlineStatus>({
       query: (data) => ({
         url: "/drivers/available",
         method: "POST",

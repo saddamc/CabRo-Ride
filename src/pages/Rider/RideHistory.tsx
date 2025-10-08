@@ -8,8 +8,7 @@ import { AlertCircle, Calendar, Clock, MapPin, Star } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 
-const RideHistory: React.FC<RideHistoryProps> = () => {
-  // const navigate = useNavigate();
+const RideHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ridesPerPage = 5;
   

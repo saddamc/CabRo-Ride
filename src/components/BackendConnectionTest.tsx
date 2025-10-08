@@ -23,22 +23,49 @@ const BackendConnectionTest = () => {
     console.log('🔍 VITE_BASE_URL:', import.meta.env.VITE_BASE_URL);
   };
 
-  // Check if backend is accessible
+  // Improved backend health check with more diagnostic information
   const checkBackendHealth = async () => {
     try {
       console.log('🏥 CHECKING BACKEND HEALTH...');
+      console.log('🏥 Using URL:', import.meta.env.VITE_BASE_URL);
+      
+      // Show timeout message if it takes too long
+      const timeout = setTimeout(() => {
+        console.log('🏥 Backend health check is taking longer than expected...');
+      }, 3000);
+      
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}/health`, {
         method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
       });
+      
+      clearTimeout(timeout);
+      
+      // Get response data if possible
+      let responseData = null;
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        console.log('🏥 Response is not JSON:', e);
+      }
+      
       console.log('🏥 Backend health response:', {
         ok: response.ok,
         status: response.status,
-        statusText: response.statusText
+        statusText: response.statusText,
+        data: responseData,
+        headers: Object.fromEntries(response.headers.entries())
       });
-      alert(`Backend Health: ${response.ok ? '✅ OK' : '❌ NOT OK'} (${response.status})`);
+      
+      alert(`Backend Health: ${response.ok ? '✅ OK' : '❌ NOT OK'} (${response.status})\n\n${
+        responseData ? JSON.stringify(responseData) : response.statusText
+      }`);
     } catch (error) {
       console.error('🏥 Backend health check failed:', error);
-      alert(`Backend Health Check Failed: ${error}`);
+      alert(`Backend Health Check Failed: ${error}\n\nThis usually means the backend server is not running or the URL is incorrect.\n\nCurrent URL: ${import.meta.env.VITE_BASE_URL}`);
     }
   };
 
