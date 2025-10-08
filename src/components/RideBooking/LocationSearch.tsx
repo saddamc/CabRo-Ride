@@ -182,7 +182,7 @@ export default function LocationSearch({
   }, []);
 
   return (
-    <div className="p-6 pb-8 bg-white dark:bg-white backdrop-blur-lg border-b border-white/20 dark:border-gray-300 rounded-2xl sticky z-10 flex flex-col gap-4 ">
+    <div className="p-6 pb-8 backdrop-blur-lg sticky z-10 flex flex-col gap-4 ">
       {/* Pickup location input */}
       <div className="flex items-center gap-3">
         <div className="pl-2">

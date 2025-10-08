@@ -4,7 +4,6 @@ import { Provider as ReduxProvider } from "react-redux";
 import { RouterProvider } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LoadingFallback from "./components/LoadingFallback.tsx";
-import StatusChecker from "./components/StatusChecker";
 import { Toaster } from "./components/ui/sonner.tsx";
 import "./index.css";
 import { ThemeProvider } from "./providers/theme.provider.tsx";
@@ -19,7 +18,6 @@ ReactDom.createRoot(document.getElementById("root")!).render(
           <Suspense fallback={<LoadingFallback />}>
             <RouterProvider router={router} />
           </Suspense>
-          <StatusChecker />
           <Toaster richColors/>
         </ThemeProvider>
       </ReduxProvider>

@@ -56,7 +56,7 @@ export default function RideSelection({
   onToggleMap
 }: RideSelectionProps) {
   return (
-    <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-800">
+    <div className="flex-1 overflow-y-auto bg-white ">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-white font-bold">Choose your ride</h2>
