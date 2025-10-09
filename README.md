@@ -1,69 +1,92 @@
-# React + TypeScript + Vite
+# 🚗 Ride Booking System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive ride booking application similar to Uber featuring a modern React frontend and robust Express.js backend with real-time ride management.
 
-Currently, two official plugins are available:
+## 🌐 Live Deployment
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Frontend**: [https://ride-5.vercel.app]
 
-## Expanding the ESLint configuration
+**Backend API**: [https://ride-5.vercel.app/api/v1]
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📋 Project Overview
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+This full-stack application provides a complete ride booking experience with role-based access for riders, drivers, and administrators. The system handles ride requests, driver matching, real-time tracking, payments, and comprehensive user management.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### 👤 User Management
+- Multi-role authentication (Rider, Driver, Admin)
+- JWT-based secure authentication with cookies
+- Google OAuth integration
+- Profile management and verification
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 🚗 Ride Booking
+- Real-time ride requests and driver matching
+- Interactive map with pickup/dropoff selection
+- Fare calculation and ride estimation
+- Ride status tracking (requested → accepted → picked up → completed)
+
+### 👨‍💼 Driver Features
+- Driver application and approval system
+- Online/offline status management
+- Earnings tracking and history
+- Vehicle information management
+- Real-time ride acceptance/rejection
+
+### ⚙️ Admin Panel
+- User and driver management
+- Ride history and analytics
+- Payment monitoring
+- System configuration
+
+### 🔔 Real-time Notifications
+- Ride status updates
+- Driver arrival alerts
+- Payment confirmations
+
+## 🛠 Technology Stack
+
+### Frontend
+- **React 18** with TypeScript
+- **Vite** for build tooling
+- **Redux Toolkit** for state management
+- **React Router** for navigation
+- **Tailwind CSS** for styling
+- **React Hook Form** for form handling
+
+### Backend
+- **Node.js** with Express.js
+- **TypeScript** for type safety
+- **MongoDB** with Mongoose
+- **JWT** for authentication
+- **bcrypt** for password hashing
+- **Redis** for caching
+- **Socket.io** for real-time features
+
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account
+- Google OAuth credentials
+- Redis Cloud account
+
+## 📁 Project Structure
+
 ```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── redux/         # State management
+│   │   ├── hooks/         # Custom hooks
+│   │   ├── lib/           # Utilities
+│   │   └── types/         # TypeScript types
+│   └── public/            # Static assets
+├── server/                 # Express backend
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── config/    # Configuration files
+│   │   │   ├── middlewares/# Custom middlewares
+│   │   │   ├── modules/   # Feature modules
+│   │   │   ├── routes/    # API routes
+│   │   │   └── utils/     # Utility functions
+│   └── dist/              # Compiled output
+└── README.md              # Project documentation
 ```
