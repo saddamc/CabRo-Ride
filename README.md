@@ -88,5 +88,5 @@ This full-stack application provides a complete ride booking experience with rol
 │   │   │   ├── routes/    # API routes
 │   │   │   └── utils/     # Utility functions
 │   └── dist/              # Compiled output
-└── README.md              # Project documentation
+└── 
 ```
