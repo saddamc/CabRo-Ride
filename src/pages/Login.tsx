@@ -29,26 +29,29 @@ export default function Login() {
           navigate("/verify", { state: email });
         } else {
           toast.success("Logged in successfully");
-          
-          // Check for stored redirect first (from navbar)
-          const storedRedirect = localStorage.getItem('redirectAfterLogin');
-          if (storedRedirect) {
-            localStorage.removeItem('redirectAfterLogin');
-            navigate(storedRedirect);
-          }
-          // Handle redirect with location data if present
-          else if (redirectPath.includes('/ride')) {
-            navigate(redirectPath, {
-              state: {
-                selectedLocation: locationData,
-                useCurrentLocation: useCurrentLocation,
-              }
-            });
-          } else if (result.data.redirectTo) {
-            navigate(result.data.redirectTo);
-          } else {
-            navigate(redirectPath);
-          }
+
+          // Delay navigation to allow cache invalidation to complete
+          setTimeout(() => {
+            // Check for stored redirect first (from navbar)
+            const storedRedirect = localStorage.getItem('redirectAfterLogin');
+            if (storedRedirect) {
+              localStorage.removeItem('redirectAfterLogin');
+              navigate(storedRedirect);
+            }
+            // Handle redirect with location data if present
+            else if (redirectPath.includes('/ride')) {
+              navigate(redirectPath, {
+                state: {
+                  selectedLocation: locationData,
+                  useCurrentLocation: useCurrentLocation,
+                }
+              });
+            } else if (result.data.redirectTo) {
+              navigate(result.data.redirectTo);
+            } else {
+              navigate(redirectPath);
+            }
+          }, 100); // Small delay for cache update
         }
       }
     } catch (error) {

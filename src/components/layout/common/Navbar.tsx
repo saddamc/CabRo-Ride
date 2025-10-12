@@ -1,8 +1,9 @@
 // Cabro-bolt complete navbar design with functional theme toggling and dynamic roles
 import { useTheme } from "@/hooks/use-theme";
+import { baseApi } from "@/redux/baseApi";
 import {
   useLogoutMutation,
-  useUserInfoQuery,
+  useUserInfoQuery
 } from "@/redux/features/auth/auth.api";
 import { logout as logoutAction } from "@/redux/features/authSlice";
 import { Car, ChevronDown, Moon, Sun } from "lucide-react";
@@ -102,12 +103,13 @@ export default function Navbar() {
 
     // Clear client-side auth state
     dispatch(logoutAction());
+    dispatch(baseApi.util.resetApiState()); // Clear RTK Query cache
     localStorage.removeItem("accessToken");
 
     // Redirect to home after logout
     navigate("/");
-    // Small delay then refresh to ensure queries reset
-    setTimeout(() => window.location.reload(), 100);
+    // Delay then refresh to ensure everything is reset
+    setTimeout(() => window.location.reload(), 500);
   };
 
   // Dropdown state for user menu

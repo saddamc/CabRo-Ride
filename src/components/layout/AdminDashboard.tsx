@@ -1,3 +1,4 @@
+import { baseApi } from "@/redux/baseApi";
 import { useLogoutMutation, useUserInfoQuery } from "@/redux/features/auth/auth.api";
 import { logout as logoutAction } from "@/redux/features/authSlice";
 import { Car, Clock, Home, LogOut, Map, Settings, Users } from "lucide-react";
@@ -22,7 +23,6 @@ export default function AdminDashboard() {
   // Logout handler
   const handleLogout = async () => {
     try {
-      // Call backend logout endpoint
       await logout({}).unwrap();
     } catch {
       // Ignore network errors but proceed to clear local state
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
 
     // Clear client-side auth state
     dispatch(logoutAction());
-    localStorage.removeItem("accessToken");
+    dispatch(baseApi.util.resetApiState()); // Clear RTK Query cache
 
     // Redirect to home after logout
     navigate("/");
