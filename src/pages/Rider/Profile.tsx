@@ -335,10 +335,10 @@ export default function RiderProfile() {
                           Edit Profile
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-white/60 backdrop-blur-lg dark:bg-gray-900/60 dark:border-gray-700">
+                      <DialogContent className="bg-white/60 text-white backdrop-blur-lg dark:bg-gray-900/60 dark:border-gray-700">
                         <DialogHeader>
-                          <DialogTitle className="text-gray-900 dark:text-white">Edit Profile</DialogTitle>
-                          <DialogDescription className="text-gray-600 dark:text-gray-300">Update your personal details</DialogDescription>
+                          <DialogTitle className="text-white">Edit Profile</DialogTitle>
+                          <DialogDescription className="text-gray-300">Update your personal details</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           {/* Profile Image Uploader */}
@@ -412,29 +412,9 @@ export default function RiderProfile() {
                               />
                             </div>
                           </div>
-                          {/* <div>
-                            <Label htmlFor="emergencyContact" className="text-gray-900 dark:text-white">Emergency Contact</Label>
-                            <Input
-                              id="emergencyContact"
-                              name="emergencyContact"
-                              value={formData.emergencyContact}
-                              onChange={handleInputChange}
-                              className="mt-1 text-gray-900 dark:text-white"
-                              placeholder="Name: Contact Number"
-                              disabled={isUpdating}
-                            />
-                          </div> */}
+                          
                           <div className="flex items-center space-x-2">
-                            {/* <input
-                              type="checkbox"
-                              id="isOnline"
-                              name="isOnline"
-                              checked={formData.isOnline}
-                              onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked }))}
-                              disabled={isUpdating}
-                              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                            /> */}
-                            {/* <Label htmlFor="isOnline" className="text-gray-900 dark:text-white">Set Online Status</Label> */}
+                            
                           </div>
                           <div className="flex justify-end gap-2">
                             <Button
@@ -447,7 +427,7 @@ export default function RiderProfile() {
                             <Button
                               onClick={handleSaveProfile}
                               disabled={isUpdating}
-                              className="bg-white border-black  hover:bg-black hover:text-white"
+                              className="bg-white text-black border-black  hover:bg-black hover:text-white"
                             >
                               {isUpdating ? (
                                 <>

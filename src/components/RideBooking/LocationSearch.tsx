@@ -5,7 +5,7 @@ import { dhakaLocations } from "@/data/dhakaLocations";
 import type { ILocation } from "@/redux/features/rides/ride.api";
 
 
-import { Car, LocateFixed, MapPin, Navigation } from "lucide-react";
+import { LocateFixed, MapPin, Navigation } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 interface LocationSearchProps {
@@ -182,49 +182,45 @@ export default function LocationSearch({
   }, []);
 
   return (
-    <div className="p-6 pb-8 backdrop-blur-lg sticky z-10 flex flex-col gap-4 ">
+    <div className="p-4 bg-transparent sticky z-10 flex flex-col gap-3">
       {/* Pickup location input */}
-      <div className="flex items-center gap-3">
-        <div className="pl-2">
-          <Car className="h-6 w-6 text-black dark:text-black" />
-        </div>
-        <span className="text-2xl text-black dark:text-black font-bold">
-          Get Your Ride
-        </span>
+      <div className="text-center mb-2">
+        <h2 className="text-2xl font-bold text-black mb-0">Get Your Ride</h2>
+        <p className="text-xs text-gray-500">Safe • Fast • Reliable</p>
       </div>
 
-      <div className="flex items-center">
-        <div className="h-12 w-12 flex items-center justify-center bg-white dark:bg-gray-700 rounded-l-lg border-r border-gray-200 dark:border-gray-600">
-          <MapPin className="h-5 w-5 text-green-600" />
+      <div className="flex items-center relative">
+        <div className="h-10 w-10 flex items-center justify-center bg-white">
+          <MapPin className="h-4 w-4 text-blue-500" />
         </div>
         <div className="relative w-full">
           <Input
             ref={pickupInputRef}
             type="text"
-            placeholder="Enter pickup location "
+            placeholder="Enter pickup location"
             value={pickupInput}
             onChange={(e) => handlePickupInputChange(e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, pickupSuggestions, true)}
-            className="pl-4 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-green-400 bg-white dark:bg-gray-700 rounded-l-none"
+            className="pl-2 text-gray-900 h-10 border-0 border-b border-gray-200 focus:border-b focus:border-gray-300 bg-white rounded-none"
           />
           <button
             type="button"
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md text-gray-500 dark:text-gray-300 hover:text-green-600 hover:border-green-400 transition-colors p-2 disabled:opacity-50 shadow-sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-500 transition-all duration-200"
             onClick={() => onGetCurrentLocation(true)}
             tabIndex={-1}
             aria-label="Use current location"
             style={{ zIndex: 10 }}
           >
-            <LocateFixed size={20} />
+            <LocateFixed size={16} />
           </button>
           {showPickupDropdown && pickupSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-600 rounded-lg shadow-lg z-[200] max-h-60 overflow-y-auto pointer-events-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white z-[200] max-h-72 overflow-y-auto pointer-events-auto border-t border-gray-100">
               {pickupSuggestions.slice(0, 6).map((suggestion, index) => (
                 <div
                   key={suggestion.name}
-                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
+                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-all duration-150 ${
                     index === pickupSelectedIndex
-                      ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700"
+                      ? "bg-gray-50"
                       : ""
                   }`}
                   onClick={(e) => {
@@ -238,10 +234,11 @@ export default function LocationSearch({
                     e.preventDefault();
                   }}
                 >
-                  <div className="font-medium text-gray-900 dark:text-white">
+                  <div className="font-medium text-gray-900 flex items-center">
+                    <MapPin className="h-3 w-3 text-blue-500 mr-2" />
                     {suggestion.name}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                  <div className="text-sm text-gray-500 ml-5">
                     {suggestion.address}
                   </div>
                 </div>
@@ -254,9 +251,9 @@ export default function LocationSearch({
 
       {/* Destination location input and See Details button */}
       <div className="flex flex-col gap-3">
-        <div className="flex items-center">
-          <div className="h-12 w-12 flex items-center justify-center bg-white dark:bg-gray-700 rounded-l-lg border-r border-gray-200 dark:border-gray-600">
-            <Navigation className="h-5 w-5 text-red-500" />
+        <div className="flex items-center relative">
+          <div className="h-10 w-10 flex items-center justify-center bg-white">
+            <Navigation className="h-4 w-4 text-red-500" />
           </div>
           <div className="relative w-full">
             <Input
@@ -266,16 +263,16 @@ export default function LocationSearch({
               value={destinationInput}
               onChange={(e) => handleDestinationInputChange(e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, destinationSuggestions, false)}
-              className="pl-4 text-gray-900 dark:text-white h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-red-400 bg-white dark:bg-gray-700 rounded-l-none"
+              className="pl-2 text-gray-900 h-10 border-0 border-b border-gray-200 focus:border-b focus:border-gray-300 bg-white rounded-none"
             />
             {showDestinationDropdown && destinationSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-white/20 dark:border-gray-600 rounded-lg shadow-lg z-[200] max-h-60 overflow-y-auto pointer-events-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white z-[200] max-h-72 overflow-y-auto pointer-events-auto border-t border-gray-100">
                 {destinationSuggestions.slice(0, 6).map((suggestion, index) => (
                   <div
                     key={suggestion.name}
-                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
+                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-all duration-150 ${
                       index === destinationSelectedIndex
-                        ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700"
+                        ? "bg-gray-50"
                         : ""
                     }`}
                     onClick={(e) => {
@@ -292,10 +289,11 @@ export default function LocationSearch({
                       e.preventDefault();
                     }}
                   >
-                    <div className="font-medium text-gray-900 dark:text-white">
+                    <div className="font-medium text-gray-900 flex items-center">
+                      <Navigation className="h-3 w-3 text-red-500 mr-2" />
                       {suggestion.name}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                    <div className="text-sm text-gray-500 ml-5">
                       {suggestion.address}
                     </div>
                   </div>
@@ -305,23 +303,23 @@ export default function LocationSearch({
           </div>
         </div>
 
-        {/* See Details button directly under destination input - Always visible with glass design */}
+        {/* See Details button directly under destination input - Always visible with clean design */}
         <Button
           onClick={onSeeDetails}
           disabled={(userRole === role.driver || userRole === role.admin || userRole === role.super_admin) || !pickupInput || !destinationInput || !pickupLocation || !dropoffLocation}
-          className={`w-full h-12 font-semibold text-base shadow-lg transition-all duration-200 backdrop-blur-md ${
+          className={`w-full h-10 font-medium text-sm transition-all duration-200 mt-2 ${
             (userRole === role.driver || userRole === role.admin || userRole === role.super_admin)
-              ? "bg-gray-400/80 cursor-not-allowed text-gray-600"
+              ? "bg-gray-100 cursor-not-allowed text-gray-400"
               : !pickupInput || !destinationInput || !pickupLocation || !dropoffLocation
-              ? "bg-black text-white cursor-not-allowed"
-              : "bg-black hover:bg-black-600/90 text-white hover:shadow-xl"
+              ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+              : "bg-black/95 hover:bg-black text-white"
           }`}
         >
           {(userRole === role.driver || userRole === role.admin || userRole === role.super_admin)
             ? "🚫 Booking Not Available"
             : !pickupInput || !destinationInput || !pickupLocation || !dropoffLocation
             ? "Select Locations to Continue"
-            : "Check Price"}
+            : "Check Price & Book Now"}
         </Button>
       </div>
 

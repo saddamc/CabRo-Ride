@@ -18,7 +18,16 @@ ReactDom.createRoot(document.getElementById("root")!).render(
           <Suspense fallback={<LoadingFallback />}>
             <RouterProvider router={router} />
           </Suspense>
-          <Toaster richColors/>
+          <Toaster richColors position="top-center" closeButton toastOptions={{
+            style: { 
+              // background: 'white', 
+              // color: '#333',
+              border: 'none',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+              borderRadius: '12px',
+              padding: '16px 20px'
+            }
+          }}/>
         </ThemeProvider>
       </ReduxProvider>
     </ErrorBoundary>

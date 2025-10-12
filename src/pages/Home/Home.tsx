@@ -29,11 +29,113 @@ const Home = () => {
       .animate-pulse-slow {
         animation: pulse-slow 3s infinite ease-in-out;
       }
+      
+      @keyframes fade-in-up {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .fade-in-up {
+        animation: fade-in-up 0.8s ease forwards;
+      }
+      
+      @keyframes slide-in-left {
+        0% {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      .slide-in-left {
+        animation: slide-in-left 0.6s ease forwards;
+      }
+      
+      @keyframes gradient-shift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      
+      .gradient-animation {
+        background-size: 200% 200%;
+        animation: gradient-shift 3s ease infinite;
+      }
+      
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      
+      .scroll-reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @keyframes cityAnimation {
+        0% {
+          background-position: 0% 0%;
+        }
+        100% {
+          background-position: 100% 0%;
+        }
+      }
+
+      .animated-city-bg {
+        background-size: 200% 100%;
+        animation: cityAnimation 40s linear infinite;
+      }
+
+      @keyframes carMoving {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100vw);
+        }
+      }
+
+      .animated-car {
+        animation: carMoving 15s linear infinite;
+      }
     `;
     document.head.appendChild(style);
     
+    // Scroll animation observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    // Observe all elements with the scroll-reveal class
+    document.querySelectorAll('.scroll-reveal').forEach(el => {
+      observer.observe(el);
+    });
+    
     return () => {
       document.head.removeChild(style);
+      document.querySelectorAll('.scroll-reveal').forEach(el => {
+        observer.unobserve(el);
+      });
     };
   }, []);
   const features = [
@@ -53,25 +155,6 @@ const Home = () => {
       description: 'Our strict quality control ensures only top-rated drivers with excellent service records serve you',
     },
   ];
-
-  // No longer needed as we're using inline service definitions
-  // const services = [
-  //   {
-  //     title: 'For Riders',
-  //     description: 'Book rides instantly with transparent pricing, real-time tracking, and multiple payment options including cash, mobile banking, and cards',
-  //     image: 'https://images.pexels.com/photos/1427541/pexels-photo-1427541.jpeg?auto=compress&cs=tinysrgb&w=400',
-  //   },
-  //   {
-  //     title: 'For Drivers',
-  //     description: 'Join our network to earn flexible income with our driver-friendly platform, fair commission rates, and weekly incentives',
-  //     image: 'https://images.pexels.com/photos/1319743/pexels-photo-1319743.jpeg?auto=compress&cs=tinysrgb&w=400',
-  //   },
-  //   {
-  //     title: 'For Business',
-  //     description: 'Comprehensive corporate solutions for employee transportation, client pickups, and logistics with detailed reporting and centralized billing',
-  //     image: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=400',
-  //   },
-  // ];
 
   const testimonials = [
     {
@@ -182,30 +265,32 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - Uber-style */}
-      <section className="relative bg-black text-white">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.uber-assets.com/image/upload/v1613106985/assets/0e/47aa71-35cb-459a-a975-78c61ea300e2/original/HP-U4B-NYC-bkg.png')] bg-cover bg-center opacity-50"></div>
+      {/* Hero Section - Animated City Background */}
+      <section className="relative bg-black text-white overflow-hidden">
+        {/* Animated City Background */}
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.pexels.com/photos/466685/pexels-photo-466685.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')] bg-cover animated-city-bg opacity-70"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-black/80 to-black/40"></div>
         
-        <div className="container mx-auto px-4 py-16 lg:py-28 relative z-10">
-          <div className="grid lg:grid-cols-[45%_55%] gap-10 items-center">
-            <div className="bg-white text-black p-6 rounded-xl shadow-xl">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2 text-black">Go anywhere with Cabro</h1>
-                <p className="text-gray-600">Request a ride, hop in, and go.</p>
+        <div className="container mx-auto px-4 py-8 lg:py-16 relative z-10">
+          <div className="grid lg:grid-cols-[45%_55%] gap-8 items-center">
+            <div className="bg-white/70 text-black m-12 pt-6 px-10 pb-4  rounded-xl shadow-xl">
+              <div className="mb-4">
+                <h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-black">Go anywhere with Cabro</h1>
+                <p className="text-gray-500">Request a ride, hop in, and go.</p>
               </div>
               
-              {/* Uber-style tab selector */}
-              <div className="flex border-b mb-6">
-                <button className="py-3 px-5 font-medium border-b-2 border-black">
+              {/* Simple tab selector */}
+              <div className="flex  border-b mb-4 ">
+                <button className="py-2 px-4 font-medium border-b-2 border-black text-black">
                   Ride
                 </button>
-                <button className="py-3 px-5 text-gray-500 font-medium">
+                <button className="py-2 px-4 font-medium text-gray-500">
                   Drive
                 </button>
               </div>
               
               {/* Simplified booking form */}
-              <div className="bg-white rounded-lg">
+              <div className="">
                 <LocationSearch
                   pickupLocation={pickupLocation}
                   dropoffLocation={dropoffLocation}
@@ -223,8 +308,8 @@ const Home = () => {
             </div>
             
             <div className="text-white">
-              <h2 className="text-5xl font-bold mb-6 leading-tight">The destination for <br />on-demand transportation</h2>
-              <p className="text-xl mb-8 opacity-90">Fast, reliable rides at your fingertips — anytime, anywhere in Bangladesh.</p>
+              <h2 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">The destination for <br />on-demand transportation</h2>
+              <p className="text-lg mb-6 opacity-90">Fast, reliable rides at your fingertips — anytime, anywhere in Bangladesh.</p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="bg-white !text-black hover:bg-gray-100">
                   <Users className="w-5 h-5 mr-2 text-black" />
@@ -242,70 +327,80 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Backend Connection Test */}
-      {/* <section className="py-10 bg-muted/50">
-        <div className="container px-4 mx-auto">
-          <div className="mb-8 text-center">
-            <h2 className="mb-2 text-2xl font-bold">Backend Connection Test</h2>
-            <p className="text-muted-foreground">Test your connection to the MongoDB backend</p>
-          </div>
-          <BackendConnectionTest />
-        </div>
-      </section> */}
 
-      {/* Sustainable Transport Section */}
-      <section className="py-16 bg-black text-white">
-        <div className="container px-4 mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold mb-6">Ride Green with Cabro</h2>
-              <p className="text-xl mb-8 text-gray-100">
+      {/* Sustainable Transport Section - Pure White Design */}
+      <section className="py-20 bg-white overflow-hidden">
+        <div className="container px-4 mx-auto relative">
+          <div className="grid md:grid-cols-2 gap-16 items-center relative">
+            <div className="scroll-reveal">
+              <h2 className="text-4xl font-bold mb-6 text-green-600">
+                Ride Green with Cabro
+              </h2>
+              <p className="text-xl mb-10 text-gray-600 leading-relaxed">
                 Join our eco-friendly initiative to reduce carbon footprints with shared rides and electric vehicle options.
               </p>
-              <div className="space-y-4">
+              
+              <div className="space-y-8">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-4">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center mr-5">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-9.618 5.04L12 21.044l9.618-13.06A11.955 11.955 0 0112 2.944z" />
                     </svg>
                   </div>
-                  <p className="text-lg">30% lower emissions with our shared ride options</p>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1 text-gray-800">30% Lower Emissions</h3>
+                    <p className="text-gray-600">Our shared ride options reduce your carbon footprint significantly</p>
+                  </div>
                 </div>
+                
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-4">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center mr-5">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <p className="text-lg">Growing fleet of electric and hybrid vehicles</p>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1 text-gray-800">Electric Fleet</h3>
+                    <p className="text-gray-600">Growing fleet of electric and hybrid vehicles for eco-friendly rides</p>
+                  </div>
                 </div>
+                
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-4">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center mr-5">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       <path d="M9 12l2 2 4-4" />
                     </svg>
                   </div>
-                  <p className="text-lg">Carbon offset program for every ride you take</p>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1 text-gray-800">Carbon Offset Program</h3>
+                    <p className="text-gray-600">We invest in environmental projects to offset your ride's carbon impact</p>
+                  </div>
                 </div>
               </div>
-              <div className="mt-8">
-                <Button size="lg" className="bg-white !text-green-800 hover:bg-gray-100">
+              
+              <div className="mt-10">
+                <Button 
+                  size="lg" 
+                  className="bg-green-600 hover:bg-green-700 text-white transition-all duration-200 py-6 px-8 rounded-lg text-lg"
+                >
                   Learn about our green initiatives
                 </Button>
               </div>
             </div>
             
-            <div className="flex justify-center md:justify-end">
-              <img 
-                src="https://images.pexels.com/photos/3912911/pexels-photo-3912911.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                alt="Electric car charging" 
-                className="rounded-lg shadow-lg w-full max-w-md"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://images.pexels.com/photos/110844/pexels-photo-110844.jpeg?auto=compress&cs=tinysrgb&w=800";
-                }}
-              />
+            <div className="flex justify-center md:justify-end scroll-reveal" style={{ transitionDelay: '0.2s' }}>
+              <div className="relative">
+                <img 
+                  src="https://images.pexels.com/photos/3912911/pexels-photo-3912911.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                  alt="Electric car charging" 
+                  className="rounded-xl w-full max-w-md relative z-10"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.pexels.com/photos/110844/pexels-photo-110844.jpeg?auto=compress&cs=tinysrgb&w=800";
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

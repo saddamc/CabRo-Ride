@@ -760,7 +760,7 @@ export default function DriverProfile() {
                               Cancel
                             </Button>
                             <Button
-                              className="bg-white border-black  hover:bg-black hover:text-white"
+                              className="bg-white text-black border-black  hover:bg-black hover:text-white"
                               onClick={handleChangePassword}
                               disabled={
                                 isChangingPassword ||

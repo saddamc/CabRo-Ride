@@ -315,7 +315,7 @@ export default function UpdateDriverProfileModal({
             <Button
               onClick={handleConfirm}
               disabled={isLoading}
-              className="bg-blue-500 hover:bg-blue-600"
+              className="bg-white text-black border-black  hover:bg-black hover:text-white"
             >
               {isLoading ? (
                 <>

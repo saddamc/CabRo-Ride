@@ -11,15 +11,13 @@ interface BookingButtonProps {
   handleReset: () => void;
   handleRequestRide: () => void;
   isRequestingRide: boolean;
-  selectedRideType: string;
 }
 
 const BookingButton: React.FC<BookingButtonProps> = ({
   userInfo,
   handleReset,
   handleRequestRide,
-  isRequestingRide,
-  selectedRideType
+  isRequestingRide
 }) => {
   const { toast } = useToast();
 
@@ -60,11 +58,11 @@ const BookingButton: React.FC<BookingButtonProps> = ({
             Cancel
           </button>
           <button
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md hover:bg-gray-800 disabled:opacity-50"
             onClick={checkRoleAndBook}
             disabled={isRequestingRide}
           >
-            {isRequestingRide ? 'Requesting...' : `Book ${selectedRideType.charAt(0).toUpperCase() + selectedRideType.slice(1)}`}
+            {isRequestingRide ? 'Requesting...' : 'Book Now'}
           </button>
         </div>
       )}

@@ -674,7 +674,6 @@ export default function BookingRide() {
                 handleReset={handleReset}
                 handleRequestRide={handleRequestRide}
                 isRequestingRide={isRequestingRide}
-                selectedRideType={selectedRideType}
               />
             </div>
 

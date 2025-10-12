@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Clock, DollarSign } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface RideSelectionProps {
   selectedRideType: string;
@@ -76,8 +76,8 @@ export default function RideSelection({
               {(rideDetails.distance / 1000).toFixed(2)} km
             </div>
             <div className="flex items-center">
-              <DollarSign size={16} className="mr-1" />
-              <span>৳{(() => {
+              {/* <DollarSign size={16} className="mr-1" /> */}
+              <span> <span className='text-lg font-bold'>৳</span> {(() => {
                 // Calculate real-time price based on selected ride type and actual distance
                 const selectedRide = rideTypes.find(ride => ride.id === selectedRideType);
                 if (selectedRide && rideDetails) {
@@ -145,7 +145,7 @@ export default function RideSelection({
                           "font-medium",
                           selectedRideType === ride.id ? "text-blue-600" : "text-gray-700 dark:text-gray-300"
                         )}>
-                          ৳{displayPrice}
+                          <span className='text-lg font-bold'>৳ </span>{displayPrice}
                         </span>
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{ride.description}</div>
