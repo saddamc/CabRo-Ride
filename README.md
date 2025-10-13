@@ -6,7 +6,7 @@ A comprehensive ride booking application similar to Uber featuring a modern Reac
 
 **Frontend**: [https://ride-5.vercel.app]
 
-**Backend API**: [https://ride-5.vercel.app/api/v1]
+**Backend API**: [https://ride-5.vercel.app]
 
 ## 📋 Project Overview
 
