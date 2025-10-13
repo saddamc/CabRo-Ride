@@ -45,7 +45,7 @@ This full-stack application provides a complete ride booking experience with rol
 ## 🛠 Technology Stack
 
 ### Frontend
-- **React 18** with TypeScript
+- **React** with TypeScript
 - **Vite** for build tooling
 - **Redux Toolkit** for state management
 - **React Router** for navigation
